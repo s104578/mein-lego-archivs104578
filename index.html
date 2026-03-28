@@ -19,7 +19,6 @@
         .action-bar { animation: slideDown 0.3s ease-out; }
         #detailModal { display: none; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); }
         
-        /* Custom Colors for Subthemes */
         .subtheme-ucs { background: linear-gradient(135deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c); color: #000; font-weight: 900; border: none; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-shadow: 0 0 1px rgba(255,255,255,0.5); }
         .subtheme-technic { background: #475569; color: white; }
         .subtheme-modular { background: #065f46; color: white; }
@@ -171,9 +170,14 @@
 
         function addSet(set) {
             if (mySets.some(s => s.setNumber === String(set.number))) return;
+            
+            // Preis-Logik mit Fallback auf US
             let retailPrice = 0;
-            if (set.LEGOCom && set.LEGOCom.DE) retailPrice = parseFloat(set.LEGOCom.DE.retailPrice);
-            else if (set.LEGOCom && set.LEGOCom.US) retailPrice = parseFloat(set.LEGOCom.US.retailPrice);
+            if (set.LEGOCom && set.LEGOCom.DE && set.LEGOCom.DE.retailPrice) {
+                retailPrice = parseFloat(set.LEGOCom.DE.retailPrice);
+            } else if (set.LEGOCom && set.LEGOCom.US && set.LEGOCom.US.retailPrice) {
+                retailPrice = parseFloat(set.LEGOCom.US.retailPrice);
+            }
 
             mySets.unshift({
                 setNumber: String(set.number),

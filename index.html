@@ -57,7 +57,7 @@
                     Hinzufügen
                 </button>
             </div>
-            <p id="apiStatus" class="text-center mt-4 text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Bereit zum Scannen</p>
+            <p id="apiStatus" class="text-center mt-4 text-[10px] font-black text-slate-400 uppercase tracking-widest italic leading-loose">Bereit zum Scannen</p>
         </div>
 
         <div id="library" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
@@ -66,8 +66,6 @@
 
     <script>
         const API_KEY = '3-N4Lr-Ug0H-M49ki';
-        const PROXY_URL = "https://api.allorigins.win/get?url=";
-        
         let mySets = JSON.parse(localStorage.getItem('bricksetCollection')) || [];
 
         const scanInput = document.getElementById('barcodeInput');
@@ -93,40 +91,60 @@
             const query = scanInput.value.trim();
             if (!query) return;
 
-            updateStatus("Verbindung zur API wird hergestellt...", "text-blue-500 animate-pulse");
+            updateStatus("Verbindung wird hergestellt...", "text-blue-500 animate-pulse");
             const bricksetUrl = `https://brickset.com/api/v3.asmx/getSets?apiKey=${API_KEY}&userHash=&params={'query':'${query}'}`;
             
-            try {
-                // Fetch über Proxy
-                const response = await fetch(PROXY_URL + encodeURIComponent(bricksetUrl));
-                if (!response.ok) throw new Error("Proxy-Server-Fehler");
-                
-                const dataRaw = await response.json();
-                
-                // Falls AllOrigins nichts liefert
-                if (!dataRaw.contents) throw new Error("Keine Daten vom Proxy erhalten");
+            // PROXY ROTATION: Wir definieren zwei verschiedene Proxys
+            const proxyUrls = [
+                `https://api.allorigins.win/get?url=${encodeURIComponent(bricksetUrl)}`,
+                `https://corsproxy.io/?${encodeURIComponent(bricksetUrl)}`
+            ];
 
-                const data = JSON.parse(dataRaw.contents);
+            let success = false;
+            let lastError = "";
 
-                if (data.status === "success" && data.matches > 0) {
-                    addSet(data.sets[0]);
-                    updateStatus("Set gefunden und hinzugefügt!", "text-green-600");
-                    scanInput.value = '';
-                } else if (data.status === "error") {
-                    updateStatus("Brickset-Fehler: " + data.message, "text-red-500");
-                } else {
-                    updateStatus("Set-Nummer nicht im Katalog", "text-orange-500");
+            for (let url of proxyUrls) {
+                if (success) break;
+                try {
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error("Proxy-Fehler");
+                    
+                    const dataRaw = await response.json();
+                    // AllOrigins packt Daten in .contents, Corsproxy.io liefert direkt JSON
+                    const data = dataRaw.contents ? JSON.parse(dataRaw.contents) : dataRaw;
+
+                    if (data.status === "success" && data.matches > 0) {
+                        addSet(data.sets[0]);
+                        updateStatus("Set gefunden!", "text-green-600");
+                        scanInput.value = '';
+                        success = true;
+                    } else if (data.status === "success" && data.matches === 0) {
+                        updateStatus("Nummer nicht im Katalog", "text-orange-500");
+                        success = true;
+                    } else if (data.status === "error") {
+                        lastError = data.message;
+                    }
+                } catch (error) {
+                    lastError = "Proxy-Überlastung";
+                    console.error("Versuche nächsten Proxy...", error);
                 }
-            } catch (error) {
-                console.error("Fehlerbericht:", error);
-                updateStatus("API-Verbindung fehlgeschlagen (Proxy)", "text-red-600");
+            }
+
+            if (!success) {
+                updateStatus("API-FEHLER (CORS/PROXY): " + lastError, "text-red-600");
             }
         }
 
         function addSet(set) {
             if (mySets.some(s => s.setNumber === set.number)) {
-                updateStatus("Set ist bereits in deiner Liste", "text-orange-500");
+                updateStatus("Bereits in deiner Sammlung", "text-orange-500");
                 return;
+            }
+
+            // Sicherer Preis-Check gegen "undefined"
+            let retailPrice = 0;
+            if (set.LEGOCom && set.LEGOCom.DE && set.LEGOCom.DE.retailPrice) {
+                retailPrice = parseFloat(set.LEGOCom.DE.retailPrice);
             }
 
             mySets.unshift({
@@ -135,8 +153,8 @@
                 year: set.year,
                 pieces: set.pieces || 0,
                 theme: set.theme,
-                image: (set.image && set.image.imageURL) ? set.image.imageURL : 'https://via.placeholder.com/300x200?text=Bild+fehlt',
-                price: (set.LEGOCom && set.LEGOCom.DE) ? parseFloat(set.LEGOCom.DE.retailPrice) : 0,
+                image: (set.image && set.image.imageURL) ? set.image.imageURL : 'https://via.placeholder.com/300x200?text=Lego+Set',
+                price: retailPrice,
                 addedAt: new Date().toLocaleDateString()
             });
 
@@ -144,7 +162,7 @@
         }
 
         function deleteSet(num) {
-            if(confirm("Dieses Set wirklich löschen?")) {
+            if(confirm("Set aus Datenbank entfernen?")) {
                 mySets = mySets.filter(s => s.setNumber !== num);
                 saveAndRender();
             }
@@ -158,8 +176,8 @@
         }
 
         function updateStats() {
-            const totalParts = mySets.reduce((sum, s) => sum + s.pieces, 0);
-            const totalValue = mySets.reduce((sum, s) => sum + s.price, 0);
+            const totalParts = mySets.reduce((sum, s) => sum + (s.pieces || 0), 0);
+            const totalValue = mySets.reduce((sum, s) => sum + (s.price || 0), 0);
             document.getElementById('statSets').innerText = mySets.length;
             document.getElementById('statParts').innerText = totalParts.toLocaleString();
             document.getElementById('statValue').innerText = totalValue.toFixed(2) + " €";
@@ -191,7 +209,7 @@
                     <div class="h-48 bg-white flex items-center justify-center p-6">
                         <img src="${set.image}" alt="${set.name}" class="max-h-full max-w-full object-contain drop-shadow-xl" loading="lazy">
                     </div>
-                    <div class="p-6">
+                    <div class="p-6 pt-0">
                         <div class="flex justify-between items-start mb-2">
                             <span class="text-[9px] font-black text-blue-600 bg-blue-50 px-2 py-1 rounded uppercase tracking-widest">${set.theme}</span>
                             <span class="text-[9px] font-bold text-slate-400">${set.year}</span>
@@ -203,7 +221,7 @@
                                 <p>${set.pieces} TEILE</p>
                             </div>
                             <div class="text-right">
-                                <p class="text-lg font-extrabold text-slate-900">${set.price > 0 ? set.price.toFixed(2) + " €" : "---"}</p>
+                                <p class="text-lg font-extrabold text-slate-900">${set.price > 0 ? set.price.toFixed(2) + " €" : "0.00 €"}</p>
                             </div>
                         </div>
                     </div>
@@ -218,17 +236,17 @@
         }
 
         function exportCSV() {
-            if(mySets.length === 0) return alert("Die Liste ist leer.");
+            if(mySets.length === 0) return alert("Liste leer.");
             let csv = "\uFEFFSet-Nr;Name;Thema;Jahr;Teile;Preis\n";
             mySets.forEach(s => csv += `${s.setNumber};"${s.name}";${s.theme};${s.year};${s.pieces};${s.price}\n`);
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
-            link.download = `LEGO_Sammlung_${new Date().toLocaleDateString()}.csv`;
+            link.download = `LEGO_Sammlung.csv`;
             link.click();
         }
 
-        // Initialisierung
+        // Init
         updateStats();
         updateCategories();
         renderLibrary();

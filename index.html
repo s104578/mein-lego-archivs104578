@@ -15,12 +15,13 @@
         .set-card:hover .delete-btn { opacity: 1; }
         @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
         .animate-card { animation: fadeIn 0.3s ease-out forwards; }
-        .modal-bg { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); display: none; }
+        /* FIX: Modal explizit unsichtbar beim Start */
+        #detailModal { display: none; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); }
     </style>
 </head>
 <body class="min-h-screen pb-12">
 
-    <div id="detailModal" class="fixed inset-0 z-[100] modal-bg flex items-center justify-center p-4">
+    <div id="detailModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-4xl rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col md:flex-row relative animate-card">
             <button onclick="closeModal()" class="absolute top-6 right-6 text-slate-400 hover:text-slate-600 z-10">
                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
@@ -28,7 +29,7 @@
             
             <div class="md:w-1/2 bg-slate-50 p-8 flex flex-col items-center justify-center border-r border-slate-100">
                 <img id="modalImg" src="" class="max-h-64 object-contain drop-shadow-2xl mb-8">
-                <div class="w-full space-y-2">
+                <div class="w-full space-y-2 text-center md:text-left">
                     <p class="text-xs font-black text-blue-600 uppercase tracking-widest" id="modalTheme"></p>
                     <h2 class="text-2xl font-extrabold text-slate-800" id="modalName"></h2>
                     <p class="text-slate-400 font-bold" id="modalId"></p>
@@ -104,7 +105,7 @@
             <div class="bg-white p-2 rounded-[2.5rem] shadow-2xl shadow-blue-900/10 flex items-center border-4 border-white">
                 <input type="text" id="barcodeInput" autofocus 
                     class="flex-1 pl-8 pr-4 py-4 rounded-[2rem] text-xl font-medium outline-none placeholder-slate-300"
-                    placeholder="Barcode scannen...">
+                    placeholder="Barcode oder Set-Nr. scannen...">
                 <button onclick="fetchFromBrickset()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-10 rounded-[2rem] transition-all shadow-lg active:scale-95">
                     Hinzufügen
                 </button>
@@ -125,6 +126,7 @@
         const dbSearchInput = document.getElementById('searchLibrary');
         const catSelect = document.getElementById('filterCategory');
 
+        let focusTimer;
         function resetFocusTimer() {
             clearTimeout(focusTimer);
             focusTimer = setTimeout(() => {
@@ -134,7 +136,6 @@
                 }
             }, 5000);
         }
-        let focusTimer;
         document.addEventListener('keydown', resetFocusTimer);
         document.addEventListener('mousedown', resetFocusTimer);
         
@@ -148,7 +149,6 @@
             const proxyUrls = [`https://api.allorigins.win/get?url=${encodeURIComponent(bricksetUrl)}`, `https://corsproxy.io/?${encodeURIComponent(bricksetUrl)}` ];
 
             let success = false;
-            let lastError = "";
             for (let url of proxyUrls) {
                 if (success) break;
                 try {
@@ -161,12 +161,12 @@
                         scanInput.value = '';
                         success = true;
                     } else if (data.status === "success" && data.matches === 0) {
-                        updateStatus("Nummer nicht im Katalog", "text-orange-500");
+                        updateStatus("Nummer unbekannt", "text-orange-500");
                         success = true;
                     }
-                } catch (error) { lastError = "Proxy-Überlastung"; }
+                } catch (error) { console.error("Proxy fail"); }
             }
-            if (!success) updateStatus("API-FEHLER: " + lastError, "text-red-600");
+            if (!success) updateStatus("Verbindung fehlgeschlagen", "text-red-600");
         }
 
         function addSet(set) {
@@ -213,11 +213,11 @@
             const bN = document.getElementById('btnNew');
             const bU = document.getElementById('btnUsed');
             if(s === 'New') {
-                bN.className = "flex-1 py-3 rounded-xl border-2 font-bold bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-100";
-                bU.className = "flex-1 py-3 rounded-xl border-2 font-bold bg-white border-slate-100 text-slate-400 hover:border-slate-200";
+                bN.className = "flex-1 py-3 rounded-xl border-2 font-bold bg-blue-600 border-blue-600 text-white shadow-lg";
+                bU.className = "flex-1 py-3 rounded-xl border-2 font-bold bg-white border-slate-100 text-slate-400";
             } else {
-                bU.className = "flex-1 py-3 rounded-xl border-2 font-bold bg-slate-800 border-slate-800 text-white shadow-lg shadow-slate-100";
-                bN.className = "flex-1 py-3 rounded-xl border-2 font-bold bg-white border-slate-100 text-slate-400 hover:border-slate-200";
+                bU.className = "flex-1 py-3 rounded-xl border-2 font-bold bg-slate-800 border-slate-800 text-white shadow-lg";
+                bN.className = "flex-1 py-3 rounded-xl border-2 font-bold bg-white border-slate-100 text-slate-400";
             }
         }
 
@@ -232,6 +232,7 @@
             }
         }
 
+        // FIX: Importiert nun alle Felder inklusive BildURL, Zustand & Subtheme
         function importCSV(input) {
             const file = input.files[0];
             const reader = new FileReader();
@@ -240,7 +241,7 @@
                 const rows = text.split('\n').slice(1);
                 rows.forEach(row => {
                     const cols = row.split(';');
-                    if(cols.length >= 6) {
+                    if(cols.length >= 9) {
                         const id = cols[0].replace("\uFEFF", "");
                         if(!mySets.some(s => s.setNumber === id)) {
                             mySets.push({
@@ -250,10 +251,10 @@
                                 year: cols[3],
                                 pieces: parseInt(cols[4]) || 0,
                                 price: parseFloat(cols[5]) || 0,
-                                subtheme: "",
-                                status: "Used",
-                                image: 'https://via.placeholder.com/300x200?text=Imported',
-                                addedAt: new Date().toLocaleDateString()
+                                subtheme: cols[6] || "",
+                                status: cols[7] || "Used",
+                                image: cols[8] || 'https://via.placeholder.com/300x200',
+                                addedAt: cols[9] || new Date().toLocaleDateString()
                             });
                         }
                     }
@@ -265,7 +266,7 @@
 
         function deleteSet(num, event) {
             event.stopPropagation();
-            if(confirm("Set entfernen?")) {
+            if(confirm("Set löschen?")) {
                 mySets = mySets.filter(s => s.setNumber !== num);
                 saveAndRender();
             }
@@ -288,7 +289,8 @@
 
         function updateCategories() {
             const themes = [...new Set(mySets.map(s => s.theme))].sort();
-            catSelect.innerHTML = '<option value="all">Alle Themen</option>' + themes.map(t => `<option value="${t}">${t}</option>`).join('');
+            const current = catSelect.value;
+            catSelect.innerHTML = '<option value="all">Alle Themen</option>' + themes.map(t => `<option value="${t}" ${t === current ? 'selected' : ''}>${t}</option>`).join('');
         }
 
         function renderLibrary() {
@@ -312,7 +314,7 @@
                     <div class="p-6 pt-2">
                         <div class="flex justify-between items-start mb-2">
                             <span class="text-[9px] font-black text-blue-600 bg-blue-50 px-2 py-1 rounded uppercase tracking-widest">${set.theme}</span>
-                            <div class="text-slate-300 hover:text-blue-500 transition-colors">
+                            <div class="text-slate-300">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                             </div>
                         </div>
@@ -337,14 +339,17 @@
             el.className = `text-center mt-4 text-[10px] font-black uppercase tracking-widest italic ${colorClass}`;
         }
 
+        // FIX: Exportiert nun alle Felder für einen perfekten Re-Import
         function exportCSV() {
             if(mySets.length === 0) return alert("Liste leer.");
-            let csv = "\uFEFFSet-Nr;Name;Thema;Jahr;Teile;Preis\n";
-            mySets.forEach(s => csv += `${s.setNumber};"${s.name}";${s.theme};${s.year};${s.pieces};${s.price}\n`);
+            let csv = "\uFEFFSet-Nr;Name;Thema;Jahr;Teile;Preis;Subtheme;Zustand;BildURL;Datum\n";
+            mySets.forEach(s => {
+                csv += `${s.setNumber};"${s.name}";${s.theme};${s.year};${s.pieces};${s.price};${s.subtheme || ""};${s.status || "Used"};${s.image};${s.addedAt}\n`;
+            });
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
-            link.download = `LEGO_Sammlung.csv`;
+            link.download = `LEGO_Sammlung_Backup.csv`;
             link.click();
         }
 

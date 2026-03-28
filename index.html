@@ -140,9 +140,8 @@
 
     <script>
         const API_KEY = '3-N4Lr-Ug0H-M49ki';
-        const BRICKLINK_KEY = '97ECB800C6634D9F90CB476F53E65973'; 
-
-        // Daten-Persistenz: Initiales Laden aus LocalStorage
+        const BRICKLINK_KEY = '97ECB800C6634D9F90CB476F53E65973';
+        
         let mySets = JSON.parse(localStorage.getItem('bricksetCollection')) || [];
         let currentEditId = null;
         let currentStatus = "Used";
@@ -157,42 +156,88 @@
         async function fetchFromBrickset() {
             const query = scanInput.value.trim();
             if (!query) return;
-            updateStatus("Brickset Abfrage...", "text-blue-500 animate-pulse");
+            updateStatus("Verbinde Brickset...", "text-blue-500 animate-pulse");
+            
             const bricksetUrl = `https://brickset.com/api/v3.asmx/getSets?apiKey=${API_KEY}&userHash=&params={'query':'${query}'}`;
+            
             try {
                 const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(bricksetUrl)}`);
                 const dataRaw = await response.json();
                 const data = JSON.parse(dataRaw.contents);
+                
                 if (data.status === "success" && data.matches > 0) {
-                    await addSetLogic(data.sets[0]);
-                    scanInput.value = '';
-                } else { updateStatus("Keine Treffer", "text-orange-500"); }
-            } catch (error) { updateStatus("Verbindungsfehler", "text-red-600"); }
+                    await addSet(data.sets[0]);
+                } else {
+                    // Fallback Bricklink
+                    updateStatus("Brickset leer, versuche Bricklink...", "text-orange-500");
+                    await fetchFromBricklinkFallback(query);
+                }
+            } catch (error) {
+                updateStatus("Brickset Fehler, versuche Bricklink...", "text-red-600");
+                await fetchFromBricklinkFallback(query);
+            }
         }
 
-        async function addSetLogic(set) {
+        async function fetchFromBricklinkFallback(setNum) {
+            // Bricklink API Suche (vereinfachte Darstellung über Proxy)
+            const blUrl = `https://api.bricklink.com/api/store/v1/items/SET/${setNum}`;
+            try {
+                const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(blUrl)}`);
+                const dataRaw = await response.json();
+                const data = JSON.parse(dataRaw.contents);
+                
+                if (data.data && data.data.no) {
+                    const blSet = {
+                        number: data.data.no,
+                        name: data.data.name,
+                        year: data.data.year_released,
+                        pieces: 0, 
+                        theme: "Unbekannt",
+                        subtheme: "",
+                        image: { imageURL: `https://img.bricklink.com/ItemImage/SN/0/${data.data.no}.png` }
+                    };
+                    await addSet(blSet);
+                } else {
+                    updateStatus("Keine Daten gefunden", "text-orange-500");
+                }
+            } catch (e) {
+                updateStatus("API Verbindungsfehler", "text-red-600");
+            }
+        }
+
+        async function getBricklinkMarketValue(setNum, status) {
+            const condition = status === "New" ? "N" : "U";
+            // Abfrage der Price Guide Daten der letzten 6 Monate
+            const blPriceUrl = `https://api.bricklink.com/api/store/v1/items/SET/${setNum}/price?guide_type=sold&new_or_used=${condition}`;
+            try {
+                const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(blPriceUrl)}`);
+                const dataRaw = await response.json();
+                const data = JSON.parse(dataRaw.contents);
+                
+                if (data.data && data.data.avg_price) {
+                    return parseFloat(data.data.avg_price);
+                }
+            } catch (e) { console.error("Bricklink Price Error", e); }
+            return null;
+        }
+
+        async function addSet(set) {
             if (mySets.some(s => s.setNumber === String(set.number))) {
-                updateStatus("Bereits vorhanden", "text-orange-400");
+                updateStatus("Set bereits vorhanden", "text-orange-500");
                 return;
             }
             
-            // 1. Intelligente UVP-Suche: Prio DE -> Fallback US (1:1 Übernahme)
+            // 1. RRP Logik: DE bevorzugt, US als Fallback 1:1
             let retailPrice = 0;
-            if (set.LEGOCom?.DE?.retailPrice) {
+            if (set.LEGOCom && set.LEGOCom.DE && set.LEGOCom.DE.retailPrice) {
                 retailPrice = parseFloat(set.LEGOCom.DE.retailPrice);
-            } else if (set.LEGOCom?.US?.retailPrice) {
+            } else if (set.LEGOCom && set.LEGOCom.US && set.LEGOCom.US.retailPrice) {
                 retailPrice = parseFloat(set.LEGOCom.US.retailPrice);
             }
 
-            // 2. Marktwert-Logik: Brickset -> Fallback BrickLink (Used Price Guide)
-            let marketValue = 0;
-            if (set.collection?.currentValue) {
-                marketValue = parseFloat(set.collection.currentValue);
-            } else {
-                updateStatus("Hole BrickLink Daten...", "text-blue-400");
-                marketValue = await getBrickLinkPrice(set.number);
-                if (marketValue === 0) marketValue = retailPrice; 
-            }
+            // 2. Marktwert von Bricklink ziehen (Standardmäßig für "Used")
+            updateStatus("Ermittle Marktwert...", "text-blue-400 animate-pulse");
+            const marketValue = await getBricklinkMarketValue(set.number, "Used") || retailPrice;
 
             mySets.unshift({
                 setNumber: String(set.number),
@@ -209,24 +254,9 @@
             });
 
             updateStatus("Set hinzugefügt!", "text-green-600");
+            scanInput.value = '';
             saveAndRender();
         }
-
-        async function getBrickLinkPrice(num) {
-            // BrickLink Price Guide für "Used" 6-Monats-Schnitt via Proxy
-            const blUrl = `https://api.bricklink.com/api/store/v1/items/SET/${num}/price?guide_type=sold&new_or_used=U`;
-            try {
-                const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(blUrl)}`, {
-                    headers: { "Authorization": `Status ${BRICKLINK_KEY}` }
-                });
-                const res = await response.json();
-                const data = JSON.parse(res.contents);
-                // Extrahiere avg_sold_price
-                return data?.data?.avg_sold_price ? parseFloat(data.data.avg_sold_price) : 0;
-            } catch (e) { return 0; }
-        }
-
-        // --- UI & Bulk Aktionen ---
 
         function toggleSelection(id, event) {
             event.stopPropagation();
@@ -248,14 +278,14 @@
 
         function clearSelection() {
             selectedSets.clear();
-            renderLibrary();
+            const checkboxes = document.querySelectorAll('.select-checkbox');
+            checkboxes.forEach(cb => cb.checked = false);
             updateActionBar();
         }
 
         function applyBulkActions() {
             const newStatus = document.getElementById('bulkStatus').value;
             const newSubtheme = document.getElementById('bulkSubtheme').value.trim();
-            
             mySets = mySets.map(s => {
                 if (selectedSets.has(s.setNumber)) {
                     if (newStatus) s.status = newStatus;
@@ -265,8 +295,6 @@
             });
             clearSelection();
             saveAndRender();
-            document.getElementById('bulkSubtheme').value = "";
-            document.getElementById('bulkStatus').value = "";
         }
 
         function deleteSelected() {
@@ -287,7 +315,7 @@
             document.getElementById('modalId').innerText = "#" + set.setNumber;
             document.getElementById('modalDate').innerText = set.addedAt;
             document.getElementById('editRetailPrice').value = (set.price || 0).toFixed(2);
-            document.getElementById('editCurrentValue').value = (set.currentValue || 0).toFixed(2);
+            document.getElementById('editCurrentValue').value = (set.currentValue || set.price || 0).toFixed(2);
             document.getElementById('editSubtheme').value = set.subtheme || "";
             setStatus(set.status || "Used");
             document.getElementById('detailModal').style.display = 'flex';
@@ -434,7 +462,6 @@
             reader.readAsText(input.files[0]);
         }
 
-        // Initiale Ausführung
         saveAndRender();
     </script>
 </body>

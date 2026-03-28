@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brickset Collector Pro 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); }
+        .set-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .set-card:hover { transform: translateY(-4px); shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1); }
+        .delete-btn { opacity: 0; transition: opacity 0.2s; }
+        .set-card:hover .delete-btn { opacity: 1; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-item { animation: slideIn 0.4s ease-out forwards; }
+    </style>
+</head>
+<body class="bg-[#f8fafc] min-h-screen pb-20">
+
+    <div class="max-w-6xl mx-auto p-4 md:p-8">
+        <header class="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
+            <div>
+                <h1 class="text-4xl font-extrabold text-blue-600 tracking-tighter">BRICKSET<span class="text-slate-400 font-light">DB</span></h1>
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-[0.3em]">Inventory Manager</p>
+            </div>
+            
+            <div class="flex flex-wrap gap-3 items-center bg-white p-2 rounded-2xl shadow-sm border border-slate-200">
+                <select id="filterCategory" onchange="renderLibrary()" class="bg-slate-50 border-none rounded-xl px-4 py-2 text-sm font-semibold outline-none focus:ring-2 ring-blue-500/20 cursor-pointer">
+                    <option value="all">Alle Themen</option>
+                </select>
+                <div class="h-6 w-[1px] bg-slate-200 mx-1"></div>
+                <input type="text" id="searchLibrary" oninput="renderLibrary()" placeholder="Sammlung durchsuchen..." 
+                    class="bg-transparent border-none px-2 py-2 text-sm outline-none w-48 md:w-64">
+                <button onclick="exportCSV()" class="bg-blue-50 hover:bg-blue-100 text-blue-600 px-4 py-2 rounded-xl text-xs font-bold transition-all uppercase tracking-wider">Export</button>
+            </div>
+        </header>
+
+        <div class="glass p-8 rounded-[2rem] shadow-2xl shadow-blue-900/5 border border-white mb-12 relative overflow-hidden">
+            <div class="relative z-10">
+                <div class="flex flex-col md:flex-row gap-4 items-center">
+                    <div class="relative flex-1 w-full">
+                        <div class="absolute left-5 top-1/2 -translate-y-1/2 text-blue-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" /></svg>
+                        </div>
+                        <input type="text" id="barcodeInput" autofocus 
+                            class="w-full pl-14 pr-6 py-5 bg-white/50 border-2 border-slate-100 rounded-2xl text-xl font-medium focus:border-blue-500 focus:bg-white outline-none transition-all shadow-inner placeholder-slate-300"
+                            placeholder="Set-Nummer scannen oder tippen...">
+                    </div>
+                    <button onclick="fetchFromBrickset()" id="scanBtn" class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-5 px-12 rounded-2xl transition-all shadow-lg shadow-blue-200 active:scale-95">
+                        Hinzufügen
+                    </button>
+                </div>
+                <div id="apiStatusContainer" class="flex justify-center mt-4">
+                    <p id="apiStatus" class="text-[10px] font-black text-slate-400 uppercase tracking-[0.25em]">Bereit für Scan</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="library" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            </div>
+    </div>
+
+    <script>
+        const API_KEY = '3-N4Lr-Ug0H-M49ki';
+        const PROXY_URL = "https://api.allorigins.win/get?url=";
+        
+        let mySets = JSON.parse(localStorage.getItem('bricksetCollection')) || [];
+
+        // --- FOKUS MANAGEMENT ---
+        const scanInput = document.getElementById('barcodeInput');
+        const dbSearchInput = document.getElementById('searchLibrary');
+        const catSelect = document.getElementById('filterCategory');
+
+        // Fokus zurück, wenn User 8 Sek inaktiv ist (erlaubt ungestörtes Suchen/Filtern)
+        let focusTimer;
+        function resetFocusTimer() {
+            clearTimeout(focusTimer);
+            focusTimer = setTimeout(() => {
+                if (document.activeElement !== dbSearchInput && document.activeElement !== catSelect) {
+                    scanInput.focus();
+                }
+            }, 8000);
+        }
+        document.addEventListener('mousemove', resetFocusTimer);
+        document.addEventListener('keydown', resetFocusTimer);
+
+        scanInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') fetchFromBrickset(); });
+
+        async function fetchFromBrickset() {
+            const query = scanInput.value.trim();
+            if (!query) return;
+
+            updateStatus("Verbindung wird aufgebaut...", "text-blue-500 animate-pulse");
+            
+            // Korrekte Brickset v3 URL
+            const bricksetUrl = `https://brickset.com/api/v3.asmx/getSets?apiKey=${API_KEY}&userHash=&params={'query':'${query}'}`;
+            
+            try {
+                const response = await fetch(PROXY_URL + encodeURIComponent(bricksetUrl));
+                if (!response.ok) throw new Error("Proxy Fehler");
+                
+                const dataRaw = await response.json();
+                const data = JSON.parse(dataRaw.contents);
+
+                if (data.status === "success" && data.matches > 0) {
+                    addSet(data.sets[0]);
+                    updateStatus("Set erfolgreich geladen", "text-green-600");
+                    scanInput.value = '';
+                } else {
+                    updateStatus(data.message || "Set nicht gefunden", "text-orange-500");
+                }
+            } catch (error) {
+                console.error(error);
+                updateStatus("API-Verbindung fehlgeschlagen (CORS/Proxy)", "text-red-600");
+            }
+        }
+
+        function addSet(set) {
+            if (mySets.some(s => s.setNumber === set.number)) {
+                updateStatus("Bereits in Sammlung", "text-orange-500");
+                return;
+            }
+
+            const newSet = {
+                setNumber: set.number,
+                name: set.name,
+                year: set.year,
+                pieces: set.pieces,
+                theme: set.theme,
+                image: (set.image && set.image.imageURL) ? set.image.imageURL : 'https://via.placeholder.com/300x200?text=Lego+Set',
+                retailPrice: (set.LEGOCom && set.LEGOCom.DE) ? set.LEGOCom.DE.retailPrice : "N/A",
+                addedAt: new Date().toLocaleDateString()
+            };
+
+            mySets.unshift(newSet);
+            updateCategories();
+            saveAndRender();
+        }
+
+        function deleteSet(num) {
+            mySets = mySets.filter(s => s.setNumber !== num);
+            updateCategories();
+            saveAndRender();
+        }
+
+        function updateCategories() {
+            const themes = [...new Set(mySets.map(s => s.theme))].sort();
+            const current = catSelect.value;
+            catSelect.innerHTML = '<option value="all">Alle Themen</option>' + 
+                themes.map(t => `<option value="${t}" ${t === current ? 'selected' : ''}>${t}</option>`).join('');
+        }
+
+        function saveAndRender() {
+            localStorage.setItem('bricksetCollection', JSON.stringify(mySets));
+            renderLibrary();
+        }
+
+        function renderLibrary() {
+            const container = document.getElementById('library');
+            const searchTerm = dbSearchInput.value.toLowerCase();
+            const category = catSelect.value;
+
+            const filtered = mySets.filter(s => {
+                const matchesSearch = s.name.toLowerCase().includes(searchTerm) || s.setNumber.includes(searchTerm);
+                const matchesCat = category === "all" || s.theme === category;
+                return matchesSearch && matchesCat;
+            });
+
+            container.innerHTML = filtered.map(set => `
+                <div class="set-card bg-white rounded-[1.5rem] shadow-sm border border-slate-200 overflow-hidden relative animate-item">
+                    <button onclick="deleteSet('${set.setNumber}')" class="delete-btn absolute top-4 right-4 bg-white/90 text-red-500 p-2 rounded-xl hover:bg-red-500 hover:text-white transition-all z-10 shadow-sm border border-slate-100">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                    </button>
+                    <div class="h-52 bg-white flex items-center justify-center p-8">
+                        <img src="${set.image}" alt="${set.name}" class="max-h-full max-w-full object-contain drop-shadow-2xl">
+                    </div>
+                    <div class="p-6 pt-0">
+                        <div class="text-[9px] font-black text-blue-500 mb-1 uppercase tracking-widest">${set.theme}</div>
+                        <h3 class="font-bold text-slate-800 leading-tight h-10 overflow-hidden mb-4 text-sm">${set.name}</h3>
+                        <div class="flex justify-between items-center bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                            <div class="text-[10px] text-slate-400 font-bold uppercase leading-tight">
+                                <p class="text-slate-600">ID: ${set.setNumber}</p>
+                                <p>${set.pieces || '0'} TEILE</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm font-black text-slate-900">${set.retailPrice === "N/A" ? "---" : set.retailPrice + " €"}</p>
+                                <p class="text-[9px] text-slate-400 font-medium">${set.year}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateStatus(msg, colorClass) {
+            const el = document.getElementById('apiStatus');
+            el.innerText = msg;
+            el.className = `text-[10px] font-black uppercase tracking-[0.25em] ${colorClass}`;
+        }
+
+        function exportCSV() {
+            if(mySets.length === 0) return alert("Sammlung ist leer!");
+            let csv = "\uFEFFSet-Nummer;Name;Thema;Jahr;Teile;Preis\n";
+            mySets.forEach(s => csv += `${s.setNumber};"${s.name}";${s.theme};${s.year};${s.pieces};${s.retailPrice}\n`);
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = "Lego_Sammlung.csv";
+            link.click();
+        }
+
+        // Init
+        updateCategories();
+        renderLibrary();
+    </script>
+</body>
+</html>

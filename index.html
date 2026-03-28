@@ -39,7 +39,7 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div class="bg-slate-50 p-4 rounded-2xl">
                         <p class="text-[10px] font-black text-slate-400 uppercase">Original UVP (RRP)</p>
-                        <p id="modalRetailPrice" class="font-bold text-slate-600 text-sm">---</p>
+                        <input type="number" id="editRetailPrice" step="0.01" class="bg-transparent font-bold text-slate-600 w-full outline-none text-sm">
                     </div>
                     <div class="bg-blue-50 p-4 rounded-2xl border border-blue-100">
                         <p class="text-[10px] font-black text-blue-500 uppercase">Marktwert (Current)</p>
@@ -79,10 +79,13 @@
                 <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">BRICKSET<span class="text-blue-600">CLOUD</span></h1>
             </div>
 
-            <div class="flex gap-6 text-center">
+            <div class="flex gap-6 text-center items-center">
                 <div><p class="text-[10px] uppercase font-black text-slate-400">Sets</p><p id="statSets" class="font-bold text-slate-800">0</p></div>
                 <div><p class="text-[10px] uppercase font-black text-slate-400">Teile</p><p id="statParts" class="font-bold text-slate-800">0</p></div>
                 <div><p class="text-[10px] uppercase font-black text-slate-400">Sammlungswert</p><p id="statValue" class="font-bold text-blue-600">0.00 €</p></div>
+                <button onclick="clearCollection()" class="ml-2 p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all" title="Sammlung leeren">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                </button>
             </div>
 
             <div class="flex gap-2">
@@ -157,7 +160,6 @@
         function addSet(set) {
             if (mySets.some(s => s.setNumber === set.number)) return;
             
-            // Logik: Erst DE Preis, dann US Preis, sonst 0
             let retailPrice = 0;
             if (set.LEGOCom && set.LEGOCom.DE && set.LEGOCom.DE.retailPrice) {
                 retailPrice = parseFloat(set.LEGOCom.DE.retailPrice);
@@ -166,7 +168,7 @@
             }
 
             mySets.unshift({
-                setNumber: set.number,
+                setNumber: String(set.number),
                 name: set.name,
                 year: set.year,
                 pieces: set.pieces || 0,
@@ -174,7 +176,7 @@
                 subtheme: set.subtheme || "",
                 image: (set.image && set.image.imageURL) ? set.image.imageURL : 'https://via.placeholder.com/300x200?text=Lego+Set',
                 price: retailPrice,
-                currentValue: retailPrice, // Initial Marktwert = UVP
+                currentValue: retailPrice,
                 status: "Used",
                 addedAt: new Date().toLocaleDateString()
             });
@@ -182,17 +184,20 @@
         }
 
         function openModal(id) {
-            const set = mySets.find(s => s.setNumber === id);
+            const set = mySets.find(s => s.setNumber === String(id));
             if(!set) return;
-            currentEditId = id;
+            currentEditId = String(id);
             document.getElementById('modalImg').src = set.image;
             document.getElementById('modalName').innerText = set.name;
             document.getElementById('modalTheme').innerText = set.theme;
             document.getElementById('modalId').innerText = "#" + set.setNumber;
             document.getElementById('modalDate').innerText = set.addedAt;
-            document.getElementById('modalRetailPrice').innerText = (set.price > 0 ? set.price.toFixed(2) + " €" : "---");
+            
+            // UVP jetzt bearbeitbar
+            document.getElementById('editRetailPrice').value = (set.price || 0).toFixed(2);
             document.getElementById('editCurrentValue').value = (set.currentValue || set.price || 0).toFixed(2);
             document.getElementById('editSubtheme').value = set.subtheme || "";
+            
             setStatus(set.status || "Used");
             document.getElementById('detailModal').style.display = 'flex';
         }
@@ -215,6 +220,7 @@
         function saveDetails() {
             const set = mySets.find(s => s.setNumber === currentEditId);
             if(set) {
+                set.price = parseFloat(document.getElementById('editRetailPrice').value) || 0;
                 set.currentValue = parseFloat(document.getElementById('editCurrentValue').value) || 0;
                 set.subtheme = document.getElementById('editSubtheme').value;
                 set.status = currentStatus;
@@ -226,7 +232,14 @@
         function deleteSet(num, event) {
             event.stopPropagation();
             if(confirm("Set löschen?")) {
-                mySets = mySets.filter(s => s.setNumber !== num);
+                mySets = mySets.filter(s => s.setNumber !== String(num));
+                saveAndRender();
+            }
+        }
+
+        function clearCollection() {
+            if(confirm("Bist du sicher? Deine gesamte Sammlung wird gelöscht!")) {
+                mySets = [];
                 saveAndRender();
             }
         }
@@ -239,23 +252,24 @@
         }
 
         function updateStats() {
-            const totalParts = mySets.reduce((sum, s) => sum + (s.pieces || 0), 0);
-            const totalValue = mySets.reduce((sum, s) => sum + (s.currentValue || 0), 0);
+            const totalParts = mySets.reduce((sum, s) => sum + (parseInt(s.pieces) || 0), 0);
+            const totalValue = mySets.reduce((sum, s) => sum + (parseFloat(s.currentValue) || 0), 0);
             document.getElementById('statSets').innerText = mySets.length;
             document.getElementById('statParts').innerText = totalParts.toLocaleString();
             document.getElementById('statValue').innerText = totalValue.toFixed(2) + " €";
         }
 
         function updateCategories() {
-            const themes = [...new Set(mySets.map(s => s.theme))].sort();
-            catSelect.innerHTML = '<option value="all">Alle Themen</option>' + themes.map(t => `<option value="${t}">${t}</option>`).join('');
+            const themes = [...new Set(mySets.map(s => s.theme))].filter(t => t).sort();
+            const current = catSelect.value;
+            catSelect.innerHTML = '<option value="all">Alle Themen</option>' + themes.map(t => `<option value="${t}" ${t === current ? 'selected' : ''}>${t}</option>`).join('');
         }
 
         function renderLibrary() {
             const container = document.getElementById('library');
             const searchTerm = dbSearchInput.value.toLowerCase();
             const category = catSelect.value;
-            const filtered = mySets.filter(s => (s.name.toLowerCase().includes(searchTerm) || s.setNumber.includes(searchTerm)) && (category === "all" || s.theme === category));
+            const filtered = mySets.filter(s => (s.name.toLowerCase().includes(searchTerm) || String(s.setNumber).includes(searchTerm)) && (category === "all" || s.theme === category));
 
             container.innerHTML = filtered.map(set => `
                 <div onclick="openModal('${set.setNumber}')" class="set-card bg-white rounded-[2rem] shadow-lg border border-slate-100 overflow-hidden relative animate-card">
@@ -263,25 +277,25 @@
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                     </button>
                     <div class="h-48 bg-white flex items-center justify-center p-6 relative">
-                        <img src="${set.image}" class="max-h-full max-w-full object-contain drop-shadow-xl">
+                        <img src="${set.image}" class="max-h-full max-w-full object-contain drop-shadow-xl" onerror="this.src='https://via.placeholder.com/300x200?text=Lego+Set'">
                         <div class="absolute bottom-2 left-4">
                              <span class="text-[8px] font-bold px-2 py-0.5 rounded-full ${set.status === 'New' ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-600'}">${set.status || 'Used'}</span>
                         </div>
                     </div>
                     <div class="p-6 pt-2">
                         <div class="flex justify-between items-start mb-2">
-                            <span class="text-[9px] font-black text-blue-600 bg-blue-50 px-2 py-1 rounded uppercase tracking-widest">${set.theme}</span>
+                            <span class="text-[9px] font-black text-blue-600 bg-blue-50 px-2 py-1 rounded uppercase tracking-widest">${set.theme || 'Sonstige'}</span>
                         </div>
                         <h3 class="font-bold text-slate-800 leading-tight mb-4 h-10 overflow-hidden text-sm">${set.name}</h3>
                         <div class="flex justify-between items-end border-t border-slate-50 pt-4">
                             <div class="text-[10px] text-slate-400 font-bold uppercase leading-tight">
                                 <p class="text-slate-700">#${set.setNumber}</p>
                                 <p>${set.pieces} TEILE</p>
-                                <p class="mt-1">UVP: ${set.price > 0 ? set.price.toFixed(2) + " €" : "---"}</p>
+                                <p class="mt-1">UVP: ${parseFloat(set.price || 0).toFixed(2)} €</p>
                             </div>
                             <div class="text-right">
                                 <p class="text-xs font-black text-slate-400 uppercase tracking-widest">Marktwert</p>
-                                <p class="text-xl font-extrabold text-blue-600 leading-tight">${set.currentValue.toFixed(2)} €</p>
+                                <p class="text-xl font-extrabold text-blue-600 leading-tight">${parseFloat(set.currentValue || 0).toFixed(2)} €</p>
                             </div>
                         </div>
                     </div>
@@ -296,45 +310,52 @@
         }
 
         function exportCSV() {
-            let csv = "\uFEFFSet-Nr;Name;Theme;UVP;Marktwert;Zustand;Teile\n";
+            if(mySets.length === 0) return alert("Sammlung leer.");
+            let csv = "\uFEFFSet-Nr;Name;Theme;UVP;Marktwert;Zustand;Teile;Subtheme;BildURL;Datum\n";
             mySets.forEach(s => {
-                csv += `${s.setNumber};"${s.name}";${s.theme};${s.price};${s.currentValue};${s.status};${s.pieces}\n`;
+                csv += `${s.setNumber};"${s.name}";${s.theme};${s.price};${s.currentValue};${s.status};${s.pieces};${s.subtheme};${s.image};${s.addedAt}\n`;
             });
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
-            link.download = `LegoCloud_Export.csv`;
+            link.download = `LegoCloud_Sammlung.csv`;
             link.click();
         }
 
         function importCSV(input) {
+            const file = input.files[0];
+            if(!file) return;
             const reader = new FileReader();
             reader.onload = function(e) {
-                const rows = e.target.result.split('\n').slice(1);
+                const text = e.target.result;
+                const rows = text.split('\n').slice(1);
                 rows.forEach(row => {
                     const cols = row.split(';');
                     if(cols.length >= 6) {
-                        const id = cols[0].replace("\uFEFF", "");
-                        if(!mySets.some(s => s.setNumber === id)) {
+                        const id = cols[0].replace("\uFEFF", "").trim();
+                        if(id && !mySets.some(s => s.setNumber === id)) {
                             mySets.push({
                                 setNumber: id,
-                                name: cols[1].replace(/"/g, ""),
-                                theme: cols[2],
+                                name: (cols[1] || "Unbekannt").replace(/"/g, ""),
+                                theme: cols[2] || "Sonstige",
                                 price: parseFloat(cols[3]) || 0,
                                 currentValue: parseFloat(cols[4]) || 0,
-                                status: cols[5],
+                                status: cols[5] || "Used",
                                 pieces: parseInt(cols[6]) || 0,
-                                image: 'https://via.placeholder.com/300x200?text=Imported',
-                                addedAt: new Date().toLocaleDateString()
+                                subtheme: cols[7] || "",
+                                image: cols[8] || 'https://via.placeholder.com/300x200',
+                                addedAt: cols[9] || new Date().toLocaleDateString()
                             });
                         }
                     }
                 });
                 saveAndRender();
+                input.value = ""; // Reset Input
             };
-            reader.readAsText(input.files[0]);
+            reader.readAsText(file);
         }
 
+        // Initialisierung
         saveAndRender();
     </script>
 </body>

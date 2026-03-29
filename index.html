@@ -168,27 +168,35 @@
             } catch (error) { updateStatus("Verbindungsfehler", "text-red-600"); }
         }
 
-        function addSet(set) {
+       function addSet(set) {
             if (mySets.some(s => s.setNumber === String(set.number))) return;
             
-            // Preis-Logik mit Fallback auf US
+            // Preis-Logik: Wir suchen an verschiedenen Stellen nach der UVP
             let retailPrice = 0;
+            
             if (set.LEGOCom && set.LEGOCom.DE && set.LEGOCom.DE.retailPrice) {
-                retailPrice = parseFloat(set.LEGOCom.DE.retailPrice);
+                retailPrice = set.LEGOCom.DE.retailPrice;
+            } else if (set.LEGOCom && set.LEGOCom.UK && set.LEGOCom.UK.retailPrice) {
+                retailPrice = set.LEGOCom.UK.retailPrice;
             } else if (set.LEGOCom && set.LEGOCom.US && set.LEGOCom.US.retailPrice) {
-                retailPrice = parseFloat(set.LEGOCom.US.retailPrice);
+                retailPrice = set.LEGOCom.US.retailPrice;
+            } else if (set.retailPrice) {
+                retailPrice = set.retailPrice;
             }
+
+            // Sicherstellen, dass es eine Zahl ist
+            retailPrice = parseFloat(retailPrice) || 0;
 
             mySets.unshift({
                 setNumber: String(set.number),
                 name: set.name,
                 year: set.year,
                 pieces: set.pieces || 0,
-                theme: set.theme,
+                theme: set.theme || "Sonstige",
                 subtheme: set.subtheme || "",
                 image: (set.image && set.image.imageURL) ? set.image.imageURL : 'https://via.placeholder.com/300x200',
                 price: retailPrice,
-                currentValue: retailPrice,
+                currentValue: retailPrice, // Initialer Marktwert = UVP
                 status: "Used",
                 addedAt: new Date().toLocaleDateString()
             });

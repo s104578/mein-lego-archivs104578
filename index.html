@@ -159,62 +159,94 @@
 
         scanInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') fetchFromBrickset(); });
 
-        async function fetchFromBrickset() {
-            const query = scanInput.value.trim();
-            if (!query) return;
+       // Diese Funktion ersetzt die alte extractPrice Funktion
+function extractPrice(set) {
+    if (!set) return 0;
+    
+    let p = 0;
+    
+    // 1. Suche nach deutschen Preisen (Priorität 1)
+    if (set.LEGOCom && set.LEGOCom.DE && set.LEGOCom.DE.retailPrice) {
+        p = set.LEGOCom.DE.retailPrice;
+    } else if (set.DE_retailPrice) {
+        p = set.DE_retailPrice;
+    } 
+    // 2. Suche nach UK Preisen und rechne grob um (Faktor 1.2)
+    else if (set.LEGOCom && set.LEGOCom.UK && set.LEGOCom.UK.retailPrice) {
+        p = parseFloat(set.LEGOCom.UK.retailPrice) * 1.20;
+    } 
+    // 3. Suche nach US Preisen und rechne grob um (Faktor 0.92)
+    else if (set.LEGOCom && set.LEGOCom.US && set.LEGOCom.US.retailPrice) {
+        p = parseFloat(set.LEGOCom.US.retailPrice) * 0.92;
+    }
+    // 4. Fallback auf allgemeinen Preis
+    else if (set.retailPrice) {
+        p = set.retailPrice;
+    }
 
-            if (mySets.some(s => s.setNumber === query)) {
-                updateStatus("Set bereits in der Sammlung!", "text-orange-500");
-                scanInput.value = '';
-                return;
-            }
+    return parseFloat(p) || 0;
+}
 
-            updateStatus("Suche läuft...", "text-blue-500 animate-pulse");
+// OPTIMIERTE FETCH-FUNKTION (WICHTIG: params-Format angepasst)
+async function fetchFromBrickset() {
+    const query = scanInput.value.trim();
+    if (!query) return;
 
-            const params = JSON.stringify({ query: query, pageSize: 1, extendedData: 1 });
-            const bricksetUrl = `https://brickset.com/api/v3.asmx/getSets?apiKey=${API_KEY}&userHash=&params=${encodeURIComponent(params)}`;
+    if (mySets.some(s => s.setNumber === query)) {
+        updateStatus("Set bereits vorhanden!", "text-orange-500");
+        scanInput.value = '';
+        return;
+    }
+
+    updateStatus("Suche läuft...", "text-blue-500 animate-pulse");
+
+    // Brickset API v3 benötigt das exakte Format für params
+    const requestParams = {
+        query: query,
+        pageSize: 1,
+        extendedData: 1 // WICHTIG: Ohne das fehlen viele Preisdaten!
+    };
+
+    const bricksetUrl = `https://brickset.com/api/v3.asmx/getSets?apiKey=${API_KEY}&userHash=&params=${encodeURIComponent(JSON.stringify(requestParams))}`;
+    
+    try {
+        const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(bricksetUrl)}`);
+        const dataRaw = await response.json();
+        const data = JSON.parse(dataRaw.contents);
+
+        if (data.status === "success" && data.matches > 0) {
+            const apiSet = data.sets[0];
             
-            const proxies = [
-                `https://api.allorigins.win/get?url=${encodeURIComponent(bricksetUrl)}`,
-                `https://corsproxy.io/?${encodeURIComponent(bricksetUrl)}`
-            ];
+            // Preis-Extraktion
+            const price = extractPrice(apiSet);
 
-            for (let proxyUrl of proxies) {
-                try {
-                    const response = await fetch(proxyUrl);
-                    if (!response.ok) continue;
+            mySets.unshift({
+                setNumber: String(apiSet.number),
+                name: apiSet.name || "Unbekannt",
+                year: apiSet.year,
+                pieces: apiSet.pieces || 0,
+                theme: apiSet.theme || "Sonstige",
+                subtheme: apiSet.subtheme || "",
+                image: (apiSet.image && apiSet.image.imageURL) ? apiSet.image.imageURL : 'https://via.placeholder.com/300x200',
+                price: price,
+                currentValue: price, // Initialer Marktwert = UVP
+                status: "Used",
+                addedAt: new Date().toLocaleDateString()
+            });
 
-                    const dataRaw = await response.json();
-                    const data = dataRaw.contents ? JSON.parse(dataRaw.contents) : dataRaw;
-
-                    if (data.status === "success" && data.matches > 0) {
-                        addSet(data.sets[0]);
-                        updateStatus("Erfolgreich hinzugefügt!", "text-green-600");
-                        scanInput.value = '';
-                        return;
-                    }
-                } catch (err) {
-                    console.error("Proxy-Fehler:", err);
-                }
-            }
-            updateStatus("Fehler: API drosselt oder Set unbekannt", "text-red-600");
+            saveAndRender();
+            updateStatus("Erfolgreich hinzugefügt!", "text-green-600");
+            scanInput.value = '';
+        } else {
+            updateStatus("Set nicht gefunden.", "text-red-600");
         }
+    } catch (err) {
+        console.error("Fehler:", err);
+        updateStatus("Verbindungsfehler zur API", "text-red-600");
+    }
+}
 
-        function extractPrice(set) {
-            if (!set) return 0;
-            let p = 0;
-            // Prüfung DE -> UK -> US -> Allgemein
-            if (set.LEGOCom?.DE?.retailPrice) p = set.LEGOCom.DE.retailPrice;
-            else if (set.DE_retailPrice) p = set.DE_retailPrice;
-            else if (set.LEGOCom?.UK?.retailPrice) p = set.LEGOCom.UK.retailPrice;
-            else if (set.UK_retailPrice) p = set.UK_retailPrice;
-            else if (set.LEGOCom?.US?.retailPrice) p = set.LEGOCom.US.retailPrice;
-            else if (set.US_retailPrice) p = set.US_retailPrice;
-            else if (set.retailPrice) p = set.retailPrice;
-            
-            return parseFloat(p) || 0;
-        }
-
+       
         function addSet(set) {
             if (mySets.some(s => s.setNumber === String(set.number))) return;
             

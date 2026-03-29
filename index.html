@@ -196,39 +196,48 @@
     updateStatus("Fehler: API drosselt oder Set unbekannt", "text-red-600");
 }
        function addSet(set) {
-            if (mySets.some(s => s.setNumber === String(set.number))) return;
-            
-            // Preis-Logik: Wir suchen an verschiedenen Stellen nach der UVP
-            let retailPrice = 0;
-            
-            if (set.LEGOCom && set.LEGOCom.DE && set.LEGOCom.DE.retailPrice) {
-                retailPrice = set.LEGOCom.DE.retailPrice;
-            } else if (set.LEGOCom && set.LEGOCom.UK && set.LEGOCom.UK.retailPrice) {
-                retailPrice = set.LEGOCom.UK.retailPrice;
-            } else if (set.LEGOCom && set.LEGOCom.US && set.LEGOCom.US.retailPrice) {
-                retailPrice = set.LEGOCom.US.retailPrice;
-            } else if (set.retailPrice) {
-                retailPrice = set.retailPrice;
-            }
-
-            // Sicherstellen, dass es eine Zahl ist
-            retailPrice = parseFloat(retailPrice) || 0;
-
-            mySets.unshift({
-                setNumber: String(set.number),
-                name: set.name,
-                year: set.year,
-                pieces: set.pieces || 0,
-                theme: set.theme || "Sonstige",
-                subtheme: set.subtheme || "",
-                image: (set.image && set.image.imageURL) ? set.image.imageURL : 'https://via.placeholder.com/300x200',
-                price: retailPrice,
-                currentValue: retailPrice, // Initialer Marktwert = UVP
-                status: "Used",
-                addedAt: new Date().toLocaleDateString()
-            });
-            saveAndRender();
+    if (mySets.some(s => s.setNumber === String(set.number))) return;
+    
+    // 1. Preisfindung über alle verfügbaren Regionen
+    let retailPrice = 0;
+    
+    if (set.LEGOCom) {
+        // Priorität: DE -> UK -> US
+        if (set.LEGOCom.DE && set.LEGOCom.DE.retailPrice) {
+            retailPrice = set.LEGOCom.DE.retailPrice;
+        } else if (set.LEGOCom.UK && set.LEGOCom.UK.retailPrice) {
+            retailPrice = set.LEGOCom.UK.retailPrice;
+        } else if (set.LEGOCom.US && set.LEGOCom.US.retailPrice) {
+            retailPrice = set.LEGOCom.US.retailPrice;
         }
+    } 
+    
+    // 2. Fallback: Falls LEGOCom komplett fehlt, direkt im Objekt suchen
+    if (!retailPrice && set.retailPrice) {
+        retailPrice = set.retailPrice;
+    }
+
+    // 3. Typ-Sicherung (Zahl statt String)
+    retailPrice = parseFloat(retailPrice) || 0;
+
+    // Neues Set-Objekt erstellen
+    const newSet = {
+        setNumber: String(set.number),
+        name: set.name || "Unbekanntes Set",
+        year: set.year,
+        pieces: set.pieces || 0,
+        theme: set.theme || "Sonstige",
+        subtheme: set.subtheme || "",
+        image: (set.image && set.image.imageURL) ? set.image.imageURL : 'https://via.placeholder.com/300x200',
+        price: retailPrice,
+        currentValue: retailPrice, // Marktwert initial auf UVP setzen
+        status: "Used",
+        addedAt: new Date().toLocaleDateString()
+    };
+
+    mySets.unshift(newSet);
+    saveAndRender();
+}
 
         function toggleSelection(id, event) {
             event.stopPropagation();

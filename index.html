@@ -164,7 +164,7 @@
 
     updateStatus("Suche läuft...", "text-blue-500 animate-pulse");
 
-    const params = JSON.stringify({ query: query, pageSize: 1 });
+    const params = JSON.stringify({ query: query, pageSize: 1, extendedData: 1 });
     const bricksetUrl = `https://brickset.com/api/v3.asmx/getSets?apiKey=${API_KEY}&userHash=&params=${params}`;
     
     // Liste von funktionierenden Proxys zur Rotation
@@ -198,47 +198,44 @@
        function addSet(set) {
     if (mySets.some(s => s.setNumber === String(set.number))) return;
     
-    // 1. Preisfindung über alle verfügbaren Regionen
+    // Die API v3 nutzt oft diese spezifischen Felder für Preise
     let retailPrice = 0;
-    
-    if (set.LEGOCom) {
-        // Priorität: DE -> UK -> US
-        if (set.LEGOCom.DE && set.LEGOCom.DE.retailPrice) {
-            retailPrice = set.LEGOCom.DE.retailPrice;
-        } else if (set.LEGOCom.UK && set.LEGOCom.UK.retailPrice) {
-            retailPrice = set.LEGOCom.UK.retailPrice;
-        } else if (set.LEGOCom.US && set.LEGOCom.US.retailPrice) {
-            retailPrice = set.LEGOCom.US.retailPrice;
-        }
-    } 
-    
-    // 2. Fallback: Falls LEGOCom komplett fehlt, direkt im Objekt suchen
-    if (!retailPrice && set.retailPrice) {
+
+    // Prüfung nach Priorität: DE -> UK -> US -> Global
+    if (set.LEGOCom && set.LEGOCom.DE && set.LEGOCom.DE.retailPrice) {
+        retailPrice = set.LEGOCom.DE.retailPrice;
+    } else if (set.DE_retailPrice) { // Manche v3-Implementationen flachen das ab
+        retailPrice = set.DE_retailPrice;
+    } else if (set.LEGOCom && set.LEGOCom.UK && set.LEGOCom.UK.retailPrice) {
+        retailPrice = set.LEGOCom.UK.retailPrice;
+    } else if (set.UK_retailPrice) {
+        retailPrice = set.UK_retailPrice;
+    } else if (set.LEGOCom && set.LEGOCom.US && set.LEGOCom.US.retailPrice) {
+        retailPrice = set.LEGOCom.US.retailPrice;
+    } else if (set.US_retailPrice) {
+        retailPrice = set.US_retailPrice;
+    } else if (set.retailPrice) {
         retailPrice = set.retailPrice;
     }
 
-    // 3. Typ-Sicherung (Zahl statt String)
+    // Sicherstellen, dass der Preis eine Zahl ist
     retailPrice = parseFloat(retailPrice) || 0;
 
-    // Neues Set-Objekt erstellen
-    const newSet = {
+    mySets.unshift({
         setNumber: String(set.number),
-        name: set.name || "Unbekanntes Set",
+        name: set.name || "Unbekannt",
         year: set.year,
         pieces: set.pieces || 0,
         theme: set.theme || "Sonstige",
         subtheme: set.subtheme || "",
         image: (set.image && set.image.imageURL) ? set.image.imageURL : 'https://via.placeholder.com/300x200',
         price: retailPrice,
-        currentValue: retailPrice, // Marktwert initial auf UVP setzen
+        currentValue: retailPrice, // Startwert für Marktwert ist die UVP
         status: "Used",
         addedAt: new Date().toLocaleDateString()
-    };
-
-    mySets.unshift(newSet);
+    });
     saveAndRender();
 }
-
         function toggleSelection(id, event) {
             event.stopPropagation();
             if (selectedSets.has(id)) selectedSets.delete(id);

@@ -35,7 +35,7 @@
                 <button onclick="clearSelection()" class="text-blue-100 hover:text-white text-xs underline">Abbrechen</button>
             </div>
             <div class="flex items-center gap-3">
-                <button onclick="refreshSelectedSets()" title="Markierte Sets aktualisieren" class="p-2 bg-blue-500 hover:bg-blue-400 rounded-lg transition-colors border border-blue-400">
+                <button onclick="refreshSelectedSets()" title="API Update" class="p-2 bg-blue-500 hover:bg-blue-400 rounded-lg transition-colors border border-blue-400">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 </button>
                 <div class="h-8 w-[1px] bg-blue-400 mx-1"></div>
@@ -58,7 +58,7 @@
             <div class="flex gap-6 text-center">
                 <div><p class="text-[10px] uppercase font-black text-slate-400">Sets</p><p id="statSets" class="font-bold text-slate-800">0</p></div>
                 <div><p class="text-[10px] uppercase font-black text-slate-400">Teile</p><p id="statParts" class="font-bold text-slate-800">0</p></div>
-                <div><p class="text-[10px] uppercase font-black text-slate-400">Wert</p><p id="statValue" class="font-bold text-blue-600">0.00 €</p></div>
+                <div><p class="text-[10px] uppercase font-black text-slate-400">Sammlungswert</p><p id="statValue" class="font-bold text-blue-600">0.00 €</p></div>
             </div>
             <div class="flex gap-2">
                 <select id="filterCategory" onchange="renderLibrary()" class="bg-white border rounded-xl px-3 py-2 text-sm font-bold outline-none"><option value="all">Alle Themen</option></select>
@@ -70,7 +70,7 @@
     <main class="max-w-7xl mx-auto px-6">
         <div class="max-w-3xl mx-auto mb-16 text-center">
             <div class="bg-white p-2 rounded-[2.5rem] shadow-2xl flex items-center border-4 border-white">
-                <input type="text" id="barcodeInput" autofocus class="flex-1 pl-8 pr-4 py-4 rounded-[2rem] text-xl outline-none" placeholder="Set-Nummer eingeben...">
+                <input type="text" id="barcodeInput" autofocus class="flex-1 pl-8 pr-4 py-4 rounded-[2rem] text-xl outline-none" placeholder="Set-Nummer...">
                 <button onclick="fetchFromBrickset()" class="bg-blue-600 text-white font-bold py-4 px-10 rounded-[2rem] hover:bg-blue-700 transition-all">Hinzufügen</button>
             </div>
             <p id="apiStatus" class="mt-4 text-[10px] font-black text-slate-400 uppercase italic">Bereit</p>
@@ -80,17 +80,46 @@
 
     <div id="detailModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-4xl rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col md:flex-row relative">
-            <button onclick="closeModal()" class="absolute top-6 right-6 text-slate-400 hover:text-slate-600"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+            <button onclick="closeModal()" class="absolute top-6 right-6 text-slate-400 hover:text-slate-600 z-10"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+            
             <div class="md:w-1/2 bg-slate-50 p-8 flex flex-col items-center justify-center border-r border-slate-100">
                 <img id="modalImg" src="" class="max-h-64 object-contain drop-shadow-2xl mb-8">
-                <div class="w-full"><p class="text-xs font-black text-blue-600 uppercase" id="modalTheme"></p><h2 class="text-2xl font-extrabold text-slate-800" id="modalName"></h2><p class="text-slate-400 font-bold mt-1" id="modalId"></p></div>
+                <div class="w-full text-center md:text-left">
+                    <p class="text-xs font-black text-blue-600 uppercase tracking-widest" id="modalTheme"></p>
+                    <h2 class="text-2xl font-extrabold text-slate-800" id="modalName"></h2>
+                    <p class="text-slate-400 font-bold mt-1" id="modalId"></p>
+                </div>
             </div>
+
             <div class="md:w-1/2 p-8 pt-12 space-y-6">
                 <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-slate-50 p-4 rounded-2xl"><p class="text-[10px] font-black text-slate-400 uppercase">UVP Preis (€)</p><input type="number" id="editRetailPrice" step="0.01" class="bg-transparent font-bold text-slate-800 w-full outline-none"></div>
-                    <div class="bg-blue-50 p-4 rounded-2xl border border-blue-100 col-span-2"><p class="text-[10px] font-black text-blue-500 uppercase">Marktwert (€)</p><input type="number" id="editCurrentValue" step="0.01" class="bg-transparent font-bold text-blue-700 w-full outline-none text-xl"></div>
+                    <div class="bg-slate-50 p-4 rounded-2xl">
+                        <p class="text-[10px] font-black text-slate-400 uppercase">Barcode / EAN</p>
+                        <input type="text" id="editEan" class="bg-transparent font-bold text-slate-800 w-full outline-none" placeholder="-">
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded-2xl">
+                        <p class="text-[10px] font-black text-slate-400 uppercase">UVP Preis (€)</p>
+                        <input type="number" id="editRetailPrice" step="0.01" class="bg-transparent font-bold text-slate-800 w-full outline-none">
+                    </div>
+                    <div class="bg-blue-50 p-4 rounded-2xl border border-blue-100 col-span-2">
+                        <p class="text-[10px] font-black text-blue-500 uppercase">Marktwert (€)</p>
+                        <input type="number" id="editCurrentValue" step="0.01" class="bg-transparent font-bold text-blue-700 w-full outline-none text-xl">
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded-2xl col-span-2">
+                        <p class="text-[10px] font-black text-slate-400 uppercase">Subtheme (Tags)</p>
+                        <input type="text" id="editSubtheme" class="bg-transparent font-bold text-slate-800 w-full outline-none" placeholder="z.B. UCS, Modular...">
+                    </div>
                 </div>
-                <button onclick="saveDetails()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold shadow-lg hover:bg-blue-700 transition-all">Speichern</button>
+
+                <div>
+                    <p class="text-[10px] font-black text-slate-400 uppercase mb-3">Zustand</p>
+                    <div class="flex gap-3">
+                        <button onclick="setStatus('New')" id="btnNew" class="flex-1 py-3 rounded-xl border-2 font-bold transition-all">New</button>
+                        <button onclick="setStatus('Used')" id="btnUsed" class="flex-1 py-3 rounded-xl border-2 font-bold transition-all">Used</button>
+                    </div>
+                </div>
+
+                <button onclick="saveDetails()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold shadow-lg hover:bg-blue-700 transition-all">Änderungen speichern</button>
             </div>
         </div>
     </div>
@@ -100,8 +129,8 @@
         let mySets = JSON.parse(localStorage.getItem('bricksetCollection')) || [];
         let selectedSets = new Set();
         let currentEditId = null;
+        let currentStatus = "Used";
 
-        // Hilfsfunktion für Preis-Fallback (DE -> UK -> US)
         function getBestPrice(apiData) {
             return apiData.LEGOCom?.DE?.retailPrice || 
                    apiData.LEGOCom?.UK?.retailPrice || 
@@ -122,7 +151,7 @@
                     const s = data.sets[0];
                     mySets.unshift({
                         setNumber: String(s.number), name: s.name, pieces: s.pieces || 0,
-                        theme: s.theme, subtheme: s.subtheme || "", image: s.image?.imageURL || '',
+                        theme: s.theme, subtheme: s.subtheme || "", ean: "", image: s.image?.imageURL || '',
                         price: getBestPrice(s), currentValue: 0, status: "Used"
                     });
                     saveAndRender(); document.getElementById('barcodeInput').value = ''; updateStatus("Set geladen!", "text-green-600");
@@ -200,6 +229,39 @@
             return "subtheme-default";
         }
 
+        function setStatus(s) { 
+            currentStatus = s; 
+            document.getElementById('btnNew').className = s === 'New' ? "flex-1 py-3 rounded-xl border-2 font-bold bg-blue-600 text-white border-blue-600" : "flex-1 py-3 rounded-xl border-2 font-bold bg-white text-slate-400 border-slate-100"; 
+            document.getElementById('btnUsed').className = s === 'Used' ? "flex-1 py-3 rounded-xl border-2 font-bold bg-slate-800 text-white border-slate-800" : "flex-1 py-3 rounded-xl border-2 font-bold bg-white text-slate-400 border-slate-100"; 
+        }
+
+        function openModal(id) {
+            const s = mySets.find(x => x.setNumber === id);
+            currentEditId = id;
+            document.getElementById('modalImg').src = s.image;
+            document.getElementById('modalName').innerText = s.name;
+            document.getElementById('modalTheme').innerText = s.theme;
+            document.getElementById('modalId').innerText = "#" + s.setNumber;
+            document.getElementById('editEan').value = s.ean || "";
+            document.getElementById('editRetailPrice').value = s.price || 0;
+            document.getElementById('editCurrentValue').value = s.currentValue || 0;
+            document.getElementById('editSubtheme').value = s.subtheme || "";
+            setStatus(s.status || "Used");
+            document.getElementById('detailModal').style.display = 'flex';
+        }
+
+        function saveDetails() {
+            const s = mySets.find(x => x.setNumber === currentEditId);
+            if(s) {
+                s.ean = document.getElementById('editEan').value;
+                s.price = parseFloat(document.getElementById('editRetailPrice').value) || 0;
+                s.currentValue = parseFloat(document.getElementById('editCurrentValue').value) || 0;
+                s.subtheme = document.getElementById('editSubtheme').value;
+                s.status = currentStatus;
+                saveAndRender(); closeModal();
+            }
+        }
+
         function toggleSelection(id, event) { event.stopPropagation(); if (selectedSets.has(id)) selectedSets.delete(id); else selectedSets.add(id); updateActionBar(); }
         function updateActionBar() { document.getElementById('selectedCount').innerText = selectedSets.size; document.getElementById('actionBar').classList.toggle('hidden', selectedSets.size === 0); }
         function clearSelection() { selectedSets.clear(); updateActionBar(); renderLibrary(); }
@@ -216,25 +278,6 @@
             const sel = document.getElementById('filterCategory'); 
             const cur = sel.value;
             sel.innerHTML = '<option value="all">Alle Themen</option>' + ts.map(t => `<option value="${t}" ${t===cur?'selected':''}>${t}</option>`).join(''); 
-        }
-        function openModal(id) {
-            const s = mySets.find(x => x.setNumber === id);
-            currentEditId = id;
-            document.getElementById('modalImg').src = s.image;
-            document.getElementById('modalName').innerText = s.name;
-            document.getElementById('modalTheme').innerText = s.theme;
-            document.getElementById('modalId').innerText = "#" + s.setNumber;
-            document.getElementById('editRetailPrice').value = s.price || 0;
-            document.getElementById('editCurrentValue').value = s.currentValue || 0;
-            document.getElementById('detailModal').style.display = 'flex';
-        }
-        function saveDetails() {
-            const s = mySets.find(x => x.setNumber === currentEditId);
-            if(s) {
-                s.price = parseFloat(document.getElementById('editRetailPrice').value) || 0;
-                s.currentValue = parseFloat(document.getElementById('editCurrentValue').value) || 0;
-                saveAndRender(); closeModal();
-            }
         }
         function closeModal() { document.getElementById('detailModal').style.display = 'none'; }
         function updateStatus(m, c) { const el = document.getElementById('apiStatus'); el.innerText = m; el.className = `mt-4 text-[10px] font-black uppercase italic ${c}`; }

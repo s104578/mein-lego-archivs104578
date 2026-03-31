@@ -16,29 +16,10 @@
         .select-checkbox { opacity: 0; transition: all 0.2s; transform: scale(1.2); cursor: pointer; }
         .set-card:hover .select-checkbox, .select-checkbox:checked { opacity: 1; }
 
-        @keyframes shimmerEffect {
-            0% { background-position: -200% center; }
-            100% { background-position: 200% center; }
-        }
-
-        .subtheme-ucs { 
-            background: linear-gradient(90deg, #bf953f, #fcf6ba, #b38728, #fcf6ba, #bf953f);
-            background-size: 200% auto;
-            color: #000; font-weight: 900;
-            animation: shimmerEffect 4s linear infinite;
-            box-shadow: 0 0 10px rgba(179, 135, 40, 0.4);
-        }
-
-        .subtheme-modular { 
-            background: linear-gradient(90deg, #065f46, #10b981, #064e3b, #10b981, #065f46);
-            background-size: 200% auto;
-            color: white; font-weight: 700;
-            animation: shimmerEffect 4s linear infinite;
-            box-shadow: 0 0 10px rgba(6, 95, 70, 0.4);
-        }
-
+        @keyframes shimmerEffect { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
+        .subtheme-ucs { background: linear-gradient(90deg, #bf953f, #fcf6ba, #b38728, #fcf6ba, #bf953f); background-size: 200% auto; color: #000; font-weight: 900; animation: shimmerEffect 4s linear infinite; }
+        .subtheme-modular { background: linear-gradient(90deg, #065f46, #10b981, #064e3b, #10b981, #065f46); background-size: 200% auto; color: white; font-weight: 700; animation: shimmerEffect 4s linear infinite; }
         .subtheme-technic { background: #475569; color: white; }
-        .subtheme-special { background: #6b21a8; color: white; }
         .subtheme-default { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
 
         #detailModal { display: none; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); }
@@ -53,21 +34,16 @@
                 <p class="font-bold">Sets ausgewählt</p>
                 <button onclick="clearSelection()" class="text-blue-100 hover:text-white text-xs underline">Abbrechen</button>
             </div>
-            <div class="flex flex-wrap items-center gap-3">
-                
-                <button onclick="refreshSelectedSets()" title="Markierte Sets via API aktualisieren (UVP, Bild, Tags)" class="flex items-center gap-2 bg-blue-500 hover:bg-blue-400 px-3 py-2 rounded-lg transition-colors border border-blue-400 font-bold text-sm">
+            <div class="flex items-center gap-3">
+                <button onclick="refreshSelectedSets()" title="Markierte Sets aktualisieren" class="p-2 bg-blue-500 hover:bg-blue-400 rounded-lg transition-colors border border-blue-400">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    API Update
                 </button>
-
                 <div class="h-8 w-[1px] bg-blue-400 mx-1"></div>
-
                 <select id="bulkStatus" class="bg-blue-700 rounded-lg px-3 py-2 text-sm font-bold outline-none border-none">
                     <option value="">Status...</option>
                     <option value="New">New</option>
                     <option value="Used">Used</option>
                 </select>
-                <input type="text" id="bulkSubtheme" placeholder="Subtheme..." class="bg-blue-700 placeholder-blue-300 rounded-lg px-3 py-2 text-sm font-bold outline-none border-none w-32">
                 <button onclick="applyBulkActions()" class="bg-white text-blue-600 px-4 py-2 rounded-lg font-black text-sm hover:bg-blue-50">Anwenden</button>
                 <button onclick="deleteSelected()" class="bg-red-500 hover:bg-red-600 p-2 rounded-lg">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
@@ -76,72 +52,17 @@
         </div>
     </div>
 
-    <div id="detailModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-4xl rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col md:flex-row relative">
-            <button onclick="closeModal()" class="absolute top-6 right-6 text-slate-400 hover:text-slate-600 z-10">
-                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-            </button>
-            <div class="md:w-1/2 bg-slate-50 p-8 flex flex-col items-center justify-center border-r border-slate-100">
-                <img id="modalImg" src="" class="max-h-64 object-contain drop-shadow-2xl mb-8">
-                <div class="w-full text-center md:text-left">
-                    <p class="text-xs font-black text-blue-600 uppercase tracking-widest" id="modalTheme"></p>
-                    <h2 class="text-2xl font-extrabold text-slate-800" id="modalName"></h2>
-                    <p class="text-slate-400 font-bold mt-1" id="modalId"></p>
-                </div>
-            </div>
-            <div class="md:w-1/2 p-8 pt-12 space-y-6">
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-slate-50 p-4 rounded-2xl">
-                        <p class="text-[10px] font-black text-slate-400 uppercase">Barcode / EAN</p>
-                        <input type="text" id="editEan" class="bg-transparent font-bold text-slate-800 w-full outline-none" placeholder="-">
-                    </div>
-                    <div class="bg-slate-50 p-4 rounded-2xl">
-                        <p class="text-[10px] font-black text-slate-400 uppercase">UVP Preis (€)</p>
-                        <input type="number" id="editRetailPrice" step="0.01" class="bg-transparent font-bold text-slate-800 w-full outline-none">
-                    </div>
-                    <div class="bg-blue-50 p-4 rounded-2xl border border-blue-100 col-span-2">
-                        <p class="text-[10px] font-black text-blue-500 uppercase">Marktwert (€)</p>
-                        <input type="number" id="editCurrentValue" step="0.01" class="bg-transparent font-bold text-blue-700 w-full outline-none text-xl">
-                    </div>
-                    <div class="bg-slate-50 p-4 rounded-2xl col-span-2">
-                        <p class="text-[10px] font-black text-slate-400 uppercase">Subtheme</p>
-                        <input type="text" id="editSubtheme" class="bg-transparent font-bold text-slate-800 w-full outline-none" placeholder="z.B. Ultimate Collector Series">
-                    </div>
-                </div>
-                <div>
-                    <p class="text-[10px] font-black text-slate-400 uppercase mb-3">Zustand</p>
-                    <div class="flex gap-3">
-                        <button onclick="setStatus('New')" id="btnNew" class="flex-1 py-3 rounded-xl border-2 font-bold transition-all">New</button>
-                        <button onclick="setStatus('Used')" id="btnUsed" class="flex-1 py-3 rounded-xl border-2 font-bold transition-all">Used</button>
-                    </div>
-                </div>
-                <button onclick="saveDetails()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all">Änderungen speichern</button>
-            </div>
-        </div>
-    </div>
-
     <nav class="sticky top-0 z-50 glass mb-8 border-b border-slate-200">
         <div class="max-w-7xl mx-auto px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
             <h1 class="text-2xl font-extrabold text-slate-800">BRIX JUST<span class="text-blue-600">4SEAN™</span></h1>
-            
             <div class="flex gap-6 text-center">
                 <div><p class="text-[10px] uppercase font-black text-slate-400">Sets</p><p id="statSets" class="font-bold text-slate-800">0</p></div>
                 <div><p class="text-[10px] uppercase font-black text-slate-400">Teile</p><p id="statParts" class="font-bold text-slate-800">0</p></div>
-                <div><p class="text-[10px] uppercase font-black text-slate-400">Sammlungswert</p><p id="statValue" class="font-bold text-blue-600">0.00 €</p></div>
+                <div><p class="text-[10px] uppercase font-black text-slate-400">Wert</p><p id="statValue" class="font-bold text-blue-600">0.00 €</p></div>
             </div>
-
-            <div class="flex gap-2 items-center">
-                <button onclick="document.getElementById('csvImport').click()" title="CSV Import" class="p-2 text-slate-500 hover:bg-slate-100 rounded-xl">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                </button>
-                <input type="file" id="csvImport" class="hidden" accept=".csv" onchange="importCSV(this)">
-                <select id="filterCategory" onchange="renderLibrary()" class="bg-white border rounded-xl px-3 py-2 text-sm font-bold outline-none">
-                    <option value="all">Alle Themen</option>
-                </select>
+            <div class="flex gap-2">
+                <select id="filterCategory" onchange="renderLibrary()" class="bg-white border rounded-xl px-3 py-2 text-sm font-bold outline-none"><option value="all">Alle Themen</option></select>
                 <input type="text" id="searchLibrary" oninput="renderLibrary()" placeholder="Suche..." class="bg-white border rounded-xl px-3 py-2 text-sm outline-none w-40 focus:w-60 transition-all">
-                <button onclick="exportCSV()" title="CSV Export" class="p-2 text-slate-500 hover:bg-slate-100 rounded-xl">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                </button>
             </div>
         </div>
     </nav>
@@ -149,27 +70,47 @@
     <main class="max-w-7xl mx-auto px-6">
         <div class="max-w-3xl mx-auto mb-16 text-center">
             <div class="bg-white p-2 rounded-[2.5rem] shadow-2xl flex items-center border-4 border-white">
-                <input type="text" id="barcodeInput" autofocus class="flex-1 pl-8 pr-4 py-4 rounded-[2rem] text-xl outline-none placeholder-slate-300" placeholder="Set-Nummer eingeben...">
+                <input type="text" id="barcodeInput" autofocus class="flex-1 pl-8 pr-4 py-4 rounded-[2rem] text-xl outline-none" placeholder="Set-Nummer eingeben...">
                 <button onclick="fetchFromBrickset()" class="bg-blue-600 text-white font-bold py-4 px-10 rounded-[2rem] hover:bg-blue-700 transition-all">Hinzufügen</button>
             </div>
-            <p id="apiStatus" class="mt-4 text-[10px] font-black text-slate-400 uppercase italic tracking-widest">Bereit</p>
+            <p id="apiStatus" class="mt-4 text-[10px] font-black text-slate-400 uppercase italic">Bereit</p>
         </div>
-
         <div id="library" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"></div>
     </main>
+
+    <div id="detailModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-4xl rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col md:flex-row relative">
+            <button onclick="closeModal()" class="absolute top-6 right-6 text-slate-400 hover:text-slate-600"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+            <div class="md:w-1/2 bg-slate-50 p-8 flex flex-col items-center justify-center border-r border-slate-100">
+                <img id="modalImg" src="" class="max-h-64 object-contain drop-shadow-2xl mb-8">
+                <div class="w-full"><p class="text-xs font-black text-blue-600 uppercase" id="modalTheme"></p><h2 class="text-2xl font-extrabold text-slate-800" id="modalName"></h2><p class="text-slate-400 font-bold mt-1" id="modalId"></p></div>
+            </div>
+            <div class="md:w-1/2 p-8 pt-12 space-y-6">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-slate-50 p-4 rounded-2xl"><p class="text-[10px] font-black text-slate-400 uppercase">UVP Preis (€)</p><input type="number" id="editRetailPrice" step="0.01" class="bg-transparent font-bold text-slate-800 w-full outline-none"></div>
+                    <div class="bg-blue-50 p-4 rounded-2xl border border-blue-100 col-span-2"><p class="text-[10px] font-black text-blue-500 uppercase">Marktwert (€)</p><input type="number" id="editCurrentValue" step="0.01" class="bg-transparent font-bold text-blue-700 w-full outline-none text-xl"></div>
+                </div>
+                <button onclick="saveDetails()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold shadow-lg hover:bg-blue-700 transition-all">Speichern</button>
+            </div>
+        </div>
+    </div>
 
     <script>
         const API_KEY = '3-N4Lr-Ug0H-M49ki';
         let mySets = JSON.parse(localStorage.getItem('bricksetCollection')) || [];
-        let currentEditId = null;
-        let currentStatus = "Used";
         let selectedSets = new Set();
+        let currentEditId = null;
 
-        const inputField = document.getElementById('barcodeInput');
-        inputField.addEventListener('keypress', (e) => { if (e.key === 'Enter') fetchFromBrickset(); });
+        // Hilfsfunktion für Preis-Fallback (DE -> UK -> US)
+        function getBestPrice(apiData) {
+            return apiData.LEGOCom?.DE?.retailPrice || 
+                   apiData.LEGOCom?.UK?.retailPrice || 
+                   apiData.LEGOCom?.US?.retailPrice || 
+                   apiData.retailPrice || 0;
+        }
 
         async function fetchFromBrickset() {
-            const query = inputField.value.trim();
+            const query = document.getElementById('barcodeInput').value.trim();
             if (!query) return;
             updateStatus("Suche...", "text-blue-500 animate-pulse");
             try {
@@ -180,58 +121,42 @@
                 if (data.matches > 0) {
                     const s = data.sets[0];
                     mySets.unshift({
-                        setNumber: String(s.number), name: s.name, ean: "", pieces: s.pieces || 0,
+                        setNumber: String(s.number), name: s.name, pieces: s.pieces || 0,
                         theme: s.theme, subtheme: s.subtheme || "", image: s.image?.imageURL || '',
-                        price: s.LEGOCom?.DE?.retailPrice || 0, currentValue: 0, status: "Used"
+                        price: getBestPrice(s), currentValue: 0, status: "Used"
                     });
-                    saveAndRender(); inputField.value = ''; updateStatus("Set geladen!", "text-green-600");
+                    saveAndRender(); document.getElementById('barcodeInput').value = ''; updateStatus("Set geladen!", "text-green-600");
                 } else { updateStatus("Nicht gefunden", "text-red-600"); }
             } catch (e) { updateStatus("API Fehler", "text-red-600"); }
         }
 
-        // AKTUALISIERUNGS-FUNKTION (NUR FÜR MARKIERTE SETS)
         async function refreshSelectedSets() {
-            if (selectedSets.size === 0) return;
-            
-            updateStatus(`${selectedSets.size} Sets werden aktualisiert...`, "text-blue-500 animate-pulse");
-            let successCount = 0;
-
             for (let id of selectedSets) {
                 const s = mySets.find(x => x.setNumber === id);
                 if (!s) continue;
-
                 try {
                     const params = JSON.stringify({ query: s.setNumber, pageSize: 1, extendedData: 1 });
                     const url = `https://corsproxy.io/?${encodeURIComponent('https://brickset.com/api/v3.asmx/getSets?apiKey=' + API_KEY + '&userHash=&params=' + params)}`;
                     const res = await fetch(url);
                     const data = await res.json();
-
                     if (data.matches > 0) {
-                        const apiData = data.sets[0];
-                        
-                        // 1. Bild aktualisieren
-                        s.image = apiData.image?.imageURL || s.image;
-                        
-                        // 2. Tags (Subtheme) aktualisieren
-                        s.subtheme = apiData.subtheme || s.subtheme;
-                        
-                        // 3. UVP/RRP aktualisieren mit Region-Fallback (DE -> UK -> US)
-                        const rrp = apiData.LEGOCom?.DE?.retailPrice || 
-                                    apiData.LEGOCom?.UK?.retailPrice || 
-                                    apiData.LEGOCom?.US?.retailPrice || 0;
-                        if (rrp > 0) s.price = rrp;
-                        
-                        // Optional: Teileanzahl fixen
-                        s.pieces = apiData.pieces || s.pieces;
-                        
-                        successCount++;
+                        const api = data.sets[0];
+                        s.image = api.image?.imageURL || s.image;
+                        s.subtheme = api.subtheme || s.subtheme;
+                        const p = getBestPrice(api);
+                        if(p > 0) s.price = p;
                     }
-                } catch (e) { console.error("Fehler bei Set " + id, e); }
+                } catch(e) {}
             }
-            
+            saveAndRender(); clearSelection();
+        }
+
+        function deleteSet(id, event) {
+            if(event) event.stopPropagation();
+            mySets = mySets.filter(s => s.setNumber !== id);
+            selectedSets.delete(id);
             saveAndRender();
-            clearSelection();
-            updateStatus(`${successCount} Sets aktualisiert!`, "text-green-600");
+            updateActionBar();
         }
 
         function renderLibrary() {
@@ -241,7 +166,12 @@
             
             document.getElementById('library').innerHTML = filtered.map(set => `
                 <div onclick="openModal('${set.setNumber}')" class="set-card bg-white rounded-[2rem] shadow-lg border border-slate-100 overflow-hidden">
-                    <input type="checkbox" ${selectedSets.has(set.setNumber) ? 'checked' : ''} onclick="toggleSelection('${set.setNumber}', event)" class="select-checkbox absolute top-5 left-5 z-20 w-5 h-5 rounded-md accent-blue-600 border-2">
+                    <input type="checkbox" ${selectedSets.has(set.setNumber) ? 'checked' : ''} onclick="toggleSelection('${set.setNumber}', event)" class="select-checkbox absolute top-5 left-5 z-20 w-5 h-5 rounded-md accent-blue-600">
+                    
+                    <button onclick="deleteSet('${set.setNumber}', event)" class="absolute top-4 right-4 z-20 p-2 bg-red-50 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    </button>
+
                     <div class="h-48 flex items-center justify-center p-6 relative">
                         <img src="${set.image}" class="max-h-full object-contain drop-shadow-xl" onerror="this.src='https://via.placeholder.com/150'">
                         <div class="absolute bottom-2 left-4 flex gap-1 flex-wrap pr-4">
@@ -253,15 +183,8 @@
                         <span class="text-[9px] font-black text-blue-600 bg-blue-50 px-2 py-1 rounded uppercase">${set.theme}</span>
                         <h3 class="font-bold text-slate-800 text-sm mt-2 h-10 overflow-hidden">${set.name}</h3>
                         <div class="flex justify-between items-end border-t mt-4 pt-4">
-                            <div class="text-[10px] text-slate-400 font-bold uppercase">
-                                <p class="text-slate-700">#${set.setNumber}</p>
-                                <p>${set.ean || 'KEIN EAN'}</p>
-                                <p>UVP: ${parseFloat(set.price || 0).toFixed(2)} €</p>
-                            </div>
-                            <div class="text-right">
-                                <p class="text-[9px] font-black text-slate-300 uppercase">Marktwert</p>
-                                <p class="text-xl font-extrabold text-blue-600">${parseFloat(set.currentValue || 0).toFixed(2)} €</p>
-                            </div>
+                            <div class="text-[10px] text-slate-400 font-bold uppercase"><p class="text-slate-700">#${set.setNumber}</p><p>UVP: ${parseFloat(set.price || 0).toFixed(2)} €</p></div>
+                            <div class="text-right"><p class="text-[9px] font-black text-slate-300 uppercase">Marktwert</p><p class="text-xl font-extrabold text-blue-600">${parseFloat(set.currentValue || 0).toFixed(2)} €</p></div>
                         </div>
                     </div>
                 </div>
@@ -271,62 +194,16 @@
 
         function getSubthemeClass(sub) {
             const s = sub.toLowerCase();
-            if(s.includes("ultimate collector") || s.includes("ucs")) return "subtheme-ucs";
+            if(s.includes("ucs") || s.includes("ultimate collector")) return "subtheme-ucs";
             if(s.includes("modular")) return "subtheme-modular";
             if(s.includes("technic")) return "subtheme-technic";
-            if(s.includes("special")) return "subtheme-special";
             return "subtheme-default";
         }
 
-        function openModal(id) {
-            const s = mySets.find(x => x.setNumber === id);
-            if (!s) return;
-            currentEditId = id;
-            document.getElementById('modalImg').src = s.image;
-            document.getElementById('modalName').innerText = s.name;
-            document.getElementById('modalTheme').innerText = s.theme;
-            document.getElementById('modalId').innerText = "#" + s.setNumber;
-            document.getElementById('editEan').value = s.ean || "";
-            document.getElementById('editRetailPrice').value = s.price || 0;
-            document.getElementById('editCurrentValue').value = s.currentValue || 0;
-            document.getElementById('editSubtheme').value = s.subtheme || "";
-            setStatus(s.status || "Used");
-            document.getElementById('detailModal').style.display = 'flex';
-        }
-
-        function saveDetails() {
-            const s = mySets.find(x => x.setNumber === currentEditId);
-            if(s) {
-                s.ean = document.getElementById('editEan').value;
-                s.price = parseFloat(document.getElementById('editRetailPrice').value) || 0;
-                s.currentValue = parseFloat(document.getElementById('editCurrentValue').value) || 0;
-                s.subtheme = document.getElementById('editSubtheme').value;
-                s.status = currentStatus;
-                saveAndRender(); closeModal();
-            }
-        }
-
-        function toggleSelection(id, event) { 
-            event.stopPropagation(); 
-            if (selectedSets.has(id)) selectedSets.delete(id); else selectedSets.add(id); 
-            updateActionBar(); 
-        }
-
-        function updateActionBar() { 
-            document.getElementById('selectedCount').innerText = selectedSets.size; 
-            document.getElementById('actionBar').classList.toggle('hidden', selectedSets.size === 0); 
-        }
-
+        function toggleSelection(id, event) { event.stopPropagation(); if (selectedSets.has(id)) selectedSets.delete(id); else selectedSets.add(id); updateActionBar(); }
+        function updateActionBar() { document.getElementById('selectedCount').innerText = selectedSets.size; document.getElementById('actionBar').classList.toggle('hidden', selectedSets.size === 0); }
         function clearSelection() { selectedSets.clear(); updateActionBar(); renderLibrary(); }
-
-        function setStatus(s) { 
-            currentStatus = s; 
-            document.getElementById('btnNew').className = s === 'New' ? "flex-1 py-3 rounded-xl border-2 font-bold bg-blue-600 text-white" : "flex-1 py-3 rounded-xl border-2 font-bold bg-white text-slate-400"; 
-            document.getElementById('btnUsed').className = s === 'Used' ? "flex-1 py-3 rounded-xl border-2 font-bold bg-slate-800 text-white" : "flex-1 py-3 rounded-xl border-2 font-bold bg-white text-slate-400"; 
-        }
-
         function saveAndRender() { localStorage.setItem('bricksetCollection', JSON.stringify(mySets)); updateCategories(); renderLibrary(); }
-
         function updateStats() { 
             const p = mySets.reduce((a, b) => a + (parseInt(b.pieces) || 0), 0);
             const v = mySets.reduce((a, b) => a + (parseFloat(b.currentValue) || 0), 0);
@@ -334,47 +211,38 @@
             document.getElementById('statParts').innerText = p.toLocaleString();
             document.getElementById('statValue').innerText = v.toFixed(2) + " €";
         }
-
         function updateCategories() { 
             const ts = [...new Set(mySets.map(s => s.theme))].sort(); 
             const sel = document.getElementById('filterCategory'); 
-            const cur = sel.value; 
+            const cur = sel.value;
             sel.innerHTML = '<option value="all">Alle Themen</option>' + ts.map(t => `<option value="${t}" ${t===cur?'selected':''}>${t}</option>`).join(''); 
         }
-
+        function openModal(id) {
+            const s = mySets.find(x => x.setNumber === id);
+            currentEditId = id;
+            document.getElementById('modalImg').src = s.image;
+            document.getElementById('modalName').innerText = s.name;
+            document.getElementById('modalTheme').innerText = s.theme;
+            document.getElementById('modalId').innerText = "#" + s.setNumber;
+            document.getElementById('editRetailPrice').value = s.price || 0;
+            document.getElementById('editCurrentValue').value = s.currentValue || 0;
+            document.getElementById('detailModal').style.display = 'flex';
+        }
+        function saveDetails() {
+            const s = mySets.find(x => x.setNumber === currentEditId);
+            if(s) {
+                s.price = parseFloat(document.getElementById('editRetailPrice').value) || 0;
+                s.currentValue = parseFloat(document.getElementById('editCurrentValue').value) || 0;
+                saveAndRender(); closeModal();
+            }
+        }
         function closeModal() { document.getElementById('detailModal').style.display = 'none'; }
-        function updateStatus(m, c) { const el = document.getElementById('apiStatus'); el.innerText = m; el.className = `mt-4 text-[10px] font-black uppercase italic tracking-widest ${c}`; }
-
-        function exportCSV() { 
-            let csv = "\uFEFFSet-Nr;Name;Theme;UVP;Marktwert;Zustand;EAN\n"; 
-            mySets.forEach(s => csv += `${s.setNumber};"${s.name}";${s.theme};${s.price};${s.currentValue};${s.status};${s.ean}\n`); 
-            const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); link.download = `Sammlung.csv`; link.click(); 
-        }
-
-        function importCSV(i) { 
-            const r = new FileReader(); 
-            r.onload = (e) => { 
-                e.target.result.split('\n').slice(1).forEach(row => { 
-                    const c = row.split(';'); 
-                    if(c.length > 1) mySets.push({ setNumber: c[0], name: c[1].replace(/"/g,''), theme: c[2], price: parseFloat(c[3])||0, currentValue: parseFloat(c[4])||0, status: c[5], ean: c[6], pieces: 0, image: '' }); 
-                }); 
-                saveAndRender(); 
-            }; 
-            r.readAsText(i.files[0]); 
-        }
-
+        function updateStatus(m, c) { const el = document.getElementById('apiStatus'); el.innerText = m; el.className = `mt-4 text-[10px] font-black uppercase italic ${c}`; }
+        function deleteSelected() { mySets = mySets.filter(s => !selectedSets.has(s.setNumber)); clearSelection(); saveAndRender(); }
         function applyBulkActions() { 
             const st = document.getElementById('bulkStatus').value; 
-            const sub = document.getElementById('bulkSubtheme').value; 
-            mySets.forEach(s => { if(selectedSets.has(s.setNumber)) { if(st) s.status = st; if(sub) s.subtheme = sub; } }); 
+            mySets.forEach(s => { if(selectedSets.has(s.setNumber)) if(st) s.status = st; }); 
             clearSelection(); saveAndRender(); 
-        }
-
-        function deleteSelected() { 
-            if(confirm('Markierte Sets löschen?')) { 
-                mySets = mySets.filter(s => !selectedSets.has(s.setNumber)); 
-                clearSelection(); saveAndRender(); 
-            } 
         }
 
         saveAndRender();

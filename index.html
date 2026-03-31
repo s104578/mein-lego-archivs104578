@@ -105,8 +105,8 @@
     <main class="max-w-7xl mx-auto px-6">
         <div class="max-w-3xl mx-auto mb-16 text-center">
             <div class="bg-white p-2 rounded-[2.5rem] shadow-2xl flex items-center border-4 border-white">
-                <input type="text" id="barcodeInput" autofocus class="flex-1 pl-8 pr-4 py-4 rounded-[2rem] text-xl outline-none" placeholder="Set-Nummer..." onkeydown="if(event.key === 'Enter') fetchFromBrickset()">
-                <button onclick="fetchFromBrickset()" class="bg-blue-600 text-white font-bold py-4 px-10 rounded-[2rem] hover:bg-blue-700 transition-all">Hinzufügen</button>
+                <input type="text" id="barcodeInput" autofocus class="flex-1 pl-8 pr-4 py-4 rounded-[2rem] text-xl outline-none" placeholder="Set-Nummer..." onkeydown="if(event.key === 'Enter') fetchSets()">
+                <button onclick="fetchSets()" class="bg-blue-600 text-white font-bold py-4 px-10 rounded-[2rem] hover:bg-blue-700 transition-all">Hinzufügen</button>
             </div>
             <p id="apiStatus" class="mt-4 text-[10px] font-black text-slate-400 uppercase italic">Bereit</p>
         </div>
@@ -156,40 +156,92 @@
     </div>
 
     <script>
-        const API_KEY = '3-N4Lr-Ug0H-M49ki';
+        const API_KEY_BRICKSET = '3-N4Lr-Ug0H-M49ki';
+        const API_KEY_REBRICKABLE = '74d1510666ec62fef948d197af293799';
+        
         let mySets = JSON.parse(localStorage.getItem('bricksetCollection')) || [];
         let selectedSets = new Set();
         let currentEditId = null;
         let currentStatus = "Used";
 
-        // KOMPLETT NEU GESCHRIEBENE PREIS-LOGIK
+        // AGGRESSIVE PREIS-ABFRAGE
         function extractRRP(s) {
-            // Prüfung 1: Direktes Feld retailPrice (oft bei älteren Sets wie 8780)
-            if (s.retailPrice && s.retailPrice > 0) return s.retailPrice;
+            console.log("🚀 KOMPLETTE BRICKSET DATEN:", s);
             
-            // Prüfung 2: LEGO.com DE
-            if (s.LEGOCom?.DE?.retailPrice && s.LEGOCom.DE.retailPrice > 0) return s.LEGOCom.DE.retailPrice;
-            
-            // Prüfung 3: LEGO.com UK (Pfund 1:1 übernommen)
-            if (s.LEGOCom?.UK?.retailPrice && s.LEGOCom.UK.retailPrice > 0) return s.LEGOCom.UK.retailPrice;
-            
-            // Prüfung 4: LEGO.com US (Dollar 1:1 übernommen)
-            if (s.LEGOCom?.US?.retailPrice && s.LEGOCom.US.retailPrice > 0) return s.LEGOCom.US.retailPrice;
+            const parsePrice = (val) => {
+                if (!val) return 0;
+                // Wandelt auch Strings mit Kommas ("19,99") sicher in gültige Zahlen um
+                const parsed = parseFloat(String(val).replace(',', '.'));
+                return isNaN(parsed) ? 0 : parsed;
+            };
 
+            let p = parsePrice(s.retailPrice);
+            if (p > 0) { console.log(`✅ Preis im Hauptfeld gefunden: ${p}`); return p; }
+            
+            const regions = ['DE', 'UK', 'US'];
+            for (let r of regions) {
+                if (s.LEGOCom?.[r]?.retailPrice) {
+                    p = parsePrice(s.LEGOCom[r].retailPrice);
+                    if (p > 0) {
+                        console.log(`✅ Preis in LEGO.com Region ${r} gefunden: ${p}`);
+                        return p;
+                    }
+                }
+            }
+            
+            console.warn("❌ Kein Preis in den Brickset-Daten gefunden.");
             return 0;
         }
 
-        async function fetchFromBrickset() {
+        // FALLBACK: REBRICKABLE API
+        async function fetchFromRebrickable(query) {
+            console.log("🔄 Starte Rebrickable API Fallback...");
+            // Rebrickable verlangt zwingend die Endung -1, z.B. 8780-1
+            const setNum = query.includes('-') ? query : `${query}-1`;
+            
+            try {
+                const res = await fetch(`https://rebrickable.com/api/v3/lego/sets/${setNum}/`, {
+                    headers: {
+                        'Authorization': `key ${API_KEY_REBRICKABLE}`,
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                if(!res.ok) throw new Error("Rebrickable Anfrage fehlgeschlagen");
+                const data = await res.json();
+                
+                console.log("📦 REBRICKABLE DATEN (Achtung: Liefert keinen Preis!):", data);
+                
+                return {
+                    setNumber: query,
+                    name: data.name || "Unbekanntes Set",
+                    pieces: data.num_parts || 0,
+                    theme: "LEGO", // Rebrickable liefert standardmäßig nur Theme-IDs
+                    subtheme: "",
+                    ean: "",
+                    image: data.set_img_url || '',
+                    price: 0, 
+                    currentValue: 0,
+                    status: "Used"
+                };
+            } catch (e) {
+                console.error("❌ Rebrickable Fallback fehlgeschlagen:", e);
+                return null;
+            }
+        }
+
+        // HAUPT-FETCH FUNKTION
+        async function fetchSets() {
             const input = document.getElementById('barcodeInput');
             const query = input.value.trim();
             if (!query) return;
             
-            updateStatus("Suche...", "text-blue-500 animate-pulse");
+            updateStatus("Suche bei Brickset...", "text-blue-500 animate-pulse");
+            let newSetObj = null;
             
             try {
-                // ExtendedData=1 ist extrem wichtig für die UVP
                 const params = JSON.stringify({ query: query, pageSize: 1, extendedData: 1 });
-                const url = `https://corsproxy.io/?${encodeURIComponent('https://brickset.com/api/v3.asmx/getSets?apiKey=' + API_KEY + '&userHash=&params=' + params)}`;
+                const url = `https://corsproxy.io/?${encodeURIComponent('https://brickset.com/api/v3.asmx/getSets?apiKey=' + API_KEY_BRICKSET + '&userHash=&params=' + params)}`;
                 
                 const res = await fetch(url);
                 const data = await res.json();
@@ -198,7 +250,7 @@
                     const s = data.sets[0];
                     const foundPrice = extractRRP(s);
                     
-                    mySets.unshift({
+                    newSetObj = {
                         setNumber: String(s.number),
                         name: s.name,
                         pieces: s.pieces || 0,
@@ -209,17 +261,37 @@
                         price: foundPrice, 
                         currentValue: 0,
                         status: "Used"
-                    });
-                    
+                    };
+
+                    // Wenn Brickset keinen Preis liefert, frage Rebrickable (für Transparenz & Metadaten-Abgleich)
+                    if (foundPrice === 0) {
+                        updateStatus("Kein Preis! Checke Rebrickable...", "text-orange-500");
+                        await fetchFromRebrickable(query);
+                        // Wir aktualisieren newSetObj hier nicht, da Rebrickable keinen Preis hat.
+                    }
+                } else {
+                    // Brickset hat komplett versagt -> Rebrickable muss einspringen
+                    updateStatus("Nicht bei Brickset gefunden. Suche bei Rebrickable...", "text-orange-500 animate-pulse");
+                    newSetObj = await fetchFromRebrickable(query);
+                }
+            } catch (e) {
+                console.error("API Fehler:", e);
+                updateStatus("API Error. Nutze Fallback...", "text-red-600");
+                newSetObj = await fetchFromRebrickable(query);
+            }
+
+            if (newSetObj) {
+                // Verhindern, dass Sets doppelt hinzugefügt werden
+                if(mySets.find(x => x.setNumber === newSetObj.setNumber)) {
+                    updateStatus("Set existiert bereits!", "text-orange-600");
+                } else {
+                    mySets.unshift(newSetObj);
                     saveAndRender();
                     input.value = '';
                     updateStatus("Erfolgreich hinzugefügt!", "text-green-600");
-                } else {
-                    updateStatus("Set nicht gefunden.", "text-red-600");
                 }
-            } catch (e) {
-                updateStatus("API Fehler!", "text-red-600");
-                console.error(e);
+            } else {
+                updateStatus("Set nirgendwo gefunden.", "text-red-600");
             }
         }
 
@@ -229,7 +301,7 @@
                 if (!s) continue;
                 try {
                     const params = JSON.stringify({ query: s.setNumber, pageSize: 1, extendedData: 1 });
-                    const url = `https://corsproxy.io/?${encodeURIComponent('https://brickset.com/api/v3.asmx/getSets?apiKey=' + API_KEY + '&userHash=&params=' + params)}`;
+                    const url = `https://corsproxy.io/?${encodeURIComponent('https://brickset.com/api/v3.asmx/getSets?apiKey=' + API_KEY_BRICKSET + '&userHash=&params=' + params)}`;
                     const res = await fetch(url);
                     const data = await res.json();
                     if (data.matches > 0) {

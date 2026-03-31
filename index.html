@@ -16,28 +16,23 @@
         .select-checkbox { opacity: 0; transition: all 0.2s; transform: scale(1.2); cursor: pointer; }
         .set-card:hover .select-checkbox, .select-checkbox:checked { opacity: 1; }
 
-        /* Schimmer Animation */
         @keyframes shimmerEffect {
             0% { background-position: -200% center; }
             100% { background-position: 200% center; }
         }
 
-        /* UCS Gold Tag mit Schimmer */
         .subtheme-ucs { 
             background: linear-gradient(90deg, #bf953f, #fcf6ba, #b38728, #fcf6ba, #bf953f);
             background-size: 200% auto;
-            color: #000; 
-            font-weight: 900;
+            color: #000; font-weight: 900;
             animation: shimmerEffect 4s linear infinite;
             box-shadow: 0 0 10px rgba(179, 135, 40, 0.4);
         }
 
-        /* Modular Green Tag mit Schimmer */
         .subtheme-modular { 
             background: linear-gradient(90deg, #065f46, #10b981, #064e3b, #10b981, #065f46);
             background-size: 200% auto;
-            color: white; 
-            font-weight: 700;
+            color: white; font-weight: 700;
             animation: shimmerEffect 4s linear infinite;
             box-shadow: 0 0 10px rgba(6, 95, 70, 0.4);
         }
@@ -59,6 +54,10 @@
                 <button onclick="clearSelection()" class="text-blue-100 hover:text-white text-xs underline">Abbrechen</button>
             </div>
             <div class="flex flex-wrap items-center gap-3">
+                <button onclick="refreshSelectedSets()" title="Markierte Sets aktualisieren" class="p-2 bg-blue-500 hover:bg-blue-400 rounded-lg transition-colors border border-blue-400">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+                <div class="h-8 w-[1px] bg-blue-400 mx-1"></div>
                 <select id="bulkStatus" class="bg-blue-700 rounded-lg px-3 py-2 text-sm font-bold outline-none border-none">
                     <option value="">Status...</option>
                     <option value="New">New</option>
@@ -128,9 +127,6 @@
             </div>
 
             <div class="flex gap-2 items-center">
-                <button onclick="refreshMissingPrices()" title="Preise fixen" class="p-2 bg-orange-50 text-orange-600 rounded-xl hover:bg-orange-100">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                </button>
                 <button onclick="document.getElementById('csvImport').click()" title="CSV Import" class="p-2 text-slate-500 hover:bg-slate-100 rounded-xl">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 </button>
@@ -154,7 +150,6 @@
             </div>
             <p id="apiStatus" class="mt-4 text-[10px] font-black text-slate-400 uppercase italic tracking-widest">Bereit</p>
         </div>
-
         <div id="library" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"></div>
     </main>
 
@@ -187,6 +182,40 @@
                     saveAndRender(); inputField.value = ''; updateStatus("Set geladen!", "text-green-600");
                 } else { updateStatus("Nicht gefunden", "text-red-600"); }
             } catch (e) { updateStatus("API Fehler", "text-red-600"); }
+        }
+
+        // NEUE FUNKTION: Aktualisiert NUR markierte Sets
+        async function refreshSelectedSets() {
+            if (selectedSets.size === 0) return;
+            
+            updateStatus(`${selectedSets.size} Sets werden aktualisiert...`, "text-blue-500 animate-pulse");
+            
+            let updateCount = 0;
+            for (let id of selectedSets) {
+                const s = mySets.find(x => x.setNumber === id);
+                if (!s) continue;
+
+                try {
+                    const params = JSON.stringify({ query: s.setNumber, pageSize: 1, extendedData: 1 });
+                    const url = `https://corsproxy.io/?${encodeURIComponent('https://brickset.com/api/v3.asmx/getSets?apiKey=' + API_KEY + '&userHash=&params=' + params)}`;
+                    const res = await fetch(url);
+                    const data = await res.json();
+
+                    if (data.matches > 0) {
+                        const apiData = data.sets[0];
+                        // Update: Bild, UVP und Subtheme
+                        s.image = apiData.image?.imageURL || s.image;
+                        s.price = apiData.LEGOCom?.DE?.retailPrice || s.price;
+                        s.subtheme = apiData.subtheme || s.subtheme;
+                        s.pieces = apiData.pieces || s.pieces;
+                        updateCount++;
+                    }
+                } catch (e) { console.error("Fehler bei Set " + id, e); }
+            }
+            
+            saveAndRender();
+            clearSelection();
+            updateStatus(`${updateCount} Sets erfolgreich aktualisiert!`, "text-green-600");
         }
 
         function renderLibrary() {
@@ -330,19 +359,6 @@
                 mySets = mySets.filter(s => !selectedSets.has(s.setNumber)); 
                 clearSelection(); saveAndRender(); 
             } 
-        }
-
-        async function refreshMissingPrices() { 
-            updateStatus("Preise werden aktualisiert...", "text-blue-500"); 
-            for (let s of mySets.filter(x => x.price == 0)) { 
-                try { 
-                    const params = JSON.stringify({query: s.setNumber, pageSize: 1}); 
-                    const url = `https://corsproxy.io/?${encodeURIComponent('https://brickset.com/api/v3.asmx/getSets?apiKey=' + API_KEY + '&userHash=&params=' + params)}`; 
-                    const res = await fetch(url); const d = await res.json(); 
-                    if(d.matches > 0) s.price = d.sets[0].LEGOCom?.DE?.retailPrice || 0; 
-                } catch(e) {} 
-            } 
-            saveAndRender(); updateStatus("Preise aktualisiert!", "text-green-600"); 
         }
 
         saveAndRender();

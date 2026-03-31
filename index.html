@@ -17,6 +17,25 @@
         .set-card:hover .select-checkbox, .select-checkbox:checked { opacity: 1; }
 
         @keyframes shimmerEffect { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
+        @keyframes stars { from { background-position: 0 0; } to { background-position: 100px 100px; } }
+
+        /* Star Wars Sternenhimmel Tag */
+        .subtheme-starwars { 
+            background: radial-gradient(circle at center, #1e293b 0%, #020617 100%);
+            background-image: 
+                radial-gradient(1px 1px at 20px 30px, #fff, rgba(0,0,0,0)),
+                radial-gradient(1px 1px at 40px 70px, #fff, rgba(0,0,0,0)),
+                radial-gradient(1px 1px at 50px 10px, #fff, rgba(0,0,0,0)),
+                radial-gradient(1px 1px at 80px 40px, #fff, rgba(0,0,0,0)),
+                radial-gradient(1px 1px at 90px 90px, #fff, rgba(0,0,0,0));
+            background-size: 100px 100px;
+            animation: stars 10s linear infinite;
+            color: #ffe81f; /* Klassisches Star Wars Gelb */
+            font-weight: 800;
+            text-shadow: 0 0 5px rgba(255, 232, 31, 0.5);
+            border: 1px solid #334155;
+        }
+
         .subtheme-ucs { background: linear-gradient(90deg, #bf953f, #fcf6ba, #b38728, #fcf6ba, #bf953f); background-size: 200% auto; color: #000; font-weight: 900; animation: shimmerEffect 4s linear infinite; }
         .subtheme-modular { background: linear-gradient(90deg, #065f46, #10b981, #064e3b, #10b981, #065f46); background-size: 200% auto; color: white; font-weight: 700; animation: shimmerEffect 4s linear infinite; }
         .subtheme-technic { background: #475569; color: white; }
@@ -131,6 +150,7 @@
         let currentEditId = null;
         let currentStatus = "Used";
 
+        // VERBESSERTE PREISLOGIK MIT FALLBACK (OHNE UMRECHNUNG)
         function getBestPrice(apiData) {
             return apiData.LEGOCom?.DE?.retailPrice || 
                    apiData.LEGOCom?.UK?.retailPrice || 
@@ -221,8 +241,10 @@
             updateStats();
         }
 
+        // TAGS LOGIK MIT STAR WARS ERWEITERUNG
         function getSubthemeClass(sub) {
             const s = sub.toLowerCase();
+            if(s.includes("star wars")) return "subtheme-starwars";
             if(s.includes("ucs") || s.includes("ultimate collector")) return "subtheme-ucs";
             if(s.includes("modular")) return "subtheme-modular";
             if(s.includes("technic")) return "subtheme-technic";

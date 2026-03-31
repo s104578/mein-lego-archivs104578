@@ -3,59 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Brix Just4Sean - Full Collection Manager</title>
+    <title>Brix Just4Sean - Collection Manager</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; }
         .glass { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.4); }
+        
         .set-card { transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); cursor: pointer; position: relative; }
         .set-card:hover { transform: translateY(-8px); box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.15); }
-        .delete-btn { opacity: 0; transition: all 0.2s; }
-        .set-card:hover .delete-btn { opacity: 1; }
+        
         .select-checkbox { opacity: 0; transition: all 0.2s; transform: scale(1.2); cursor: pointer; }
         .set-card:hover .select-checkbox, .select-checkbox:checked { opacity: 1; }
-        
-        /* Subtheme Styles */
-        .subtheme-ucs { background: linear-gradient(135deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c); color: #000; font-weight: 900; }
-        .subtheme-technic { background: #475569; color: white; }
-        
-        /* Modular Green Glow Design */
+
+        /* Schimmer Animation */
+        @keyframes shimmerEffect {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
+
+        /* UCS Gold Tag mit Schimmer */
+        .subtheme-ucs { 
+            background: linear-gradient(90deg, #bf953f, #fcf6ba, #b38728, #fcf6ba, #bf953f);
+            background-size: 200% auto;
+            color: #000; 
+            font-weight: 900;
+            animation: shimmerEffect 4s linear infinite;
+            box-shadow: 0 0 10px rgba(179, 135, 40, 0.4);
+        }
+
+        /* Modular Green Tag mit Schimmer */
         .subtheme-modular { 
-            background: linear-gradient(135deg, #065f46 0%, #059669 50%, #065f46 100%);
+            background: linear-gradient(90deg, #065f46, #10b981, #064e3b, #10b981, #065f46);
             background-size: 200% auto;
             color: white; 
-            box-shadow: 0 0 10px rgba(5, 150, 105, 0.3);
-            animation: modularShimmer 3s linear infinite;
+            font-weight: 700;
+            animation: shimmerEffect 4s linear infinite;
+            box-shadow: 0 0 10px rgba(6, 95, 70, 0.4);
         }
-        @keyframes modularShimmer { to { background-position: 200% center; } }
 
+        .subtheme-technic { background: #475569; color: white; }
         .subtheme-special { background: #6b21a8; color: white; }
         .subtheme-default { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
 
         #detailModal { display: none; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); }
-        @keyframes slideDown { from { transform: translateY(-100%); } to { transform: translateY(0); } }
-        .action-bar-anim { animation: slideDown 0.3s ease-out; }
     </style>
 </head>
 <body class="min-h-screen pb-12">
 
-    <div id="actionBar" class="fixed top-0 left-0 right-0 z-[60] bg-blue-600 text-white py-4 px-6 shadow-2xl hidden action-bar-anim">
+    <div id="actionBar" class="fixed top-0 left-0 right-0 z-[60] bg-blue-600 text-white py-4 px-6 shadow-2xl hidden">
         <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
             <div class="flex items-center gap-4">
                 <span id="selectedCount" class="bg-white text-blue-600 px-3 py-1 rounded-full font-black text-sm">0</span>
                 <p class="font-bold">Sets ausgewählt</p>
-                <button onclick="clearSelection()" class="text-blue-100 hover:text-white text-xs underline">Auswahl aufheben</button>
+                <button onclick="clearSelection()" class="text-blue-100 hover:text-white text-xs underline">Abbrechen</button>
             </div>
             <div class="flex flex-wrap items-center gap-3">
-                <select id="bulkStatus" class="bg-blue-700 border-none rounded-lg px-3 py-2 text-sm font-bold outline-none">
-                    <option value="">Zustand ändern...</option>
+                <select id="bulkStatus" class="bg-blue-700 rounded-lg px-3 py-2 text-sm font-bold outline-none border-none">
+                    <option value="">Status...</option>
                     <option value="New">New</option>
                     <option value="Used">Used</option>
                 </select>
-                <input type="text" id="bulkSubtheme" placeholder="Subtheme ändern..." class="bg-blue-700 placeholder-blue-300 border-none rounded-lg px-3 py-2 text-sm font-bold outline-none w-40">
-                <button onclick="applyBulkActions()" class="bg-white text-blue-600 px-4 py-2 rounded-lg font-black text-sm hover:bg-blue-50 transition-colors">Anwenden</button>
-                <button onclick="deleteSelected()" class="bg-red-500 hover:bg-red-600 p-2 rounded-lg transition-colors">
+                <input type="text" id="bulkSubtheme" placeholder="Subtheme..." class="bg-blue-700 placeholder-blue-300 rounded-lg px-3 py-2 text-sm font-bold outline-none border-none w-32">
+                <button onclick="applyBulkActions()" class="bg-white text-blue-600 px-4 py-2 rounded-lg font-black text-sm hover:bg-blue-50">Anwenden</button>
+                <button onclick="deleteSelected()" class="bg-red-500 hover:bg-red-600 p-2 rounded-lg">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                 </button>
             </div>
@@ -69,10 +80,10 @@
             </button>
             <div class="md:w-1/2 bg-slate-50 p-8 flex flex-col items-center justify-center border-r border-slate-100">
                 <img id="modalImg" src="" class="max-h-64 object-contain drop-shadow-2xl mb-8">
-                <div class="w-full space-y-2 text-center md:text-left">
+                <div class="w-full text-center md:text-left">
                     <p class="text-xs font-black text-blue-600 uppercase tracking-widest" id="modalTheme"></p>
                     <h2 class="text-2xl font-extrabold text-slate-800" id="modalName"></h2>
-                    <p class="text-slate-400 font-bold" id="modalId"></p>
+                    <p class="text-slate-400 font-bold mt-1" id="modalId"></p>
                 </div>
             </div>
             <div class="md:w-1/2 p-8 pt-12 space-y-6">
@@ -83,7 +94,7 @@
                     </div>
                     <div class="bg-slate-50 p-4 rounded-2xl">
                         <p class="text-[10px] font-black text-slate-400 uppercase">UVP Preis (€)</p>
-                        <input type="number" id="editRetailPrice" step="0.01" class="bg-transparent font-bold text-slate-800 w-full outline-none" placeholder="0.00">
+                        <input type="number" id="editRetailPrice" step="0.01" class="bg-transparent font-bold text-slate-800 w-full outline-none">
                     </div>
                     <div class="bg-blue-50 p-4 rounded-2xl border border-blue-100 col-span-2">
                         <p class="text-[10px] font-black text-blue-500 uppercase">Marktwert (€)</p>
@@ -91,7 +102,7 @@
                     </div>
                     <div class="bg-slate-50 p-4 rounded-2xl col-span-2">
                         <p class="text-[10px] font-black text-slate-400 uppercase">Subtheme</p>
-                        <input type="text" id="editSubtheme" class="bg-transparent font-bold text-slate-800 w-full outline-none" placeholder="-">
+                        <input type="text" id="editSubtheme" class="bg-transparent font-bold text-slate-800 w-full outline-none" placeholder="z.B. Ultimate Collector Series">
                     </div>
                 </div>
                 <div>
@@ -101,7 +112,7 @@
                         <button onclick="setStatus('Used')" id="btnUsed" class="flex-1 py-3 rounded-xl border-2 font-bold transition-all">Used</button>
                     </div>
                 </div>
-                <button onclick="saveDetails()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all">Speichern</button>
+                <button onclick="saveDetails()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all">Änderungen speichern</button>
             </div>
         </div>
     </div>
@@ -109,30 +120,41 @@
     <nav class="sticky top-0 z-50 glass mb-8 border-b border-slate-200">
         <div class="max-w-7xl mx-auto px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
             <h1 class="text-2xl font-extrabold text-slate-800">BRIX JUST<span class="text-blue-600">4SEAN™</span></h1>
+            
             <div class="flex gap-6 text-center">
-                <div><p class="text-[10px] uppercase font-black text-slate-400">Sets</p><p id="statSets" class="font-bold">0</p></div>
-                <div><p class="text-[10px] uppercase font-black text-slate-400">Teile</p><p id="statParts" class="font-bold">0</p></div>
-                <div><p class="text-[10px] uppercase font-black text-slate-400">Wert</p><p id="statValue" class="font-bold text-blue-600">0.00 €</p></div>
+                <div><p class="text-[10px] uppercase font-black text-slate-400">Sets</p><p id="statSets" class="font-bold text-slate-800">0</p></div>
+                <div><p class="text-[10px] uppercase font-black text-slate-400">Teile</p><p id="statParts" class="font-bold text-slate-800">0</p></div>
+                <div><p class="text-[10px] uppercase font-black text-slate-400">Sammlungswert</p><p id="statValue" class="font-bold text-blue-600">0.00 €</p></div>
             </div>
+
             <div class="flex gap-2 items-center">
-                <button onclick="refreshMissingPrices()" class="p-2 bg-orange-50 text-orange-600 rounded-xl hover:bg-orange-100"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-width="2"/></svg></button>
-                <button onclick="document.getElementById('csvImport').click()" class="p-2 text-slate-500 hover:bg-slate-100 rounded-xl"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" stroke-width="2"/></svg></button>
+                <button onclick="refreshMissingPrices()" title="Preise fixen" class="p-2 bg-orange-50 text-orange-600 rounded-xl hover:bg-orange-100">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+                <button onclick="document.getElementById('csvImport').click()" title="CSV Import" class="p-2 text-slate-500 hover:bg-slate-100 rounded-xl">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
                 <input type="file" id="csvImport" class="hidden" accept=".csv" onchange="importCSV(this)">
-                <select id="filterCategory" onchange="renderLibrary()" class="bg-white border rounded-xl px-3 py-2 text-sm font-bold outline-none"><option value="all">Alle Themen</option></select>
-                <input type="text" id="searchLibrary" oninput="renderLibrary()" placeholder="Suchen..." class="bg-white border rounded-xl px-3 py-2 text-sm outline-none w-40 focus:w-60 transition-all">
-                <button onclick="exportCSV()" class="p-2 text-slate-500 hover:bg-slate-100 rounded-xl"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" stroke-width="2"/></svg></button>
+                <select id="filterCategory" onchange="renderLibrary()" class="bg-white border rounded-xl px-3 py-2 text-sm font-bold outline-none">
+                    <option value="all">Alle Themen</option>
+                </select>
+                <input type="text" id="searchLibrary" oninput="renderLibrary()" placeholder="Suche..." class="bg-white border rounded-xl px-3 py-2 text-sm outline-none w-40 focus:w-60 transition-all">
+                <button onclick="exportCSV()" title="CSV Export" class="p-2 text-slate-500 hover:bg-slate-100 rounded-xl">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
             </div>
         </div>
     </nav>
 
     <main class="max-w-7xl mx-auto px-6">
-        <div class="max-w-3xl mx-auto mb-16">
+        <div class="max-w-3xl mx-auto mb-16 text-center">
             <div class="bg-white p-2 rounded-[2.5rem] shadow-2xl flex items-center border-4 border-white">
-                <input type="text" id="barcodeInput" autofocus class="flex-1 pl-8 pr-4 py-4 rounded-[2rem] text-xl outline-none" placeholder="Set-Nr scannen...">
-                <button onclick="fetchFromBrickset()" class="bg-blue-600 text-white font-bold py-4 px-10 rounded-[2rem] hover:bg-blue-700">Hinzufügen</button>
+                <input type="text" id="barcodeInput" autofocus class="flex-1 pl-8 pr-4 py-4 rounded-[2rem] text-xl outline-none placeholder-slate-300" placeholder="Set-Nummer eingeben...">
+                <button onclick="fetchFromBrickset()" class="bg-blue-600 text-white font-bold py-4 px-10 rounded-[2rem] hover:bg-blue-700 transition-all">Hinzufügen</button>
             </div>
-            <p id="apiStatus" class="text-center mt-4 text-[10px] font-black text-slate-400 uppercase italic">Bereit</p>
+            <p id="apiStatus" class="mt-4 text-[10px] font-black text-slate-400 uppercase italic tracking-widest">Bereit</p>
         </div>
+
         <div id="library" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"></div>
     </main>
 
@@ -143,11 +165,13 @@
         let currentStatus = "Used";
         let selectedSets = new Set();
 
+        const inputField = document.getElementById('barcodeInput');
+        inputField.addEventListener('keypress', (e) => { if (e.key === 'Enter') fetchFromBrickset(); });
+
         async function fetchFromBrickset() {
-            const input = document.getElementById('barcodeInput');
-            const query = input.value.trim();
+            const query = inputField.value.trim();
             if (!query) return;
-            updateStatus("Suche...", "text-blue-500");
+            updateStatus("Suche...", "text-blue-500 animate-pulse");
             try {
                 const params = JSON.stringify({ query: query, pageSize: 1, extendedData: 1 });
                 const url = `https://corsproxy.io/?${encodeURIComponent('https://brickset.com/api/v3.asmx/getSets?apiKey=' + API_KEY + '&userHash=&params=' + params)}`;
@@ -156,13 +180,13 @@
                 if (data.matches > 0) {
                     const s = data.sets[0];
                     mySets.unshift({
-                        setNumber: String(s.number), name: s.name, ean: "", year: s.year, pieces: s.pieces || 0,
+                        setNumber: String(s.number), name: s.name, ean: "", pieces: s.pieces || 0,
                         theme: s.theme, subtheme: s.subtheme || "", image: s.image?.imageURL || '',
                         price: s.LEGOCom?.DE?.retailPrice || 0, currentValue: 0, status: "Used"
                     });
-                    saveAndRender(); input.value = ''; updateStatus("Erfolg!", "text-green-600");
-                } else { updateStatus("Nicht gefunden", "text-red-600"); input.value = ''; }
-            } catch (e) { updateStatus("Fehler", "text-red-600"); }
+                    saveAndRender(); inputField.value = ''; updateStatus("Set geladen!", "text-green-600");
+                } else { updateStatus("Nicht gefunden", "text-red-600"); }
+            } catch (e) { updateStatus("API Fehler", "text-red-600"); }
         }
 
         function renderLibrary() {
@@ -172,10 +196,10 @@
             
             document.getElementById('library').innerHTML = filtered.map(set => `
                 <div onclick="openModal('${set.setNumber}')" class="set-card bg-white rounded-[2rem] shadow-lg border border-slate-100 overflow-hidden">
-                    <input type="checkbox" ${selectedSets.has(set.setNumber) ? 'checked' : ''} onclick="toggleSelection('${set.setNumber}', event)" class="select-checkbox absolute top-5 left-5 z-20 w-5 h-5 rounded-md accent-blue-600">
+                    <input type="checkbox" ${selectedSets.has(set.setNumber) ? 'checked' : ''} onclick="toggleSelection('${set.setNumber}', event)" class="select-checkbox absolute top-5 left-5 z-20 w-5 h-5 rounded-md accent-blue-600 border-2">
                     <div class="h-48 flex items-center justify-center p-6 relative">
                         <img src="${set.image}" class="max-h-full object-contain drop-shadow-xl" onerror="this.src='https://via.placeholder.com/150'">
-                        <div class="absolute bottom-2 left-4 flex gap-1 flex-wrap">
+                        <div class="absolute bottom-2 left-4 flex gap-1 flex-wrap pr-4">
                             <span class="text-[8px] font-bold px-2 py-0.5 rounded-full ${set.status === 'New' ? 'bg-blue-600' : 'bg-slate-700'} text-white">${set.status}</span>
                             ${set.subtheme ? `<span class="text-[8px] px-2 py-0.5 rounded-full ${getSubthemeClass(set.subtheme)}">${set.subtheme}</span>` : ''}
                         </div>
@@ -202,9 +226,9 @@
 
         function getSubthemeClass(sub) {
             const s = sub.toLowerCase();
-            if(s.includes("ucs")) return "subtheme-ucs";
+            if(s.includes("ultimate collector") || s.includes("ucs")) return "subtheme-ucs";
+            if(s.includes("modular")) return "subtheme-modular";
             if(s.includes("technic")) return "subtheme-technic";
-            if(s.includes("modular")) return "subtheme-modular"; // Hier greift das neue Design
             if(s.includes("special")) return "subtheme-special";
             return "subtheme-default";
         }
@@ -218,7 +242,7 @@
             document.getElementById('modalTheme').innerText = s.theme;
             document.getElementById('modalId').innerText = "#" + s.setNumber;
             document.getElementById('editEan').value = s.ean || "";
-            document.getElementById('editRetailPrice').value = s.price || 0; // UVP wieder editierbar
+            document.getElementById('editRetailPrice').value = s.price || 0;
             document.getElementById('editCurrentValue').value = s.currentValue || 0;
             document.getElementById('editSubtheme').value = s.subtheme || "";
             setStatus(s.status || "Used");
@@ -237,11 +261,27 @@
             }
         }
 
-        function toggleSelection(id, event) { event.stopPropagation(); if (selectedSets.has(id)) selectedSets.delete(id); else selectedSets.add(id); updateActionBar(); }
-        function updateActionBar() { document.getElementById('selectedCount').innerText = selectedSets.size; document.getElementById('actionBar').classList.toggle('hidden', selectedSets.size === 0); }
+        function toggleSelection(id, event) { 
+            event.stopPropagation(); 
+            if (selectedSets.has(id)) selectedSets.delete(id); else selectedSets.add(id); 
+            updateActionBar(); 
+        }
+
+        function updateActionBar() { 
+            document.getElementById('selectedCount').innerText = selectedSets.size; 
+            document.getElementById('actionBar').classList.toggle('hidden', selectedSets.size === 0); 
+        }
+
         function clearSelection() { selectedSets.clear(); updateActionBar(); renderLibrary(); }
-        function setStatus(s) { currentStatus = s; document.getElementById('btnNew').className = s === 'New' ? "flex-1 py-3 rounded-xl border-2 font-bold bg-blue-600 text-white" : "flex-1 py-3 rounded-xl border-2 font-bold bg-white text-slate-400"; document.getElementById('btnUsed').className = s === 'Used' ? "flex-1 py-3 rounded-xl border-2 font-bold bg-slate-800 text-white" : "flex-1 py-3 rounded-xl border-2 font-bold bg-white text-slate-400"; }
+
+        function setStatus(s) { 
+            currentStatus = s; 
+            document.getElementById('btnNew').className = s === 'New' ? "flex-1 py-3 rounded-xl border-2 font-bold bg-blue-600 text-white" : "flex-1 py-3 rounded-xl border-2 font-bold bg-white text-slate-400"; 
+            document.getElementById('btnUsed').className = s === 'Used' ? "flex-1 py-3 rounded-xl border-2 font-bold bg-slate-800 text-white" : "flex-1 py-3 rounded-xl border-2 font-bold bg-white text-slate-400"; 
+        }
+
         function saveAndRender() { localStorage.setItem('bricksetCollection', JSON.stringify(mySets)); updateCategories(); renderLibrary(); }
+
         function updateStats() { 
             const p = mySets.reduce((a, b) => a + (parseInt(b.pieces) || 0), 0);
             const v = mySets.reduce((a, b) => a + (parseFloat(b.currentValue) || 0), 0);
@@ -249,16 +289,61 @@
             document.getElementById('statParts').innerText = p.toLocaleString();
             document.getElementById('statValue').innerText = v.toFixed(2) + " €";
         }
-        function updateCategories() { const ts = [...new Set(mySets.map(s => s.theme))].sort(); const sel = document.getElementById('filterCategory'); const cur = sel.value; sel.innerHTML = '<option value="all">Alle Themen</option>' + ts.map(t => `<option value="${t}" ${t===cur?'selected':''}>${t}</option>`).join(''); }
+
+        function updateCategories() { 
+            const ts = [...new Set(mySets.map(s => s.theme))].sort(); 
+            const sel = document.getElementById('filterCategory'); 
+            const cur = sel.value; 
+            sel.innerHTML = '<option value="all">Alle Themen</option>' + ts.map(t => `<option value="${t}" ${t===cur?'selected':''}>${t}</option>`).join(''); 
+        }
+
         function closeModal() { document.getElementById('detailModal').style.display = 'none'; }
-        function updateStatus(m, c) { const el = document.getElementById('apiStatus'); el.innerText = m; el.className = `text-center mt-4 text-[10px] font-black uppercase italic ${c}`; }
-        
-        // Export/Import/Bulk/Fix logic remains the same as previously defined
-        function exportCSV() { let csv = "\uFEFFSet-Nr;Name;Theme;UVP;Marktwert;Zustand;EAN\n"; mySets.forEach(s => csv += `${s.setNumber};"${s.name}";${s.theme};${s.price};${s.currentValue};${s.status};${s.ean}\n`); const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); link.download = `Sammlung.csv`; link.click(); }
-        function importCSV(i) { const r = new FileReader(); r.onload = (e) => { e.target.result.split('\n').slice(1).forEach(row => { const c = row.split(';'); if(c.length > 1) mySets.push({ setNumber: c[0], name: c[1].replace(/"/g,''), theme: c[2], price: c[3], currentValue: c[4], status: c[5], ean: c[6], pieces: 0, image: '' }); }); saveAndRender(); }; r.readAsText(i.files[0]); }
-        function applyBulkActions() { const st = document.getElementById('bulkStatus').value; const sub = document.getElementById('bulkSubtheme').value; mySets.forEach(s => { if(selectedSets.has(s.setNumber)) { if(st) s.status = st; if(sub) s.subtheme = sub; } }); clearSelection(); saveAndRender(); }
-        function deleteSelected() { if(confirm('Löschen?')) { mySets = mySets.filter(s => !selectedSets.has(s.setNumber)); clearSelection(); saveAndRender(); } }
-        async function refreshMissingPrices() { updateStatus("Fixe Preise...", "text-blue-500 animate-pulse"); for (let s of mySets.filter(x => x.price == 0)) { try { const params = JSON.stringify({query: s.setNumber, pageSize: 1}); const url = `https://corsproxy.io/?${encodeURIComponent('https://brickset.com/api/v3.asmx/getSets?apiKey=' + API_KEY + '&userHash=&params=' + params)}`; const res = await fetch(url); const d = await res.json(); if(d.matches > 0) s.price = d.sets[0].LEGOCom?.DE?.retailPrice || 0; } catch(e) {} } saveAndRender(); updateStatus("Fertig!", "text-green-600"); }
+        function updateStatus(m, c) { const el = document.getElementById('apiStatus'); el.innerText = m; el.className = `mt-4 text-[10px] font-black uppercase italic tracking-widest ${c}`; }
+
+        function exportCSV() { 
+            let csv = "\uFEFFSet-Nr;Name;Theme;UVP;Marktwert;Zustand;EAN\n"; 
+            mySets.forEach(s => csv += `${s.setNumber};"${s.name}";${s.theme};${s.price};${s.currentValue};${s.status};${s.ean}\n`); 
+            const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); link.download = `Sammlung.csv`; link.click(); 
+        }
+
+        function importCSV(i) { 
+            const r = new FileReader(); 
+            r.onload = (e) => { 
+                e.target.result.split('\n').slice(1).forEach(row => { 
+                    const c = row.split(';'); 
+                    if(c.length > 1) mySets.push({ setNumber: c[0], name: c[1].replace(/"/g,''), theme: c[2], price: c[3], currentValue: c[4], status: c[5], ean: c[6], pieces: 0, image: '' }); 
+                }); 
+                saveAndRender(); 
+            }; 
+            r.readAsText(i.files[0]); 
+        }
+
+        function applyBulkActions() { 
+            const st = document.getElementById('bulkStatus').value; 
+            const sub = document.getElementById('bulkSubtheme').value; 
+            mySets.forEach(s => { if(selectedSets.has(s.setNumber)) { if(st) s.status = st; if(sub) s.subtheme = sub; } }); 
+            clearSelection(); saveAndRender(); 
+        }
+
+        function deleteSelected() { 
+            if(confirm('Markierte Sets löschen?')) { 
+                mySets = mySets.filter(s => !selectedSets.has(s.setNumber)); 
+                clearSelection(); saveAndRender(); 
+            } 
+        }
+
+        async function refreshMissingPrices() { 
+            updateStatus("Preise werden aktualisiert...", "text-blue-500"); 
+            for (let s of mySets.filter(x => x.price == 0)) { 
+                try { 
+                    const params = JSON.stringify({query: s.setNumber, pageSize: 1}); 
+                    const url = `https://corsproxy.io/?${encodeURIComponent('https://brickset.com/api/v3.asmx/getSets?apiKey=' + API_KEY + '&userHash=&params=' + params)}`; 
+                    const res = await fetch(url); const d = await res.json(); 
+                    if(d.matches > 0) s.price = d.sets[0].LEGOCom?.DE?.retailPrice || 0; 
+                } catch(e) {} 
+            } 
+            saveAndRender(); updateStatus("Preise aktualisiert!", "text-green-600"); 
+        }
 
         saveAndRender();
     </script>

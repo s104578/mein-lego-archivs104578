@@ -19,7 +19,17 @@
         /* Subtheme Styles */
         .subtheme-ucs { background: linear-gradient(135deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c); color: #000; font-weight: 900; }
         .subtheme-technic { background: #475569; color: white; }
-        .subtheme-modular { background: #065f46; color: white; }
+        
+        /* Modular Green Glow Design */
+        .subtheme-modular { 
+            background: linear-gradient(135deg, #065f46 0%, #059669 50%, #065f46 100%);
+            background-size: 200% auto;
+            color: white; 
+            box-shadow: 0 0 10px rgba(5, 150, 105, 0.3);
+            animation: modularShimmer 3s linear infinite;
+        }
+        @keyframes modularShimmer { to { background-position: 200% center; } }
+
         .subtheme-special { background: #6b21a8; color: white; }
         .subtheme-default { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
 
@@ -71,7 +81,11 @@
                         <p class="text-[10px] font-black text-slate-400 uppercase">Barcode / EAN</p>
                         <input type="text" id="editEan" class="bg-transparent font-bold text-slate-800 w-full outline-none" placeholder="-">
                     </div>
-                    <div class="bg-blue-50 p-4 rounded-2xl border border-blue-100">
+                    <div class="bg-slate-50 p-4 rounded-2xl">
+                        <p class="text-[10px] font-black text-slate-400 uppercase">UVP Preis (€)</p>
+                        <input type="number" id="editRetailPrice" step="0.01" class="bg-transparent font-bold text-slate-800 w-full outline-none" placeholder="0.00">
+                    </div>
+                    <div class="bg-blue-50 p-4 rounded-2xl border border-blue-100 col-span-2">
                         <p class="text-[10px] font-black text-blue-500 uppercase">Marktwert (€)</p>
                         <input type="number" id="editCurrentValue" step="0.01" class="bg-transparent font-bold text-blue-700 w-full outline-none text-xl">
                     </div>
@@ -94,31 +108,19 @@
 
     <nav class="sticky top-0 z-50 glass mb-8 border-b border-slate-200">
         <div class="max-w-7xl mx-auto px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
-            <div class="flex items-center gap-3">
-                <h1 class="text-2xl font-extrabold text-slate-800">BRIX JUST<span class="text-blue-600">4SEAN™</span></h1>
-            </div>
-
+            <h1 class="text-2xl font-extrabold text-slate-800">BRIX JUST<span class="text-blue-600">4SEAN™</span></h1>
             <div class="flex gap-6 text-center">
                 <div><p class="text-[10px] uppercase font-black text-slate-400">Sets</p><p id="statSets" class="font-bold">0</p></div>
                 <div><p class="text-[10px] uppercase font-black text-slate-400">Teile</p><p id="statParts" class="font-bold">0</p></div>
                 <div><p class="text-[10px] uppercase font-black text-slate-400">Wert</p><p id="statValue" class="font-bold text-blue-600">0.00 €</p></div>
             </div>
-
             <div class="flex gap-2 items-center">
-                <button onclick="refreshMissingPrices()" class="p-2 bg-orange-50 text-orange-600 rounded-xl hover:bg-orange-100" title="Preise fixen">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                </button>
-                <button onclick="document.getElementById('csvImport').click()" class="p-2 text-slate-500 hover:bg-slate-100 rounded-xl">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
-                </button>
+                <button onclick="refreshMissingPrices()" class="p-2 bg-orange-50 text-orange-600 rounded-xl hover:bg-orange-100"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-width="2"/></svg></button>
+                <button onclick="document.getElementById('csvImport').click()" class="p-2 text-slate-500 hover:bg-slate-100 rounded-xl"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" stroke-width="2"/></svg></button>
                 <input type="file" id="csvImport" class="hidden" accept=".csv" onchange="importCSV(this)">
-                <select id="filterCategory" onchange="renderLibrary()" class="bg-white border rounded-xl px-3 py-2 text-sm font-bold outline-none">
-                    <option value="all">Alle Themen</option>
-                </select>
+                <select id="filterCategory" onchange="renderLibrary()" class="bg-white border rounded-xl px-3 py-2 text-sm font-bold outline-none"><option value="all">Alle Themen</option></select>
                 <input type="text" id="searchLibrary" oninput="renderLibrary()" placeholder="Suchen..." class="bg-white border rounded-xl px-3 py-2 text-sm outline-none w-40 focus:w-60 transition-all">
-                <button onclick="exportCSV()" class="p-2 text-slate-500 hover:bg-slate-100 rounded-xl">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                </button>
+                <button onclick="exportCSV()" class="p-2 text-slate-500 hover:bg-slate-100 rounded-xl"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" stroke-width="2"/></svg></button>
             </div>
         </div>
     </nav>
@@ -126,10 +128,10 @@
     <main class="max-w-7xl mx-auto px-6">
         <div class="max-w-3xl mx-auto mb-16">
             <div class="bg-white p-2 rounded-[2.5rem] shadow-2xl flex items-center border-4 border-white">
-                <input type="text" id="barcodeInput" autofocus class="flex-1 pl-8 pr-4 py-4 rounded-[2rem] text-xl outline-none placeholder-slate-300" placeholder="Set-Nr scannen...">
-                <button onclick="fetchFromBrickset()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-10 rounded-[2rem] transition-all">Hinzufügen</button>
+                <input type="text" id="barcodeInput" autofocus class="flex-1 pl-8 pr-4 py-4 rounded-[2rem] text-xl outline-none" placeholder="Set-Nr scannen...">
+                <button onclick="fetchFromBrickset()" class="bg-blue-600 text-white font-bold py-4 px-10 rounded-[2rem] hover:bg-blue-700">Hinzufügen</button>
             </div>
-            <p id="apiStatus" class="text-center mt-4 text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Bereit</p>
+            <p id="apiStatus" class="text-center mt-4 text-[10px] font-black text-slate-400 uppercase italic">Bereit</p>
         </div>
         <div id="library" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"></div>
     </main>
@@ -141,80 +143,50 @@
         let currentStatus = "Used";
         let selectedSets = new Set();
 
-        const scanInput = document.getElementById('barcodeInput');
-        scanInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') fetchFromBrickset(); });
-
         async function fetchFromBrickset() {
-            const query = scanInput.value.trim();
+            const input = document.getElementById('barcodeInput');
+            const query = input.value.trim();
             if (!query) return;
-
-            updateStatus("Suche läuft...", "text-blue-500 animate-pulse");
-            const params = JSON.stringify({ query: query, pageSize: 1, extendedData: 1 });
-            const bricksetUrl = `https://brickset.com/api/v3.asmx/getSets?apiKey=${API_KEY}&userHash=&params=${encodeURIComponent(params)}`;
-            
+            updateStatus("Suche...", "text-blue-500");
             try {
-                const response = await fetch(`https://corsproxy.io/?${encodeURIComponent(bricksetUrl)}`);
-                const data = await response.json();
-
-                if (data.status === "success" && data.matches > 0) {
-                    const apiSet = data.sets[0];
+                const params = JSON.stringify({ query: query, pageSize: 1, extendedData: 1 });
+                const url = `https://corsproxy.io/?${encodeURIComponent('https://brickset.com/api/v3.asmx/getSets?apiKey=' + API_KEY + '&userHash=&params=' + params)}`;
+                const res = await fetch(url);
+                const data = await res.json();
+                if (data.matches > 0) {
+                    const s = data.sets[0];
                     mySets.unshift({
-                        setNumber: String(apiSet.number),
-                        name: apiSet.name || "Unbekannt",
-                        ean: "", // Frei lassen für manuelle Eingabe
-                        year: apiSet.year,
-                        pieces: apiSet.pieces || 0,
-                        theme: apiSet.theme || "Sonstige",
-                        subtheme: apiSet.subtheme || "",
-                        image: (apiSet.image && apiSet.image.imageURL) ? apiSet.image.imageURL : '',
-                        price: apiSet.LEGOCom?.DE?.retailPrice || 0,
-                        currentValue: 0, // UVP nicht übertragen
-                        status: "Used",
-                        addedAt: new Date().toLocaleDateString()
+                        setNumber: String(s.number), name: s.name, ean: "", year: s.year, pieces: s.pieces || 0,
+                        theme: s.theme, subtheme: s.subtheme || "", image: s.image?.imageURL || '',
+                        price: s.LEGOCom?.DE?.retailPrice || 0, currentValue: 0, status: "Used"
                     });
-                    saveAndRender();
-                    updateStatus("Erfolgreich!", "text-green-600");
-                    scanInput.value = '';
-                } else {
-                    updateStatus("Set nicht gefunden.", "text-red-600");
-                    scanInput.value = ''; // Barcode frei lassen
-                }
-            } catch (err) {
-                updateStatus("API-Fehler", "text-red-600");
-                scanInput.value = '';
-            }
+                    saveAndRender(); input.value = ''; updateStatus("Erfolg!", "text-green-600");
+                } else { updateStatus("Nicht gefunden", "text-red-600"); input.value = ''; }
+            } catch (e) { updateStatus("Fehler", "text-red-600"); }
         }
 
         function renderLibrary() {
-            const container = document.getElementById('library');
-            const searchTerm = document.getElementById('searchLibrary').value.toLowerCase();
-            const category = document.getElementById('filterCategory').value;
+            const term = document.getElementById('searchLibrary').value.toLowerCase();
+            const cat = document.getElementById('filterCategory').value;
+            const filtered = mySets.filter(s => (s.name.toLowerCase().includes(term) || s.setNumber.includes(term)) && (cat === "all" || s.theme === cat));
             
-            const filtered = mySets.filter(s => 
-                (s.name.toLowerCase().includes(searchTerm) || s.setNumber.includes(searchTerm)) &&
-                (category === "all" || s.theme === category)
-            );
-
-            container.innerHTML = filtered.map(set => `
+            document.getElementById('library').innerHTML = filtered.map(set => `
                 <div onclick="openModal('${set.setNumber}')" class="set-card bg-white rounded-[2rem] shadow-lg border border-slate-100 overflow-hidden">
-                    <input type="checkbox" ${selectedSets.has(set.setNumber) ? 'checked' : ''} onclick="toggleSelection('${set.setNumber}', event)" 
-                        class="select-checkbox absolute top-5 left-5 z-20 w-5 h-5 rounded-md border-2 border-blue-500 accent-blue-600">
-                    
+                    <input type="checkbox" ${selectedSets.has(set.setNumber) ? 'checked' : ''} onclick="toggleSelection('${set.setNumber}', event)" class="select-checkbox absolute top-5 left-5 z-20 w-5 h-5 rounded-md accent-blue-600">
                     <div class="h-48 flex items-center justify-center p-6 relative">
                         <img src="${set.image}" class="max-h-full object-contain drop-shadow-xl" onerror="this.src='https://via.placeholder.com/150'">
-                        <div class="absolute bottom-2 left-4 flex gap-1 flex-wrap pr-4">
-                            <span class="text-[8px] font-bold px-2 py-0.5 rounded-full ${set.status === 'New' ? 'bg-blue-600 text-white' : 'bg-slate-700 text-white'}">${set.status}</span>
+                        <div class="absolute bottom-2 left-4 flex gap-1 flex-wrap">
+                            <span class="text-[8px] font-bold px-2 py-0.5 rounded-full ${set.status === 'New' ? 'bg-blue-600' : 'bg-slate-700'} text-white">${set.status}</span>
                             ${set.subtheme ? `<span class="text-[8px] px-2 py-0.5 rounded-full ${getSubthemeClass(set.subtheme)}">${set.subtheme}</span>` : ''}
                         </div>
                     </div>
-
                     <div class="p-6 pt-2">
                         <span class="text-[9px] font-black text-blue-600 bg-blue-50 px-2 py-1 rounded uppercase">${set.theme}</span>
                         <h3 class="font-bold text-slate-800 text-sm mt-2 h-10 overflow-hidden">${set.name}</h3>
                         <div class="flex justify-between items-end border-t mt-4 pt-4">
                             <div class="text-[10px] text-slate-400 font-bold uppercase">
                                 <p class="text-slate-700">#${set.setNumber}</p>
-                                <p>${(set.ean && typeof set.ean === 'string') ? set.ean : 'KEIN EAN'}</p>
+                                <p>${set.ean || 'KEIN EAN'}</p>
                                 <p>UVP: ${parseFloat(set.price || 0).toFixed(2)} €</p>
                             </div>
                             <div class="text-right">
@@ -228,143 +200,65 @@
             updateStats();
         }
 
-        function toggleSelection(id, event) {
-            event.stopPropagation();
-            if (selectedSets.has(id)) selectedSets.delete(id);
-            else selectedSets.add(id);
-            updateActionBar();
-        }
-
-        function updateActionBar() {
-            const bar = document.getElementById('actionBar');
-            document.getElementById('selectedCount').innerText = selectedSets.size;
-            bar.classList.toggle('hidden', selectedSets.size === 0);
-        }
-
-        function openModal(id) {
-            const set = mySets.find(s => s.setNumber === id);
-            if (!set) return;
-            currentEditId = id;
-            document.getElementById('modalImg').src = set.image;
-            document.getElementById('modalName').innerText = set.name;
-            document.getElementById('modalTheme').innerText = set.theme;
-            document.getElementById('modalId').innerText = "#" + set.setNumber;
-            document.getElementById('editEan').value = set.ean || "";
-            document.getElementById('editCurrentValue').value = set.currentValue || 0;
-            document.getElementById('editSubtheme').value = set.subtheme || "";
-            setStatus(set.status || "Used");
-            document.getElementById('detailModal').style.display = 'flex';
-        }
-
-        function setStatus(s) {
-            currentStatus = s;
-            document.getElementById('btnNew').className = s === 'New' ? "flex-1 py-3 rounded-xl border-2 font-bold bg-blue-600 border-blue-600 text-white" : "flex-1 py-3 rounded-xl border-2 font-bold bg-white border-slate-100 text-slate-400";
-            document.getElementById('btnUsed').className = s === 'Used' ? "flex-1 py-3 rounded-xl border-2 font-bold bg-slate-800 border-slate-800 text-white" : "flex-1 py-3 rounded-xl border-2 font-bold bg-white border-slate-100 text-slate-400";
-        }
-
-        function saveDetails() {
-            const set = mySets.find(s => s.setNumber === currentEditId);
-            if(set) {
-                set.ean = document.getElementById('editEan').value;
-                set.currentValue = parseFloat(document.getElementById('editCurrentValue').value) || 0;
-                set.subtheme = document.getElementById('editSubtheme').value;
-                set.status = currentStatus;
-                saveAndRender();
-                closeModal();
-            }
-        }
-
-        function saveAndRender() {
-            localStorage.setItem('bricksetCollection', JSON.stringify(mySets));
-            updateCategories();
-            renderLibrary();
-        }
-
-        function updateStats() {
-            const totalParts = mySets.reduce((sum, s) => sum + (parseInt(s.pieces) || 0), 0);
-            const totalValue = mySets.reduce((sum, s) => sum + (parseFloat(s.currentValue) || 0), 0);
-            document.getElementById('statSets').innerText = mySets.length;
-            document.getElementById('statParts').innerText = totalParts.toLocaleString();
-            document.getElementById('statValue').innerText = totalValue.toFixed(2) + " €";
-        }
-
-        function updateCategories() {
-            const themes = [...new Set(mySets.map(s => s.theme))].sort();
-            const sel = document.getElementById('filterCategory');
-            const current = sel.value;
-            sel.innerHTML = '<option value="all">Alle Themen</option>' + themes.map(t => `<option value="${t}" ${t===current?'selected':''}>${t}</option>`).join('');
-        }
-
         function getSubthemeClass(sub) {
             const s = sub.toLowerCase();
             if(s.includes("ucs")) return "subtheme-ucs";
             if(s.includes("technic")) return "subtheme-technic";
-            if(s.includes("modular")) return "subtheme-modular";
+            if(s.includes("modular")) return "subtheme-modular"; // Hier greift das neue Design
             if(s.includes("special")) return "subtheme-special";
             return "subtheme-default";
         }
 
-        async function refreshMissingPrices() {
-            updateStatus("Fixe Preise...", "text-blue-500 animate-pulse");
-            for (let s of mySets.filter(x => x.price == 0)) {
-                const url = `https://brickset.com/api/v3.asmx/getSets?apiKey=${API_KEY}&userHash=&params=${encodeURIComponent(JSON.stringify({query: s.setNumber, pageSize: 1}))}`;
-                try {
-                    const res = await fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`);
-                    const d = await res.json();
-                    if(d.matches > 0) s.price = d.sets[0].LEGOCom?.DE?.retailPrice || 0;
-                } catch(e) {}
-            }
-            saveAndRender();
-            updateStatus("Preise gefixt!", "text-green-600");
+        function openModal(id) {
+            const s = mySets.find(x => x.setNumber === id);
+            if (!s) return;
+            currentEditId = id;
+            document.getElementById('modalImg').src = s.image;
+            document.getElementById('modalName').innerText = s.name;
+            document.getElementById('modalTheme').innerText = s.theme;
+            document.getElementById('modalId').innerText = "#" + s.setNumber;
+            document.getElementById('editEan').value = s.ean || "";
+            document.getElementById('editRetailPrice').value = s.price || 0; // UVP wieder editierbar
+            document.getElementById('editCurrentValue').value = s.currentValue || 0;
+            document.getElementById('editSubtheme').value = s.subtheme || "";
+            setStatus(s.status || "Used");
+            document.getElementById('detailModal').style.display = 'flex';
         }
 
-        function exportCSV() {
-            let csv = "\uFEFFSet-Nr;Name;Theme;UVP;Marktwert;Zustand;EAN\n";
-            mySets.forEach(s => csv += `${s.setNumber};"${s.name}";${s.theme};${s.price};${s.currentValue};${s.status};${s.ean}\n`);
-            const link = document.createElement("a");
-            link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
-            link.download = `Sammlung.csv`; link.click();
-        }
-
-        function importCSV(input) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const rows = e.target.result.split('\n').slice(1);
-                rows.forEach(row => {
-                    const c = row.split(';');
-                    if(c.length > 1) {
-                        mySets.push({ setNumber: c[0], name: c[1].replace(/"/g,''), theme: c[2], price: c[3], currentValue: c[4], status: c[5], ean: c[6], pieces: 0, image: '' });
-                    }
-                });
-                saveAndRender();
-            };
-            reader.readAsText(input.files[0]);
-        }
-
-        function applyBulkActions() {
-            const status = document.getElementById('bulkStatus').value;
-            const sub = document.getElementById('bulkSubtheme').value;
-            mySets.forEach(s => {
-                if(selectedSets.has(s.setNumber)) {
-                    if(status) s.status = status;
-                    if(sub) s.subtheme = sub;
-                }
-            });
-            clearSelection();
-            saveAndRender();
-        }
-
-        function deleteSelected() {
-            if(confirm('Löschen?')) {
-                mySets = mySets.filter(s => !selectedSets.has(s.setNumber));
-                clearSelection();
-                saveAndRender();
+        function saveDetails() {
+            const s = mySets.find(x => x.setNumber === currentEditId);
+            if(s) {
+                s.ean = document.getElementById('editEan').value;
+                s.price = parseFloat(document.getElementById('editRetailPrice').value) || 0;
+                s.currentValue = parseFloat(document.getElementById('editCurrentValue').value) || 0;
+                s.subtheme = document.getElementById('editSubtheme').value;
+                s.status = currentStatus;
+                saveAndRender(); closeModal();
             }
         }
 
-        function closeModal() { document.getElementById('detailModal').style.display = 'none'; }
-        function updateStatus(m, c) { const el = document.getElementById('apiStatus'); el.innerText = m; el.className = `text-center mt-4 text-[10px] font-black uppercase tracking-widest italic ${c}`; }
+        function toggleSelection(id, event) { event.stopPropagation(); if (selectedSets.has(id)) selectedSets.delete(id); else selectedSets.add(id); updateActionBar(); }
+        function updateActionBar() { document.getElementById('selectedCount').innerText = selectedSets.size; document.getElementById('actionBar').classList.toggle('hidden', selectedSets.size === 0); }
         function clearSelection() { selectedSets.clear(); updateActionBar(); renderLibrary(); }
+        function setStatus(s) { currentStatus = s; document.getElementById('btnNew').className = s === 'New' ? "flex-1 py-3 rounded-xl border-2 font-bold bg-blue-600 text-white" : "flex-1 py-3 rounded-xl border-2 font-bold bg-white text-slate-400"; document.getElementById('btnUsed').className = s === 'Used' ? "flex-1 py-3 rounded-xl border-2 font-bold bg-slate-800 text-white" : "flex-1 py-3 rounded-xl border-2 font-bold bg-white text-slate-400"; }
+        function saveAndRender() { localStorage.setItem('bricksetCollection', JSON.stringify(mySets)); updateCategories(); renderLibrary(); }
+        function updateStats() { 
+            const p = mySets.reduce((a, b) => a + (parseInt(b.pieces) || 0), 0);
+            const v = mySets.reduce((a, b) => a + (parseFloat(b.currentValue) || 0), 0);
+            document.getElementById('statSets').innerText = mySets.length;
+            document.getElementById('statParts').innerText = p.toLocaleString();
+            document.getElementById('statValue').innerText = v.toFixed(2) + " €";
+        }
+        function updateCategories() { const ts = [...new Set(mySets.map(s => s.theme))].sort(); const sel = document.getElementById('filterCategory'); const cur = sel.value; sel.innerHTML = '<option value="all">Alle Themen</option>' + ts.map(t => `<option value="${t}" ${t===cur?'selected':''}>${t}</option>`).join(''); }
+        function closeModal() { document.getElementById('detailModal').style.display = 'none'; }
+        function updateStatus(m, c) { const el = document.getElementById('apiStatus'); el.innerText = m; el.className = `text-center mt-4 text-[10px] font-black uppercase italic ${c}`; }
+        
+        // Export/Import/Bulk/Fix logic remains the same as previously defined
+        function exportCSV() { let csv = "\uFEFFSet-Nr;Name;Theme;UVP;Marktwert;Zustand;EAN\n"; mySets.forEach(s => csv += `${s.setNumber};"${s.name}";${s.theme};${s.price};${s.currentValue};${s.status};${s.ean}\n`); const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); link.download = `Sammlung.csv`; link.click(); }
+        function importCSV(i) { const r = new FileReader(); r.onload = (e) => { e.target.result.split('\n').slice(1).forEach(row => { const c = row.split(';'); if(c.length > 1) mySets.push({ setNumber: c[0], name: c[1].replace(/"/g,''), theme: c[2], price: c[3], currentValue: c[4], status: c[5], ean: c[6], pieces: 0, image: '' }); }); saveAndRender(); }; r.readAsText(i.files[0]); }
+        function applyBulkActions() { const st = document.getElementById('bulkStatus').value; const sub = document.getElementById('bulkSubtheme').value; mySets.forEach(s => { if(selectedSets.has(s.setNumber)) { if(st) s.status = st; if(sub) s.subtheme = sub; } }); clearSelection(); saveAndRender(); }
+        function deleteSelected() { if(confirm('Löschen?')) { mySets = mySets.filter(s => !selectedSets.has(s.setNumber)); clearSelection(); saveAndRender(); } }
+        async function refreshMissingPrices() { updateStatus("Fixe Preise...", "text-blue-500 animate-pulse"); for (let s of mySets.filter(x => x.price == 0)) { try { const params = JSON.stringify({query: s.setNumber, pageSize: 1}); const url = `https://corsproxy.io/?${encodeURIComponent('https://brickset.com/api/v3.asmx/getSets?apiKey=' + API_KEY + '&userHash=&params=' + params)}`; const res = await fetch(url); const d = await res.json(); if(d.matches > 0) s.price = d.sets[0].LEGOCom?.DE?.retailPrice || 0; } catch(e) {} } saveAndRender(); updateStatus("Fertig!", "text-green-600"); }
 
         saveAndRender();
     </script>

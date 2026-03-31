@@ -202,14 +202,20 @@
                     const data = await res.json();
 
                     if (data.matches > 0) {
-                        const apiData = data.sets[0];
-                        // Update: Bild, UVP und Subtheme
-                        s.image = apiData.image?.imageURL || s.image;
-                        s.price = apiData.LEGOCom?.DE?.retailPrice || s.price;
-                        s.subtheme = apiData.subtheme || s.subtheme;
-                        s.pieces = apiData.pieces || s.pieces;
-                        updateCount++;
-                    }
+    const apiData = data.sets[0];
+    
+    // Bild & Subtheme aktualisieren
+    s.image = apiData.image?.imageURL || s.image;
+    s.subtheme = apiData.subtheme || s.subtheme;
+
+    // UVP Preis-Logik mit Fallback (DE -> UK -> US)
+    const newPrice = apiData.LEGOCom?.DE?.retailPrice || 
+                     apiData.LEGOCom?.UK?.retailPrice || 
+                     apiData.LEGOCom?.US?.retailPrice || 0;
+    
+    if (newPrice > 0) {
+        s.price = newPrice;
+    }
                 } catch (e) { console.error("Fehler bei Set " + id, e); }
             }
             

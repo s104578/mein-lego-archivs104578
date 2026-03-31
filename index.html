@@ -18,7 +18,6 @@
 
         @keyframes shimmerEffect { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
         
-        /* Hyperraum Animation für Star Wars */
         @keyframes hyperdrive {
             0% { transform: scale(0.2); opacity: 0; }
             50% { opacity: 1; }
@@ -104,7 +103,7 @@
     <main class="max-w-7xl mx-auto px-6">
         <div class="max-w-3xl mx-auto mb-16 text-center">
             <div class="bg-white p-2 rounded-[2.5rem] shadow-2xl flex items-center border-4 border-white">
-                <input type="text" id="barcodeInput" autofocus class="flex-1 pl-8 pr-4 py-4 rounded-[2rem] text-xl outline-none" placeholder="Set-Nummer...">
+                <input type="text" id="barcodeInput" autofocus class="flex-1 pl-8 pr-4 py-4 rounded-[2rem] text-xl outline-none" placeholder="Set-Nummer..." onkeydown="if(event.key === 'Enter') fetchFromBrickset()">
                 <button onclick="fetchFromBrickset()" class="bg-blue-600 text-white font-bold py-4 px-10 rounded-[2rem] hover:bg-blue-700 transition-all">Hinzufügen</button>
             </div>
             <p id="apiStatus" class="mt-4 text-[10px] font-black text-slate-400 uppercase italic">Bereit</p>
@@ -165,19 +164,14 @@
         let currentEditId = null;
         let currentStatus = "Used";
 
-        // VERBESSERTER PREIS-CHECK FÜR ALTE UND NEUE SETS
+        // VERBESSERTE PREIS-LOGIK
         function getBestPrice(apiData) {
-            // 1. Priorität: LEGO.com Daten (DE -> UK -> US)
-            let price = apiData.LEGOCom?.DE?.retailPrice || 
-                        apiData.LEGOCom?.UK?.retailPrice || 
-                        apiData.LEGOCom?.US?.retailPrice;
-            
-            // 2. Priorität: Wenn oben nichts gefunden, suche in der "alten" Datenstruktur (oft bei Sets vor 2010)
-            if (!price) {
-                price = apiData.retailPrice || 0;
-            }
-            
-            return price;
+            // Prüfung aller möglichen Preisfelder der Brickset API
+            return apiData.LEGOCom?.DE?.retailPrice || 
+                   apiData.LEGOCom?.UK?.retailPrice || 
+                   apiData.LEGOCom?.US?.retailPrice || 
+                   apiData.retailPrice || 
+                   0;
         }
 
         async function fetchFromBrickset() {

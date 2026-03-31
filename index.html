@@ -196,7 +196,7 @@
             const bricksetUrl = `https://brickset.com/api/v3.asmx/getSets?apiKey=${API_KEY}&userHash=&params=${encodeURIComponent(JSON.stringify(paramsObj))}`;
             
             try {
-                const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(bricksetUrl)}`);
+                const response = await fetch(\https://corsproxy.io/?${encodeURIComponent(bricksetUrl)}`);`
                 if (!response.ok) throw new Error("Netzwerk-Antwort war nicht ok");
                 
                 const dataRaw = await response.json();

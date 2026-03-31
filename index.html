@@ -54,10 +54,14 @@
                 <button onclick="clearSelection()" class="text-blue-100 hover:text-white text-xs underline">Abbrechen</button>
             </div>
             <div class="flex flex-wrap items-center gap-3">
-                <button onclick="refreshSelectedSets()" title="Markierte Sets aktualisieren" class="p-2 bg-blue-500 hover:bg-blue-400 rounded-lg transition-colors border border-blue-400">
+                
+                <button onclick="refreshSelectedSets()" title="Markierte Sets via API aktualisieren (UVP, Bild, Tags)" class="flex items-center gap-2 bg-blue-500 hover:bg-blue-400 px-3 py-2 rounded-lg transition-colors border border-blue-400 font-bold text-sm">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    API Update
                 </button>
+
                 <div class="h-8 w-[1px] bg-blue-400 mx-1"></div>
+
                 <select id="bulkStatus" class="bg-blue-700 rounded-lg px-3 py-2 text-sm font-bold outline-none border-none">
                     <option value="">Status...</option>
                     <option value="New">New</option>
@@ -150,6 +154,7 @@
             </div>
             <p id="apiStatus" class="mt-4 text-[10px] font-black text-slate-400 uppercase italic tracking-widest">Bereit</p>
         </div>
+
         <div id="library" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"></div>
     </main>
 
@@ -184,13 +189,13 @@
             } catch (e) { updateStatus("API Fehler", "text-red-600"); }
         }
 
-        // NEUE FUNKTION: Aktualisiert NUR markierte Sets
+        // AKTUALISIERUNGS-FUNKTION (NUR FÜR MARKIERTE SETS)
         async function refreshSelectedSets() {
             if (selectedSets.size === 0) return;
             
             updateStatus(`${selectedSets.size} Sets werden aktualisiert...`, "text-blue-500 animate-pulse");
-            
-            let updateCount = 0;
+            let successCount = 0;
+
             for (let id of selectedSets) {
                 const s = mySets.find(x => x.setNumber === id);
                 if (!s) continue;
@@ -202,26 +207,31 @@
                     const data = await res.json();
 
                     if (data.matches > 0) {
-    const apiData = data.sets[0];
-    
-    // Bild & Subtheme aktualisieren
-    s.image = apiData.image?.imageURL || s.image;
-    s.subtheme = apiData.subtheme || s.subtheme;
-
-    // UVP Preis-Logik mit Fallback (DE -> UK -> US)
-    const newPrice = apiData.LEGOCom?.DE?.retailPrice || 
-                     apiData.LEGOCom?.UK?.retailPrice || 
-                     apiData.LEGOCom?.US?.retailPrice || 0;
-    
-    if (newPrice > 0) {
-        s.price = newPrice;
-    }
+                        const apiData = data.sets[0];
+                        
+                        // 1. Bild aktualisieren
+                        s.image = apiData.image?.imageURL || s.image;
+                        
+                        // 2. Tags (Subtheme) aktualisieren
+                        s.subtheme = apiData.subtheme || s.subtheme;
+                        
+                        // 3. UVP/RRP aktualisieren mit Region-Fallback (DE -> UK -> US)
+                        const rrp = apiData.LEGOCom?.DE?.retailPrice || 
+                                    apiData.LEGOCom?.UK?.retailPrice || 
+                                    apiData.LEGOCom?.US?.retailPrice || 0;
+                        if (rrp > 0) s.price = rrp;
+                        
+                        // Optional: Teileanzahl fixen
+                        s.pieces = apiData.pieces || s.pieces;
+                        
+                        successCount++;
+                    }
                 } catch (e) { console.error("Fehler bei Set " + id, e); }
             }
             
             saveAndRender();
             clearSelection();
-            updateStatus(`${updateCount} Sets erfolgreich aktualisiert!`, "text-green-600");
+            updateStatus(`${successCount} Sets aktualisiert!`, "text-green-600");
         }
 
         function renderLibrary() {
@@ -346,7 +356,7 @@
             r.onload = (e) => { 
                 e.target.result.split('\n').slice(1).forEach(row => { 
                     const c = row.split(';'); 
-                    if(c.length > 1) mySets.push({ setNumber: c[0], name: c[1].replace(/"/g,''), theme: c[2], price: c[3], currentValue: c[4], status: c[5], ean: c[6], pieces: 0, image: '' }); 
+                    if(c.length > 1) mySets.push({ setNumber: c[0], name: c[1].replace(/"/g,''), theme: c[2], price: parseFloat(c[3])||0, currentValue: parseFloat(c[4])||0, status: c[5], ean: c[6], pieces: 0, image: '' }); 
                 }); 
                 saveAndRender(); 
             }; 

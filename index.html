@@ -17,24 +17,39 @@
         .set-card:hover .select-checkbox, .select-checkbox:checked { opacity: 1; }
 
         @keyframes shimmerEffect { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
-        @keyframes stars { from { background-position: 0 0; } to { background-position: 100px 100px; } }
-
-        /* Star Wars Sternenhimmel Tag */
-        .subtheme-starwars { 
-            background: radial-gradient(circle at center, #1e293b 0%, #020617 100%);
-            background-image: 
-                radial-gradient(1px 1px at 20px 30px, #fff, rgba(0,0,0,0)),
-                radial-gradient(1px 1px at 40px 70px, #fff, rgba(0,0,0,0)),
-                radial-gradient(1px 1px at 50px 10px, #fff, rgba(0,0,0,0)),
-                radial-gradient(1px 1px at 80px 40px, #fff, rgba(0,0,0,0)),
-                radial-gradient(1px 1px at 90px 90px, #fff, rgba(0,0,0,0));
-            background-size: 100px 100px;
-            animation: stars 10s linear infinite;
-            color: #ffe81f; /* Klassisches Star Wars Gelb */
-            font-weight: 800;
-            text-shadow: 0 0 5px rgba(255, 232, 31, 0.5);
-            border: 1px solid #334155;
+        
+        /* Hyperraum Animation für Star Wars */
+        @keyframes hyperdrive {
+            0% { transform: scale(0.2); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: scale(2); opacity: 0; }
         }
+
+        .subtheme-starwars { 
+            background: #000;
+            position: relative;
+            overflow: hidden;
+            color: #ffe81f;
+            font-weight: 800;
+            text-shadow: 0 0 5px rgba(255, 232, 31, 0.8);
+            border: 1px solid #334155;
+            z-index: 1;
+        }
+
+        .subtheme-starwars::before, .subtheme-starwars::after {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: 
+                radial-gradient(1px 1px at 20% 30%, #fff, rgba(0,0,0,0)),
+                radial-gradient(1.5px 1.5px at 50% 50%, #fff, rgba(0,0,0,0)),
+                radial-gradient(1px 1px at 80% 70%, #fff, rgba(0,0,0,0)),
+                radial-gradient(1px 1px at 30% 80%, #fff, rgba(0,0,0,0));
+            background-size: 100% 100%;
+            animation: hyperdrive 2s linear infinite;
+            z-index: -1;
+        }
+        .subtheme-starwars::after { animation-delay: 1s; }
 
         .subtheme-ucs { background: linear-gradient(90deg, #bf953f, #fcf6ba, #b38728, #fcf6ba, #bf953f); background-size: 200% auto; color: #000; font-weight: 900; animation: shimmerEffect 4s linear infinite; }
         .subtheme-modular { background: linear-gradient(90deg, #065f46, #10b981, #064e3b, #10b981, #065f46); background-size: 200% auto; color: white; font-weight: 700; animation: shimmerEffect 4s linear infinite; }
@@ -81,7 +96,7 @@
             </div>
             <div class="flex gap-2">
                 <select id="filterCategory" onchange="renderLibrary()" class="bg-white border rounded-xl px-3 py-2 text-sm font-bold outline-none"><option value="all">Alle Themen</option></select>
-                <input type="text" id="searchLibrary" oninput="renderLibrary()" placeholder="Suche..." class="bg-white border rounded-xl px-3 py-2 text-sm outline-none w-40 focus:w-60 transition-all">
+                <input type="text" id="searchLibrary" oninput="renderLibrary()" placeholder="Suche (Set, Name, Subtheme)..." class="bg-white border rounded-xl px-3 py-2 text-sm outline-none w-40 focus:w-64 transition-all">
             </div>
         </div>
     </nav>
@@ -150,7 +165,6 @@
         let currentEditId = null;
         let currentStatus = "Used";
 
-        // VERBESSERTE PREISLOGIK MIT FALLBACK (OHNE UMRECHNUNG)
         function getBestPrice(apiData) {
             return apiData.LEGOCom?.DE?.retailPrice || 
                    apiData.LEGOCom?.UK?.retailPrice || 
@@ -211,7 +225,15 @@
         function renderLibrary() {
             const term = document.getElementById('searchLibrary').value.toLowerCase();
             const cat = document.getElementById('filterCategory').value;
-            const filtered = mySets.filter(s => (s.name.toLowerCase().includes(term) || s.setNumber.includes(term)) && (cat === "all" || s.theme === cat));
+            
+            // ERWEITERTE SUCHE AUF SUBTHEME
+            const filtered = mySets.filter(s => {
+                const matchTerm = s.name.toLowerCase().includes(term) || 
+                                 s.setNumber.includes(term) || 
+                                 (s.subtheme && s.subtheme.toLowerCase().includes(term));
+                const matchCat = (cat === "all" || s.theme === cat);
+                return matchTerm && matchCat;
+            });
             
             document.getElementById('library').innerHTML = filtered.map(set => `
                 <div onclick="openModal('${set.setNumber}')" class="set-card bg-white rounded-[2rem] shadow-lg border border-slate-100 overflow-hidden">
@@ -241,7 +263,6 @@
             updateStats();
         }
 
-        // TAGS LOGIK MIT STAR WARS ERWEITERUNG
         function getSubthemeClass(sub) {
             const s = sub.toLowerCase();
             if(s.includes("star wars")) return "subtheme-starwars";

@@ -22,14 +22,14 @@
         @keyframes hyperdrive {
             0% { transform: scale(0.2); opacity: 0; }
             50% { opacity: 1; }
-            100% { transform: scale(2); opacity: 0; }
+            100% { transform: scale(2.5); opacity: 0; }
         }
 
         .subtheme-starwars { 
-            background: #000;
+            background: #000 !important;
             position: relative;
             overflow: hidden;
-            color: #ffe81f;
+            color: #ffe81f !important;
             font-weight: 800;
             text-shadow: 0 0 5px rgba(255, 232, 31, 0.8);
             border: 1px solid #334155;
@@ -41,15 +41,15 @@
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
             background-image: 
-                radial-gradient(1px 1px at 20% 30%, #fff, rgba(0,0,0,0)),
-                radial-gradient(1.5px 1.5px at 50% 50%, #fff, rgba(0,0,0,0)),
-                radial-gradient(1px 1px at 80% 70%, #fff, rgba(0,0,0,0)),
-                radial-gradient(1px 1px at 30% 80%, #fff, rgba(0,0,0,0));
+                radial-gradient(1.5px 1.5px at 20% 30%, #fff, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 50% 50%, #fff, rgba(0,0,0,0)),
+                radial-gradient(1.5px 1.5px at 80% 70%, #fff, rgba(0,0,0,0)),
+                radial-gradient(1.5px 1.5px at 30% 80%, #fff, rgba(0,0,0,0));
             background-size: 100% 100%;
-            animation: hyperdrive 2s linear infinite;
+            animation: hyperdrive 1.5s linear infinite;
             z-index: -1;
         }
-        .subtheme-starwars::after { animation-delay: 1s; }
+        .subtheme-starwars::after { animation-delay: 0.75s; }
 
         .subtheme-ucs { background: linear-gradient(90deg, #bf953f, #fcf6ba, #b38728, #fcf6ba, #bf953f); background-size: 200% auto; color: #000; font-weight: 900; animation: shimmerEffect 4s linear infinite; }
         .subtheme-modular { background: linear-gradient(90deg, #065f46, #10b981, #064e3b, #10b981, #065f46); background-size: 200% auto; color: white; font-weight: 700; animation: shimmerEffect 4s linear infinite; }
@@ -165,11 +165,19 @@
         let currentEditId = null;
         let currentStatus = "Used";
 
+        // VERBESSERTER PREIS-CHECK FÜR ALTE UND NEUE SETS
         function getBestPrice(apiData) {
-            return apiData.LEGOCom?.DE?.retailPrice || 
-                   apiData.LEGOCom?.UK?.retailPrice || 
-                   apiData.LEGOCom?.US?.retailPrice || 
-                   apiData.retailPrice || 0;
+            // 1. Priorität: LEGO.com Daten (DE -> UK -> US)
+            let price = apiData.LEGOCom?.DE?.retailPrice || 
+                        apiData.LEGOCom?.UK?.retailPrice || 
+                        apiData.LEGOCom?.US?.retailPrice;
+            
+            // 2. Priorität: Wenn oben nichts gefunden, suche in der "alten" Datenstruktur (oft bei Sets vor 2010)
+            if (!price) {
+                price = apiData.retailPrice || 0;
+            }
+            
+            return price;
         }
 
         async function fetchFromBrickset() {
@@ -226,7 +234,6 @@
             const term = document.getElementById('searchLibrary').value.toLowerCase();
             const cat = document.getElementById('filterCategory').value;
             
-            // ERWEITERTE SUCHE AUF SUBTHEME
             const filtered = mySets.filter(s => {
                 const matchTerm = s.name.toLowerCase().includes(term) || 
                                  s.setNumber.includes(term) || 

@@ -3,123 +3,153 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Brix Just4Sean - Ultimate Collection Manager</title>
+    <title>Brix Just4Sean - Collection Manager</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; }
+        .glass { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.4); }
         
-        .glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); border-bottom: 1px solid #e2e8f0; }
+        .set-card { transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); cursor: pointer; position: relative; }
+        .set-card:hover { transform: translateY(-8px); box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.15); }
         
-        .set-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .set-card:hover { transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1); }
-        
-        /* Checkbox-Animation */
-        .select-checkbox { opacity: 0; transform: scale(0.8); transition: all 0.2s; }
-        .set-card:hover .select-checkbox, .select-checkbox:checked { opacity: 1; transform: scale(1); }
+        .select-checkbox { opacity: 0; transition: all 0.2s; transform: scale(1.2); cursor: pointer; }
+        .set-card:hover .select-checkbox, .select-checkbox:checked { opacity: 1; }
 
-        #detailModal { display: none; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(8px); }
+        @keyframes shimmerEffect { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
         
-        /* Subtheme Styling */
-        .subtheme-starwars { background: #000; color: #ffe81f; border: 1px solid #334155; }
-        .subtheme-ucs { background: linear-gradient(90deg, #bf953f, #fcf6ba, #bf953f); color: #000; font-weight: 800; }
-        .subtheme-default { background: #f1f5f9; color: #64748b; }
+        @keyframes hyperdrive {
+            0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+            10% { opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(3); opacity: 0; }
+        }
 
-        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .subtheme-starwars { 
+            background: #000 !important;
+            position: relative;
+            overflow: hidden;
+            color: #ffe81f !important;
+            font-weight: 800;
+            text-shadow: 0 0 5px rgba(255, 232, 31, 0.8);
+            border: 1px solid #334155;
+            z-index: 1;
+        }
+
+        .subtheme-starwars::before, .subtheme-starwars::after {
+            content: "";
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 100px; height: 100px;
+            background-image: 
+                radial-gradient(2px 2px at 20% 30%, #fff, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 70% 40%, #fff, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 40% 80%, #fff, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 80% 20%, #fff, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 10% 10%, #fff, rgba(0,0,0,0));
+            animation: hyperdrive 1.2s linear infinite;
+            z-index: -1;
+        }
+        .subtheme-starwars::after { animation-delay: 0.6s; }
+
+        .subtheme-ucs { background: linear-gradient(90deg, #bf953f, #fcf6ba, #b38728, #fcf6ba, #bf953f); background-size: 200% auto; color: #000; font-weight: 900; animation: shimmerEffect 4s linear infinite; }
+        .subtheme-modular { background: linear-gradient(90deg, #065f46, #10b981, #064e3b, #10b981, #065f46); background-size: 200% auto; color: white; font-weight: 700; animation: shimmerEffect 4s linear infinite; }
+        .subtheme-technic { background: #475569; color: white; }
+        .subtheme-default { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
+
+        #detailModal { display: none; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); }
     </style>
 </head>
-<body class="min-h-screen pb-20">
+<body class="min-h-screen pb-12">
 
-    <div id="actionBar" class="fixed top-0 left-0 right-0 z-[60] bg-slate-900 text-white py-4 px-6 shadow-2xl hidden transform translate-y-0 transition-all">
-        <div class="max-w-7xl mx-auto flex items-center justify-between">
+    <div id="actionBar" class="fixed top-0 left-0 right-0 z-[60] bg-blue-600 text-white py-4 px-6 shadow-2xl hidden">
+        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
             <div class="flex items-center gap-4">
-                <span id="selectedCount" class="bg-blue-500 text-white px-3 py-1 rounded-full font-black text-sm">0</span>
-                <p class="font-bold text-sm">Sets ausgewählt</p>
+                <span id="selectedCount" class="bg-white text-blue-600 px-3 py-1 rounded-full font-black text-sm">0</span>
+                <p class="font-bold">Sets ausgewählt</p>
+                <button onclick="clearSelection()" class="text-blue-100 hover:text-white text-xs underline">Abbrechen</button>
             </div>
-            <div class="flex gap-3">
-                <select id="bulkStatus" class="bg-slate-800 text-xs border-none rounded-lg px-3 py-2 outline-none">
-                    <option value="">Status ändern...</option>
-                    <option value="New">Neu (MISB)</option>
-                    <option value="Used">Gebraucht</option>
+            <div class="flex items-center gap-3">
+                <button onclick="refreshSelectedSets()" title="API Update" class="p-2 bg-blue-500 hover:bg-blue-400 rounded-lg transition-colors border border-blue-400">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+                <div class="h-8 w-[1px] bg-blue-400 mx-1"></div>
+                <select id="bulkStatus" class="bg-blue-700 rounded-lg px-3 py-2 text-sm font-bold outline-none border-none">
+                    <option value="">Status...</option>
+                    <option value="New">New</option>
+                    <option value="Used">Used</option>
                 </select>
-                <button onclick="applyBulkStatus()" class="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-lg text-xs font-bold transition-all">Anwenden</button>
-                <div class="w-[1px] bg-slate-700 mx-2"></div>
-                <button onclick="deleteSelected()" class="bg-red-500/20 text-red-400 hover:bg-red-500 hover:text-white px-4 py-2 rounded-lg text-xs font-bold transition-all">Löschen</button>
-                <button onclick="clearSelection()" class="text-slate-400 hover:text-white px-2 text-xs font-bold">X</button>
+                <button onclick="applyBulkActions()" class="bg-white text-blue-600 px-4 py-2 rounded-lg font-black text-sm hover:bg-blue-50">Anwenden</button>
+                <button onclick="deleteSelected()" class="bg-red-500 hover:bg-red-600 p-2 rounded-lg">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                </button>
             </div>
         </div>
     </div>
 
-    <nav class="sticky top-0 z-50 glass">
+    <nav class="sticky top-0 z-50 glass mb-8 border-b border-slate-200">
         <div class="max-w-7xl mx-auto px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
-            <h1 class="text-2xl font-extrabold text-slate-800 tracking-tighter">BRIX <span class="text-blue-600">JUST4SEAN</span></h1>
-            
-            <div class="flex gap-8 bg-white/50 p-2 px-6 rounded-2xl border border-slate-100">
-                <div class="text-center">
-                    <p class="text-[10px] font-black text-slate-400 uppercase">Gesamtwert</p>
-                    <p id="statValue" class="text-xl font-black text-blue-600">0.00 €</p>
-                </div>
-                <div class="text-center border-l border-slate-200 pl-8">
-                    <p class="text-[10px] font-black text-slate-400 uppercase">Sets / Teile</p>
-                    <p class="text-sm font-bold text-slate-700"><span id="statSets">0</span> / <span id="statParts">0</span></p>
-                </div>
+            <h1 class="text-2xl font-extrabold text-slate-800">BRIX JUST<span class="text-blue-600">4SEAN™</span></h1>
+            <div class="flex gap-6 text-center">
+                <div><p class="text-[10px] uppercase font-black text-slate-400">Sets</p><p id="statSets" class="font-bold text-slate-800">0</p></div>
+                <div><p class="text-[10px] uppercase font-black text-slate-400">Teile</p><p id="statParts" class="font-bold text-slate-800">0</p></div>
+                <div><p class="text-[10px] uppercase font-black text-slate-400">Sammlungswert</p><p id="statValue" class="font-bold text-blue-600">0.00 €</p></div>
             </div>
-
             <div class="flex gap-2">
-                <select id="filterTheme" onchange="renderLibrary()" class="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold outline-none">
-                    <option value="all">Alle Themen</option>
-                </select>
-                <input type="text" id="searchLibrary" oninput="renderLibrary()" placeholder="Suchen..." class="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs outline-none w-32 focus:w-48 transition-all">
+                <select id="filterCategory" onchange="renderLibrary()" class="bg-white border rounded-xl px-3 py-2 text-sm font-bold outline-none"><option value="all">Alle Themen</option></select>
+                <input type="text" id="searchLibrary" oninput="renderLibrary()" placeholder="Suche (Set, Name, Subtheme)..." class="bg-white border rounded-xl px-3 py-2 text-sm outline-none w-40 focus:w-64 transition-all">
             </div>
         </div>
     </nav>
 
-    <main class="max-w-7xl mx-auto px-6 mt-10">
-        <div class="max-w-2xl mx-auto mb-16">
-            <div class="bg-white p-2 rounded-[2rem] shadow-xl flex items-center border border-slate-200 focus-within:border-blue-400 transition-all">
-                <input type="text" id="barcodeInput" class="flex-1 pl-6 pr-4 py-3 rounded-2xl outline-none text-lg" placeholder="Set-Nummer eingeben..." onkeydown="if(event.key === 'Enter') fetchSets()">
-                <button onclick="fetchSets()" class="bg-blue-600 text-white font-bold py-3 px-8 rounded-[1.5rem] hover:bg-blue-700 transition-all shadow-lg shadow-blue-200">Hinzufügen</button>
+    <main class="max-w-7xl mx-auto px-6">
+        <div class="max-w-3xl mx-auto mb-16 text-center">
+            <div class="bg-white p-2 rounded-[2.5rem] shadow-2xl flex items-center border-4 border-white">
+                <input type="text" id="barcodeInput" autofocus class="flex-1 pl-8 pr-4 py-4 rounded-[2rem] text-xl outline-none" placeholder="Set-Nummer..." onkeydown="if(event.key === 'Enter') fetchSets()">
+                <button onclick="fetchSets()" class="bg-blue-600 text-white font-bold py-4 px-10 rounded-[2rem] hover:bg-blue-700 transition-all">Hinzufügen</button>
             </div>
-            <div id="apiStatus" class="mt-4 text-center text-[11px] font-bold text-slate-400 uppercase tracking-widest italic">Bereit</div>
+            <p id="apiStatus" class="mt-4 text-[10px] font-black text-slate-400 uppercase italic">Bereit</p>
         </div>
-
         <div id="library" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"></div>
     </main>
 
     <div id="detailModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-3xl rounded-[2.5rem] shadow-2xl overflow-hidden relative flex flex-col md:flex-row">
-            <button onclick="closeModal()" class="absolute top-6 right-6 text-slate-300 hover:text-slate-600 z-10"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
-            
-            <div class="md:w-1/2 bg-slate-50 p-10 flex flex-col items-center justify-center border-r border-slate-100">
-                <img id="modalImg" src="" class="max-h-64 object-contain drop-shadow-2xl">
-            </div>
-
-            <div class="md:w-1/2 p-10">
-                <p id="modalTheme" class="text-xs font-black text-blue-600 uppercase mb-1"></p>
-                <h2 id="modalName" class="text-2xl font-black text-slate-800 mb-6 leading-tight"></h2>
-                
-                <div class="space-y-4">
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="bg-slate-50 p-4 rounded-2xl">
-                            <label class="text-[10px] font-black text-slate-400 uppercase">UVP Preis (€)</label>
-                            <input type="number" id="editRetailPrice" step="0.01" class="w-full bg-transparent border-none font-bold text-slate-800 outline-none">
-                        </div>
-                        <div class="bg-blue-50 p-4 rounded-2xl border border-blue-100">
-                            <label class="text-[10px] font-black text-blue-500 uppercase">Marktwert (€)</label>
-                            <input type="number" id="editCurrentValue" step="0.01" class="w-full bg-transparent border-none font-bold text-blue-600 outline-none">
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <label class="text-[10px] font-black text-slate-400 uppercase">Zustand</p>
-                        <div class="flex gap-2 mt-2">
-                            <button onclick="setEditStatus('New')" id="btnNew" class="flex-1 py-3 rounded-xl border-2 font-bold text-sm transition-all">New</button>
-                            <button onclick="setEditStatus('Used')" id="btnUsed" class="flex-1 py-3 rounded-xl border-2 font-bold text-sm transition-all">Used</button>
-                        </div>
-                    </div>
-
-                    <button onclick="saveDetails()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold mt-4 hover:bg-blue-600 transition-all shadow-lg">Speichern</button>
+        <div class="bg-white w-full max-w-4xl rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col md:flex-row relative">
+            <button onclick="closeModal()" class="absolute top-6 right-6 text-slate-400 hover:text-slate-600 z-10"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+            <div class="md:w-1/2 bg-slate-50 p-8 flex flex-col items-center justify-center border-r border-slate-100">
+                <img id="modalImg" src="" class="max-h-64 object-contain drop-shadow-2xl mb-8">
+                <div class="w-full text-center md:text-left">
+                    <p class="text-xs font-black text-blue-600 uppercase tracking-widest" id="modalTheme"></p>
+                    <h2 class="text-2xl font-extrabold text-slate-800" id="modalName"></h2>
+                    <p class="text-slate-400 font-bold mt-1" id="modalId"></p>
                 </div>
+            </div>
+            <div class="md:w-1/2 p-8 pt-12 space-y-6">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-slate-50 p-4 rounded-2xl">
+                        <p class="text-[10px] font-black text-slate-400 uppercase">Barcode / EAN</p>
+                        <input type="text" id="editEan" class="bg-transparent font-bold text-slate-800 w-full outline-none" placeholder="-">
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded-2xl">
+                        <p class="text-[10px] font-black text-slate-400 uppercase">UVP Preis (€)</p>
+                        <input type="number" id="editRetailPrice" step="0.01" class="bg-transparent font-bold text-slate-800 w-full outline-none">
+                    </div>
+                    <div class="bg-blue-50 p-4 rounded-2xl border border-blue-100 col-span-2">
+                        <p class="text-[10px] font-black text-blue-500 uppercase">Marktwert (€)</p>
+                        <input type="number" id="editCurrentValue" step="0.01" class="bg-transparent font-bold text-blue-700 w-full outline-none text-xl">
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded-2xl col-span-2">
+                        <p class="text-[10px] font-black text-slate-400 uppercase">Subtheme (Tags)</p>
+                        <input type="text" id="editSubtheme" class="bg-transparent font-bold text-slate-800 w-full outline-none" placeholder="z.B. UCS, Modular...">
+                    </div>
+                </div>
+                <div>
+                    <p class="text-[10px] font-black text-slate-400 uppercase mb-3">Zustand</p>
+                    <div class="flex gap-3">
+                        <button onclick="setStatus('New')" id="btnNew" class="flex-1 py-3 rounded-xl border-2 font-bold transition-all">New</button>
+                        <button onclick="setStatus('Used')" id="btnUsed" class="flex-1 py-3 rounded-xl border-2 font-bold transition-all">Used</button>
+                    </div>
+                </div>
+                <button onclick="saveDetails()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold shadow-lg hover:bg-blue-700 transition-all">Änderungen speichern</button>
             </div>
         </div>
     </div>
@@ -131,11 +161,11 @@
         let mySets = JSON.parse(localStorage.getItem('bricksetCollection')) || [];
         let selectedSets = new Set();
         let currentEditId = null;
-        let tempStatus = "Used";
+        let currentStatus = "Used";
 
-        // AGRESSIVES SCRAPING FÜR UVP (BrickEconomy)
+        // NEU: BRICKECONOMY SCRAPER FÜR UVP
         async function scrapeUVP(setNum) {
-            console.log(`🔎 Scrape UVP für ${setNum}...`);
+            console.log(`🔎 BrickEconomy Scraper startet für Set ${setNum}...`);
             try {
                 const proxyUrl = `https://corsproxy.io/?${encodeURIComponent('https://www.brickeconomy.com/set/' + setNum + '-1/')}`;
                 const response = await fetch(proxyUrl);
@@ -147,11 +177,56 @@
                 
                 if (match && match[2]) {
                     const price = parseFloat(match[2].replace(',', '.'));
-                    console.log("✅ Treffer BrickEconomy:", price);
+                    console.log(`✅ BrickEconomy Treffer: ${price} €`);
                     return price;
                 }
-            } catch (e) { console.error("Scraping Error", e); }
+            } catch (e) {
+                console.warn("❌ BrickEconomy Scraper fehlgeschlagen.");
+            }
             return 0;
+        }
+
+        function extractRRP(s) {
+            const parsePrice = (val) => {
+                if (!val) return 0;
+                const parsed = parseFloat(String(val).replace(',', '.'));
+                return isNaN(parsed) ? 0 : parsed;
+            };
+
+            let p = parsePrice(s.retailPrice);
+            if (p > 0) return p;
+            
+            const regions = ['DE', 'UK', 'US'];
+            for (let r of regions) {
+                if (s.LEGOCom?.[r]?.retailPrice) {
+                    p = parsePrice(s.LEGOCom[r].retailPrice);
+                    if (p > 0) return p;
+                }
+            }
+            return 0;
+        }
+
+        async function fetchFromRebrickable(query) {
+            const setNum = query.includes('-') ? query : `${query}-1`;
+            try {
+                const res = await fetch(`https://rebrickable.com/api/v3/lego/sets/${setNum}/`, {
+                    headers: { 'Authorization': `key ${API_KEY_REBRICKABLE}`, 'Accept': 'application/json' }
+                });
+                if(!res.ok) throw new Error("Rebrickable fehlgeschlagen");
+                const data = await res.json();
+                return {
+                    setNumber: query,
+                    name: data.name || "Unbekanntes Set",
+                    pieces: data.num_parts || 0,
+                    theme: "LEGO",
+                    subtheme: "",
+                    ean: "",
+                    image: data.set_img_url || '',
+                    price: 0, 
+                    currentValue: 0,
+                    status: "Used"
+                };
+            } catch (e) { return null; }
         }
 
         async function fetchSets() {
@@ -159,114 +234,125 @@
             const query = input.value.trim();
             if (!query) return;
             
-            setStatus("Suche bei Brickset...", "text-blue-500 animate-pulse");
-            let setObj = null;
-
+            updateStatus("Suche bei Brickset...", "text-blue-500 animate-pulse");
+            let newSetObj = null;
+            
             try {
-                // 1. Brickset API
                 const params = JSON.stringify({ query: query, pageSize: 1, extendedData: 1 });
                 const url = `https://corsproxy.io/?${encodeURIComponent('https://brickset.com/api/v3.asmx/getSets?apiKey=' + API_KEY_BRICKSET + '&userHash=&params=' + params)}`;
                 const res = await fetch(url);
                 const data = await res.json();
-
+                
                 if (data.status === "success" && data.matches > 0) {
                     const s = data.sets[0];
-                    // Aggressives Preis-Lookup in verschiedenen Feldern
-                    let p = s.retailPrice || s.LEGOCom?.DE?.retailPrice || s.LEGOCom?.UK?.retailPrice || 0;
-
-                    setObj = {
+                    let foundPrice = extractRRP(s);
+                    
+                    newSetObj = {
                         setNumber: String(s.number),
                         name: s.name,
                         pieces: s.pieces || 0,
                         theme: s.theme,
                         subtheme: s.subtheme || "",
+                        ean: "",
                         image: s.image?.imageURL || '',
-                        price: parseFloat(p) || 0,
+                        price: foundPrice, 
                         currentValue: 0,
                         status: "Used"
                     };
+
+                    // FALLBACK: BrickEconomy, falls Brickset keinen Preis hat
+                    if (newSetObj.price === 0) {
+                        updateStatus("Kein Preis bei Brickset. Frage BrickEconomy...", "text-purple-600 animate-pulse");
+                        const bePrice = await scrapeUVP(newSetObj.setNumber);
+                        if (bePrice > 0) newSetObj.price = bePrice;
+                    }
                 } else {
-                    // 2. Rebrickable Fallback
-                    setStatus("Brickset negativ. Frage Rebrickable...", "text-orange-500");
-                    const rbRes = await fetch(`https://rebrickable.com/api/v3/lego/sets/${query}-1/`, {
-                        headers: { 'Authorization': `key ${API_KEY_REBRICKABLE}` }
-                    });
-                    if (rbRes.ok) {
-                        const rb = await rbRes.json();
-                        setObj = {
-                            setNumber: query,
-                            name: rb.name,
-                            pieces: rb.num_parts,
-                            theme: "LEGO",
-                            subtheme: "",
-                            image: rb.set_img_url,
-                            price: 0,
-                            currentValue: 0,
-                            status: "Used"
-                        };
+                    updateStatus("Brickset leer. Suche bei Rebrickable...", "text-orange-500 animate-pulse");
+                    newSetObj = await fetchFromRebrickable(query);
+                    // Auch hier: Rebrickable hat nie Preise, also sofort BrickEconomy fragen
+                    if (newSetObj) {
+                        updateStatus("Set gefunden. Hole Preis von BrickEconomy...", "text-purple-600 animate-pulse");
+                        const bePrice = await scrapeUVP(newSetObj.setNumber);
+                        newSetObj.price = bePrice;
                     }
                 }
-
-                // 3. BrickEconomy Fallback für den Preis
-                if (setObj && setObj.price === 0) {
-                    setStatus("UVP fehlt. Suche bei BrickEconomy...", "text-purple-600 animate-pulse");
-                    const bePrice = await scrapeUVP(setObj.setNumber);
-                    if (bePrice > 0) setObj.price = bePrice;
-                }
-
             } catch (e) {
-                setStatus("API Fehler!", "text-red-500");
+                updateStatus("API Error. Nutze Fallback...", "text-red-600");
+                newSetObj = await fetchFromRebrickable(query);
             }
 
-            if (setObj) {
-                if(mySets.find(x => x.setNumber === setObj.setNumber)) {
-                    setStatus("Set existiert bereits!", "text-orange-600");
+            if (newSetObj) {
+                if(mySets.find(x => x.setNumber === newSetObj.setNumber)) {
+                    updateStatus("Set existiert bereits!", "text-orange-600");
                 } else {
-                    mySets.unshift(setObj);
+                    mySets.unshift(newSetObj);
                     saveAndRender();
                     input.value = '';
-                    setStatus("Erfolgreich hinzugefügt!", "text-green-600");
+                    updateStatus("Erfolgreich hinzugefügt!", "text-green-600");
                 }
             } else {
-                setStatus("Set nicht gefunden.", "text-red-500");
+                updateStatus("Set nirgendwo gefunden.", "text-red-600");
             }
+        }
+
+        async function refreshSelectedSets() {
+            for (let id of selectedSets) {
+                const s = mySets.find(x => x.setNumber === id);
+                if (!s) continue;
+                try {
+                    const params = JSON.stringify({ query: s.setNumber, pageSize: 1, extendedData: 1 });
+                    const url = `https://corsproxy.io/?${encodeURIComponent('https://brickset.com/api/v3.asmx/getSets?apiKey=' + API_KEY_BRICKSET + '&userHash=&params=' + params)}`;
+                    const res = await fetch(url);
+                    const data = await res.json();
+                    if (data.matches > 0) {
+                        const api = data.sets[0];
+                        s.image = api.image?.imageURL || s.image;
+                        s.subtheme = api.subtheme || s.subtheme;
+                        let p = extractRRP(api);
+                        if(p === 0) p = await scrapeUVP(s.setNumber);
+                        if(p > 0) s.price = p;
+                    }
+                } catch(e) {}
+            }
+            saveAndRender(); clearSelection();
+        }
+
+        function deleteSet(id, event) {
+            if(event) event.stopPropagation();
+            if(!confirm("Set wirklich löschen?")) return;
+            mySets = mySets.filter(s => s.setNumber !== id);
+            selectedSets.delete(id);
+            saveAndRender();
+            updateActionBar();
         }
 
         function renderLibrary() {
             const term = document.getElementById('searchLibrary').value.toLowerCase();
-            const themeFilter = document.getElementById('filterTheme').value;
-            const lib = document.getElementById('library');
+            const cat = document.getElementById('filterCategory').value;
+            const filtered = mySets.filter(s => (s.name.toLowerCase().includes(term) || s.setNumber.includes(term) || (s.subtheme && s.subtheme.toLowerCase().includes(term))) && (cat === "all" || s.theme === cat));
             
-            const filtered = mySets.filter(s => 
-                (s.name.toLowerCase().includes(term) || s.setNumber.includes(term)) && 
-                (themeFilter === "all" || s.theme === themeFilter)
-            );
-
-            lib.innerHTML = filtered.map(s => `
-                <div class="set-card bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden relative group">
-                    <input type="checkbox" ${selectedSets.has(s.setNumber) ? 'checked' : ''} onchange="toggleSelection('${s.setNumber}')" class="select-checkbox absolute top-5 left-5 z-20 w-5 h-5 accent-blue-600 cursor-pointer">
-                    
-                    <div onclick="openModal('${s.setNumber}')" class="cursor-pointer">
-                        <div class="h-44 bg-slate-50 flex items-center justify-center p-6 relative">
-                            <img src="${s.image}" class="max-h-full drop-shadow-xl group-hover:scale-105 transition-transform duration-500" onerror="this.src='https://via.placeholder.com/200?text=No+Image'">
-                            <span class="absolute bottom-3 right-4 text-[9px] font-black px-2 py-1 rounded-lg ${s.status === 'New' ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-600'}">${s.status}</span>
+            document.getElementById('library').innerHTML = filtered.map(set => `
+                <div onclick="openModal('${set.setNumber}')" class="set-card bg-white rounded-[2rem] shadow-lg border border-slate-100 overflow-hidden">
+                    <input type="checkbox" ${selectedSets.has(set.setNumber) ? 'checked' : ''} onclick="toggleSelection('${set.setNumber}', event)" class="select-checkbox absolute top-5 left-5 z-20 w-5 h-5 rounded-md accent-blue-600">
+                    <button onclick="deleteSet('${set.setNumber}', event)" class="absolute top-4 right-4 z-20 p-2 bg-red-50 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    </button>
+                    <div class="h-48 flex items-center justify-center p-6 relative">
+                        <img src="${set.image}" class="max-h-full object-contain drop-shadow-xl" onerror="this.src='https://via.placeholder.com/150'">
+                        <div class="absolute bottom-2 left-4 flex gap-1 flex-wrap pr-4">
+                            <span class="text-[8px] font-bold px-2 py-0.5 rounded-full ${set.status === 'New' ? 'bg-blue-600' : 'bg-slate-700'} text-white">${set.status}</span>
+                            ${set.subtheme ? `<span class="text-[8px] px-2 py-0.5 rounded-full ${getSubthemeClass(set.subtheme)}">${set.subtheme}</span>` : ''}
                         </div>
-                        <div class="p-6">
-                            <div class="flex items-center gap-2 mb-2">
-                                <span class="text-[9px] font-black text-blue-500 bg-blue-50 px-2 py-0.5 rounded uppercase">${s.theme}</span>
-                                ${s.subtheme ? `<span class="text-[9px] font-bold text-slate-400">/ ${s.subtheme}</span>` : ''}
+                    </div>
+                    <div class="p-6 pt-2">
+                        <span class="text-[9px] font-black text-blue-600 bg-blue-50 px-2 py-1 rounded uppercase">${set.theme}</span>
+                        <h3 class="font-bold text-slate-800 text-sm mt-2 h-10 overflow-hidden">${set.name}</h3>
+                        <div class="flex justify-between items-end border-t mt-4 pt-4">
+                            <div class="text-[10px] text-slate-400 font-bold uppercase">
+                                <p class="text-slate-700">#${set.setNumber}</p>
+                                <p class="${set.price === 0 ? 'text-red-500 font-black' : ''}">UVP: ${parseFloat(set.price || 0).toFixed(2)} €</p>
                             </div>
-                            <h3 class="font-bold text-slate-800 text-sm h-10 overflow-hidden line-clamp-2 mb-4">${s.name}</h3>
-                            <div class="flex justify-between items-end border-t border-slate-50 pt-4">
-                                <div>
-                                    <p class="text-[10px] text-slate-300 font-bold uppercase tracking-widest">Set #${s.setNumber}</p>
-                                    <p class="text-xs font-bold text-slate-600">${s.price > 0 ? s.price.toFixed(2) + ' €' : '<span class="text-red-400">UVP ?</span>'}</p>
-                                </div>
-                                <div class="text-right">
-                                    <p class="text-[9px] font-black text-slate-300 uppercase leading-none mb-1">Wert</p>
-                                    <p class="text-xl font-black text-blue-600 leading-none">${s.currentValue.toFixed(2)} €</p>
-                                </div>
-                            </div>
+                            <div class="text-right"><p class="text-[9px] font-black text-slate-300 uppercase">Marktwert</p><p class="text-xl font-extrabold text-blue-600">${parseFloat(set.currentValue || 0).toFixed(2)} €</p></div>
                         </div>
                     </div>
                 </div>
@@ -274,80 +360,79 @@
             updateStats();
         }
 
-        function setStatus(m, c) { const el = document.getElementById('apiStatus'); el.innerText = m; el.className = `mt-4 text-center text-[11px] font-bold uppercase tracking-widest italic ${c}`; }
+        function getSubthemeClass(sub) {
+            const s = sub.toLowerCase();
+            if(s.includes("star wars")) return "subtheme-starwars";
+            if(s.includes("ucs") || s.includes("ultimate collector")) return "subtheme-ucs";
+            if(s.includes("modular")) return "subtheme-modular";
+            if(s.includes("technic")) return "subtheme-technic";
+            return "subtheme-default";
+        }
+
+        function setStatus(s) { 
+            currentStatus = s; 
+            document.getElementById('btnNew').className = s === 'New' ? "flex-1 py-3 rounded-xl border-2 font-bold bg-blue-600 text-white border-blue-600" : "flex-1 py-3 rounded-xl border-2 font-bold bg-white text-slate-400 border-slate-100"; 
+            document.getElementById('btnUsed').className = s === 'Used' ? "flex-1 py-3 rounded-xl border-2 font-bold bg-slate-800 text-white border-slate-800" : "flex-1 py-3 rounded-xl border-2 font-bold bg-white text-slate-400 border-slate-100"; 
+        }
 
         function openModal(id) {
-            currentEditId = id;
             const s = mySets.find(x => x.setNumber === id);
+            currentEditId = id;
             document.getElementById('modalImg').src = s.image;
             document.getElementById('modalName').innerText = s.name;
             document.getElementById('modalTheme').innerText = s.theme;
-            document.getElementById('editRetailPrice').value = s.price;
-            document.getElementById('editCurrentValue').value = s.currentValue;
-            setEditStatus(s.status || "Used");
+            document.getElementById('modalId').innerText = "#" + s.setNumber;
+            document.getElementById('editEan').value = s.ean || "";
+            document.getElementById('editRetailPrice').value = s.price || 0;
+            document.getElementById('editCurrentValue').value = s.currentValue || 0;
+            document.getElementById('editSubtheme').value = s.subtheme || "";
+            setStatus(s.status || "Used");
             document.getElementById('detailModal').style.display = 'flex';
-        }
-
-        function setEditStatus(st) {
-            tempStatus = st;
-            const bN = document.getElementById('btnNew');
-            const bU = document.getElementById('btnUsed');
-            if(st === 'New') {
-                bN.className = "flex-1 py-3 rounded-xl border-2 font-bold text-sm bg-blue-600 text-white border-blue-600";
-                bU.className = "flex-1 py-3 rounded-xl border-2 font-bold text-sm bg-white text-slate-300 border-slate-100";
-            } else {
-                bU.className = "flex-1 py-3 rounded-xl border-2 font-bold text-sm bg-slate-800 text-white border-slate-800";
-                bN.className = "flex-1 py-3 rounded-xl border-2 font-bold text-sm bg-white text-slate-300 border-slate-100";
-            }
         }
 
         function saveDetails() {
             const s = mySets.find(x => x.setNumber === currentEditId);
-            s.price = parseFloat(document.getElementById('editRetailPrice').value) || 0;
-            s.currentValue = parseFloat(document.getElementById('editCurrentValue').value) || 0;
-            s.status = tempStatus;
-            saveAndRender(); closeModal();
+            if(s) {
+                s.ean = document.getElementById('editEan').value;
+                s.price = parseFloat(document.getElementById('editRetailPrice').value) || 0;
+                s.currentValue = parseFloat(document.getElementById('editCurrentValue').value) || 0;
+                s.subtheme = document.getElementById('editSubtheme').value;
+                s.status = currentStatus;
+                saveAndRender(); closeModal();
+            }
         }
 
-        function toggleSelection(id) {
-            if (selectedSets.has(id)) selectedSets.delete(id);
-            else selectedSets.add(id);
-            document.getElementById('selectedCount').innerText = selectedSets.size;
-            document.getElementById('actionBar').classList.toggle('hidden', selectedSets.size === 0);
-        }
-
-        function applyBulkStatus() {
-            const newSt = document.getElementById('bulkStatus').value;
-            if(!newSt) return;
-            mySets.forEach(s => { if(selectedSets.has(s.setNumber)) s.status = newSt; });
-            clearSelection(); saveAndRender();
-        }
-
-        function deleteSelected() {
-            if(!confirm("Ausgewählte Sets wirklich löschen?")) return;
-            mySets = mySets.filter(s => !selectedSets.has(s.setNumber));
-            clearSelection(); saveAndRender();
-        }
-
-        function clearSelection() { selectedSets.clear(); document.getElementById('actionBar').classList.add('hidden'); renderLibrary(); }
-        function closeModal() { document.getElementById('detailModal').style.display = 'none'; }
+        function toggleSelection(id, event) { event.stopPropagation(); if (selectedSets.has(id)) selectedSets.delete(id); else selectedSets.add(id); updateActionBar(); }
+        function updateActionBar() { document.getElementById('selectedCount').innerText = selectedSets.size; document.getElementById('actionBar').classList.toggle('hidden', selectedSets.size === 0); }
+        function clearSelection() { selectedSets.clear(); updateActionBar(); renderLibrary(); }
+        function saveAndRender() { localStorage.setItem('bricksetCollection', JSON.stringify(mySets)); updateCategories(); renderLibrary(); }
         
-        function updateStats() {
-            const val = mySets.reduce((a, b) => a + b.currentValue, 0);
-            const pts = mySets.reduce((a, b) => a + (parseInt(b.pieces) || 0), 0);
-            document.getElementById('statValue').innerText = val.toFixed(2) + " €";
+        function updateStats() { 
+            const p = mySets.reduce((a, b) => a + (parseInt(b.pieces) || 0), 0);
+            const v = mySets.reduce((a, b) => a + (parseFloat(b.currentValue) || 0), 0);
             document.getElementById('statSets').innerText = mySets.length;
-            document.getElementById('statParts').innerText = pts.toLocaleString();
-            
-            const themes = [...new Set(mySets.map(s => s.theme))].sort();
-            const filter = document.getElementById('filterTheme');
-            const current = filter.value;
-            filter.innerHTML = '<option value="all">Alle Themen</option>' + themes.map(t => `<option value="${t}" ${t===current?'selected':''}>${t}</option>`).join('');
+            document.getElementById('statParts').innerText = p.toLocaleString();
+            document.getElementById('statValue').innerText = v.toFixed(2) + " €";
         }
 
-        function saveAndRender() { localStorage.setItem('bricksetCollection', JSON.stringify(mySets)); renderLibrary(); }
+        function updateCategories() { 
+            const ts = [...new Set(mySets.map(s => s.theme))].sort(); 
+            const sel = document.getElementById('filterCategory'); 
+            const cur = sel.value;
+            sel.innerHTML = '<option value="all">Alle Themen</option>' + ts.map(t => `<option value="${t}" ${t===cur?'selected':''}>${t}</option>`).join(''); 
+        }
 
-        renderLibrary();
+        function closeModal() { document.getElementById('detailModal').style.display = 'none'; }
+        function updateStatus(m, c) { const el = document.getElementById('apiStatus'); el.innerText = m; el.className = `mt-4 text-[10px] font-black uppercase italic ${c}`; }
+        function deleteSelected() { if(!confirm("Gewählte Sets löschen?")) return; mySets = mySets.filter(s => !selectedSets.has(s.setNumber)); clearSelection(); saveAndRender(); }
+        
+        function applyBulkActions() { 
+            const st = document.getElementById('bulkStatus').value; 
+            mySets.forEach(s => { if(selectedSets.has(s.setNumber)) if(st) s.status = st; }); 
+            clearSelection(); saveAndRender(); 
+        }
+
+        saveAndRender();
     </script>
 </body>
 </html>

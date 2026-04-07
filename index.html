@@ -16,9 +16,43 @@
         .select-checkbox { opacity: 0; transition: all 0.2s; transform: scale(1.2); cursor: pointer; }
         .set-card:hover .select-checkbox, .select-checkbox:checked { opacity: 1; }
 
-        /* Themen-Styling */
-        .subtheme-starwars { background: #000 !important; color: #ffe81f !important; border: 1px solid #334155; }
-        .subtheme-ucs { background: linear-gradient(90deg, #bf953f, #fcf6ba, #b38728); color: #000; font-weight: 900; }
+        @keyframes shimmerEffect { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
+        
+        @keyframes hyperdrive {
+            0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+            10% { opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(3); opacity: 0; }
+        }
+
+        .subtheme-starwars { 
+            background: #000 !important;
+            position: relative;
+            overflow: hidden;
+            color: #ffe81f !important;
+            font-weight: 800;
+            text-shadow: 0 0 5px rgba(255, 232, 31, 0.8);
+            border: 1px solid #334155;
+            z-index: 1;
+        }
+
+        .subtheme-starwars::before, .subtheme-starwars::after {
+            content: "";
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 100px; height: 100px;
+            background-image: 
+                radial-gradient(2px 2px at 20% 30%, #fff, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 70% 40%, #fff, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 40% 80%, #fff, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 80% 20%, #fff, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 10% 10%, #fff, rgba(0,0,0,0));
+            animation: hyperdrive 1.2s linear infinite;
+            z-index: -1;
+        }
+        .subtheme-starwars::after { animation-delay: 0.6s; }
+
+        .subtheme-ucs { background: linear-gradient(90deg, #bf953f, #fcf6ba, #b38728, #fcf6ba, #bf953f); background-size: 200% auto; color: #000; font-weight: 900; animation: shimmerEffect 4s linear infinite; }
+        .subtheme-modular { background: linear-gradient(90deg, #065f46, #10b981, #064e3b, #10b981, #065f46); background-size: 200% auto; color: white; font-weight: 700; animation: shimmerEffect 4s linear infinite; }
         .subtheme-technic { background: #475569; color: white; }
         .subtheme-default { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
 
@@ -35,10 +69,11 @@
                 <button onclick="clearSelection()" class="text-blue-100 hover:text-white text-xs underline">Abbrechen</button>
             </div>
             <div class="flex items-center gap-3">
-                <button onclick="refreshSelectedSets()" class="p-2 bg-blue-500 hover:bg-blue-400 rounded-lg transition-colors border border-blue-400">
+                <button onclick="refreshSelectedSets()" title="Preise aktualisieren" class="p-2 bg-blue-500 hover:bg-blue-400 rounded-lg transition-colors border border-blue-400">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 </button>
-                <select id="bulkStatus" class="bg-blue-700 rounded-lg px-3 py-2 text-sm font-bold outline-none">
+                <div class="h-8 w-[1px] bg-blue-400 mx-1"></div>
+                <select id="bulkStatus" class="bg-blue-700 rounded-lg px-3 py-2 text-sm font-bold outline-none border-none">
                     <option value="">Status...</option>
                     <option value="New">New</option>
                     <option value="Used">Used</option>
@@ -53,15 +88,14 @@
 
     <nav class="sticky top-0 z-50 glass mb-8 border-b border-slate-200">
         <div class="max-w-7xl mx-auto px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
-            <div class="flex items-center gap-4">
-                <div class="w-12 h-12 bg-[#2563eb] rounded-xl flex items-center justify-center shadow-lg shadow-blue-100">
-                    <svg class="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M7 19h10a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2z" />
-                        <path d="M9 11V9a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" />
-                        <path d="M11 7V5a1 1 0 0 1 1-1h0a1 1 0 0 1 1 1v2" />
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-200">
+                    <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                        <rect x="3" y="11" width="18" height="9" rx="2" />
                     </svg>
                 </div>
-                <h1 class="text-2xl font-[800] text-[#1e293b] tracking-tight">BRIX JUST<span class="text-[#2563eb]">4SEAN™</span></h1>
+                <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">BRIX JUST<span class="text-blue-600">4SEAN™</span></h1>
             </div>
             
             <div class="flex gap-6 text-center">
@@ -71,10 +105,12 @@
             </div>
 
             <div class="flex gap-2 items-center">
-                <button onclick="exportCollection()" class="p-2 hover:bg-slate-100 rounded-xl transition-colors"><svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg></button>
-                <label class="p-2 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer">
+                <button onclick="exportCollection()" title="Exportieren" class="p-2 hover:bg-slate-100 rounded-xl transition-colors">
+                    <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                </button>
+                <label class="p-2 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer" title="Importieren">
                     <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                    <input type="file" class="hidden" accept=".json" onchange="importCollection(event)">
+                    <input type="file" id="importFile" class="hidden" accept=".json" onchange="importCollection(event)">
                 </label>
                 <div class="w-px h-6 bg-slate-200 mx-1"></div>
                 <select id="filterCategory" onchange="renderLibrary()" class="bg-white border rounded-xl px-3 py-2 text-sm font-bold outline-none"><option value="all">Alle Themen</option></select>
@@ -86,7 +122,7 @@
     <main class="max-w-7xl mx-auto px-6">
         <div class="max-w-3xl mx-auto mb-16 text-center">
             <div class="bg-white p-2 rounded-[2.5rem] shadow-2xl flex items-center border-4 border-white">
-                <input type="text" id="barcodeInput" class="flex-1 pl-8 pr-4 py-4 rounded-[2rem] text-xl outline-none" placeholder="Set-Nummer eingeben..." onkeydown="if(event.key === 'Enter') fetchSets()">
+                <input type="text" id="barcodeInput" autofocus class="flex-1 pl-8 pr-4 py-4 rounded-[2rem] text-xl outline-none" placeholder="Set-Nummer..." onkeydown="if(event.key === 'Enter') fetchSets()">
                 <button onclick="fetchSets()" class="bg-blue-600 text-white font-bold py-4 px-10 rounded-[2rem] hover:bg-blue-700 transition-all">Hinzufügen</button>
             </div>
             <p id="apiStatus" class="mt-4 text-[10px] font-black text-slate-400 uppercase italic">Bereit</p>
@@ -108,21 +144,24 @@
             <div class="md:w-1/2 p-8 pt-12 space-y-6">
                 <div class="grid grid-cols-2 gap-4">
                     <div class="bg-slate-50 p-4 rounded-2xl">
+                        <p class="text-[10px] font-black text-slate-400 uppercase">Barcode / EAN</p>
+                        <input type="text" id="editEan" class="bg-transparent font-bold text-slate-800 w-full outline-none" placeholder="-">
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded-2xl">
                         <p class="text-[10px] font-black text-slate-400 uppercase">UVP Preis (€)</p>
                         <input type="number" id="editRetailPrice" step="0.01" class="bg-transparent font-bold text-slate-800 w-full outline-none">
                     </div>
                     <div class="bg-blue-50 p-4 rounded-2xl border border-blue-100 col-span-2">
-                        <p class="text-[10px] font-black text-blue-500 uppercase">Marktwert (€) - Manuelle Korrektur</p>
+                        <p class="text-[10px] font-black text-blue-500 uppercase">Marktwert (€)</p>
                         <input type="number" id="editCurrentValue" step="0.01" class="bg-transparent font-bold text-blue-700 w-full outline-none text-xl">
-                        <p id="autoPriceInfo" class="text-[9px] text-blue-400 mt-1 italic"></p>
                     </div>
                     <div class="bg-slate-50 p-4 rounded-2xl col-span-2">
                         <p class="text-[10px] font-black text-slate-400 uppercase">Subtheme (Tags)</p>
-                        <input type="text" id="editSubtheme" class="bg-transparent font-bold text-slate-800 w-full outline-none">
+                        <input type="text" id="editSubtheme" class="bg-transparent font-bold text-slate-800 w-full outline-none" placeholder="z.B. UCS, Modular...">
                     </div>
                 </div>
                 <div>
-                    <p class="text-[10px] font-black text-slate-400 uppercase mb-3">Zustand (Ändert Marktwert)</p>
+                    <p class="text-[10px] font-black text-slate-400 uppercase mb-3">Zustand</p>
                     <div class="flex gap-3">
                         <button onclick="setStatus('New')" id="btnNew" class="flex-1 py-3 rounded-xl border-2 font-bold transition-all">New</button>
                         <button onclick="setStatus('Used')" id="btnUsed" class="flex-1 py-3 rounded-xl border-2 font-bold transition-all">Used</button>
@@ -135,69 +174,46 @@
 
     <script>
         const API_KEY_BRICKSET = '3-N4Lr-Ug0H-M49ki';
+        const API_KEY_REBRICKABLE = '74d1510666ec62fef948d197af293799';
+        
         let mySets = JSON.parse(localStorage.getItem('bricksetCollection')) || [];
         let selectedSets = new Set();
         let currentEditId = null;
         let currentStatus = "Used";
 
-        // Hilfsfunktion: Welchen Marktwert nutzen wir?
-        function getEffectiveValue(set) {
-            // Falls der Nutzer manuell einen Wert eingetragen hat, hat dieser Vorrang
-            if (set.currentValue && set.currentValue > 0) return set.currentValue;
-            
-            // Sonst Automatik basierend auf Status
-            if (set.status === 'New') return set.valueNew || 0;
-            return set.valueUsed || 0;
+        // EXPORT & IMPORT (WIEDERHERGESTELLT)
+        function exportCollection() {
+            const dataStr = JSON.stringify(mySets, null, 2);
+            const blob = new Blob([dataStr], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `brix-collection-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
         }
 
-        async function fetchSets() {
-            const input = document.getElementById('barcodeInput');
-            const query = input.value.trim();
-            if (!query) return;
-            updateStatus("Suche läuft...", "text-blue-500 animate-pulse");
-
-            try {
-                const params = JSON.stringify({ query: query, pageSize: 1, extendedData: 1 });
-                const url = `https://corsproxy.io/?${encodeURIComponent('https://brickset.com/api/v3.asmx/getSets?apiKey=' + API_KEY_BRICKSET + '&userHash=&params=' + params)}`;
-                const res = await fetch(url);
-                const data = await res.json();
-                
-                if (data.status === "success" && data.matches > 0) {
-                    const s = data.sets[0];
-                    const newSet = {
-                        setNumber: String(s.number),
-                        name: s.name,
-                        pieces: s.pieces || 0,
-                        theme: s.theme,
-                        subtheme: s.subtheme || "",
-                        image: s.image?.imageURL || '',
-                        price: s.LEGOCom?.DE?.retailPrice || 0,
-                        valueNew: s.collection?.rating ? 0 : (s.price?.new?.retailPrice || 0), // Platzhalter falls Brickset direkt liefert
-                        valueUsed: 0,
-                        currentValue: 0,
-                        status: "Used"
-                    };
-
-                    // Preis-Scraping für Marktdaten
-                    const marketData = await scrapeMarketPrices(newSet.setNumber);
-                    newSet.valueNew = marketData.new;
-                    newSet.valueUsed = marketData.used;
-
-                    if(mySets.find(x => x.setNumber === newSet.setNumber)) {
-                        updateStatus("Bereits vorhanden!", "text-orange-600");
-                    } else {
-                        mySets.unshift(newSet);
+        function importCollection(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (Array.isArray(imported)) {
+                        const existingIds = new Set(mySets.map(s => s.setNumber));
+                        const newItems = imported.filter(s => !existingIds.has(s.setNumber));
+                        mySets = [...newItems, ...mySets];
                         saveAndRender();
-                        input.value = '';
-                        updateStatus("Hinzugefügt!", "text-green-600");
+                        updateStatus(`${newItems.length} Sets importiert`, "text-green-600");
                     }
-                } else {
-                    updateStatus("Set nicht gefunden.", "text-red-600");
-                }
-            } catch (e) { updateStatus("Fehler!", "text-red-600"); }
+                } catch (err) { updateStatus("Import fehlgeschlagen", "text-red-600"); }
+            };
+            reader.readAsText(file);
         }
 
-        async function scrapeMarketPrices(setNum) {
+        // HILFSFUNKTIONEN FÜR DATENABFRAGE (WIEDERHERGESTELLT)
+        async function scrapeUVP(setNum) {
             try {
                 const fullId = setNum.includes('-') ? setNum : `${setNum}-1`;
                 const proxyUrl = `https://corsproxy.io/?${encodeURIComponent('https://www.brickeconomy.com/set/' + fullId + '/')}`;
@@ -205,37 +221,145 @@
                 const html = await response.text();
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(html, 'text/html');
-                
-                let prices = { new: 0, used: 0 };
-                const labels = doc.querySelectorAll('small.text-muted');
-                labels.forEach(l => {
-                    const valStr = l.parentElement.innerText.match(/([0-9]+[\.,][0-9]{2})/);
-                    if (valStr) {
-                        const val = parseFloat(valStr[1].replace(',', '.'));
-                        if (l.innerText.includes('New')) prices.new = val;
-                        if (l.innerText.includes('Used')) prices.used = val;
+                const elements = doc.querySelectorAll('div, td, li, span, p, dt, dd');
+                for (let el of elements) {
+                    if (el.innerText && /retail price/i.test(el.innerText)) {
+                        const match = el.innerText.match(/([0-9]+[\.,][0-9]{2})/);
+                        if (match) return parseFloat(match[1].replace(',', '.'));
                     }
+                }
+            } catch (e) {}
+            return 0;
+        }
+
+        function extractRRP(s) {
+            const parsePrice = (val) => {
+                if (!val) return 0;
+                const parsed = parseFloat(String(val).replace(',', '.'));
+                return isNaN(parsed) ? 0 : parsed;
+            };
+            let p = parsePrice(s.retailPrice);
+            if (p > 0) return p;
+            const regions = ['DE', 'UK', 'US'];
+            for (let r of regions) {
+                if (s.LEGOCom?.[r]?.retailPrice) {
+                    p = parsePrice(s.LEGOCom[r].retailPrice);
+                    if (p > 0) return p;
+                }
+            }
+            return 0;
+        }
+
+        async function fetchFromRebrickable(query) {
+            const setNum = query.includes('-') ? query : `${query}-1`;
+            try {
+                const res = await fetch(`https://rebrickable.com/api/v3/lego/sets/${setNum}/`, {
+                    headers: { 'Authorization': `key ${API_KEY_REBRICKABLE}`, 'Accept': 'application/json' }
                 });
-                return prices;
-            } catch (e) { return { new: 0, used: 0 }; }
+                if(!res.ok) throw new Error();
+                const data = await res.json();
+                return {
+                    setNumber: query,
+                    name: data.name || "Unbekanntes Set",
+                    pieces: data.num_parts || 0,
+                    theme: "LEGO",
+                    subtheme: "",
+                    ean: "",
+                    image: data.set_img_url || '',
+                    price: 0, 
+                    currentValue: 0,
+                    status: "Used"
+                };
+            } catch (e) { return null; }
+        }
+
+        // HAUPTFUNKTIONEN (WIEDERHERGESTELLT)
+        async function fetchSets() {
+            const input = document.getElementById('barcodeInput');
+            const query = input.value.trim();
+            if (!query) return;
+            updateStatus("Suche läuft...", "text-blue-500 animate-pulse");
+            let newSetObj = null;
+            try {
+                const params = JSON.stringify({ query: query, pageSize: 1, extendedData: 1 });
+                const url = `https://corsproxy.io/?${encodeURIComponent('https://brickset.com/api/v3.asmx/getSets?apiKey=' + API_KEY_BRICKSET + '&userHash=&params=' + params)}`;
+                const res = await fetch(url);
+                const data = await res.json();
+                if (data.status === "success" && data.matches > 0) {
+                    const s = data.sets[0];
+                    newSetObj = {
+                        setNumber: String(s.number),
+                        name: s.name,
+                        pieces: s.pieces || 0,
+                        theme: s.theme,
+                        subtheme: s.subtheme || "",
+                        ean: "",
+                        image: s.image?.imageURL || '',
+                        price: extractRRP(s), 
+                        currentValue: 0,
+                        status: "Used"
+                    };
+                    if (newSetObj.price === 0) newSetObj.price = await scrapeUVP(newSetObj.setNumber);
+                } else {
+                    newSetObj = await fetchFromRebrickable(query);
+                    if (newSetObj) newSetObj.price = await scrapeUVP(newSetObj.setNumber);
+                }
+            } catch (e) { newSetObj = await fetchFromRebrickable(query); }
+
+            if (newSetObj) {
+                if(mySets.find(x => x.setNumber === newSetObj.setNumber)) {
+                    updateStatus("Bereits vorhanden!", "text-orange-600");
+                } else {
+                    mySets.unshift(newSetObj);
+                    saveAndRender();
+                    input.value = '';
+                    updateStatus("Hinzugefügt!", "text-green-600");
+                }
+            } else { updateStatus("Nicht gefunden.", "text-red-600"); }
+        }
+
+        async function refreshSelectedSets() {
+            updateStatus("Update läuft...", "text-blue-600 animate-pulse");
+            for (let id of selectedSets) {
+                const s = mySets.find(x => x.setNumber === id);
+                if (!s) continue;
+                try {
+                    const params = JSON.stringify({ query: s.setNumber, pageSize: 1, extendedData: 1 });
+                    const url = `https://corsproxy.io/?${encodeURIComponent('https://brickset.com/api/v3.asmx/getSets?apiKey=' + API_KEY_BRICKSET + '&userHash=&params=' + params)}`;
+                    const res = await fetch(url);
+                    const data = await res.json();
+                    if (data.matches > 0) {
+                        const api = data.sets[0];
+                        let p = extractRRP(api);
+                        if(p === 0) p = await scrapeUVP(s.setNumber);
+                        if(p > 0) s.price = p;
+                    }
+                } catch(e) {}
+            }
+            saveAndRender(); clearSelection();
+            updateStatus("Bereit", "text-slate-400");
         }
 
         function renderLibrary() {
             const term = document.getElementById('searchLibrary').value.toLowerCase();
             const cat = document.getElementById('filterCategory').value;
             const filtered = mySets.filter(s => {
-                return (s.name.toLowerCase().includes(term) || s.setNumber.includes(term)) && (cat === "all" || s.theme === cat);
+                const matchSearch = s.name.toLowerCase().includes(term) || s.setNumber.includes(term) || (s.subtheme && s.subtheme.toLowerCase().includes(term));
+                const matchCat = (cat === "all" || s.theme === cat);
+                return matchSearch && matchCat;
             });
             
-            document.getElementById('library').innerHTML = filtered.map(set => {
-                const val = getEffectiveValue(set);
-                return `
+            document.getElementById('library').innerHTML = filtered.map(set => `
                 <div onclick="openModal('${set.setNumber}')" class="set-card bg-white rounded-[2rem] shadow-lg border border-slate-100 overflow-hidden">
                     <input type="checkbox" ${selectedSets.has(set.setNumber) ? 'checked' : ''} onclick="toggleSelection('${set.setNumber}', event)" class="select-checkbox absolute top-5 left-5 z-20 w-5 h-5 rounded-md accent-blue-600">
+                    <button onclick="deleteSet('${set.setNumber}', event)" class="absolute top-4 right-4 z-20 p-2 bg-red-50 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    </button>
                     <div class="h-48 flex items-center justify-center p-6 relative">
-                        <img src="${set.image}" class="max-h-full object-contain drop-shadow-xl">
-                        <div class="absolute bottom-2 left-4 flex gap-1 flex-wrap">
-                            <span class="text-[8px] font-black px-2 py-1 rounded-full ${set.status === 'New' ? 'bg-blue-600' : 'bg-slate-700'} text-white uppercase">${set.status}</span>
+                        <img src="${set.image}" class="max-h-full object-contain drop-shadow-xl" onerror="this.src='https://via.placeholder.com/150'">
+                        <div class="absolute bottom-2 left-4 flex gap-1 flex-wrap pr-4">
+                            <span class="text-[8px] font-bold px-2 py-0.5 rounded-full ${set.status === 'New' ? 'bg-blue-600' : 'bg-slate-700'} text-white uppercase">${set.status}</span>
+                            ${set.subtheme ? `<span class="text-[8px] px-2 py-0.5 rounded-full ${getSubthemeClass(set.subtheme)}">${set.subtheme}</span>` : ''}
                         </div>
                     </div>
                     <div class="p-6 pt-2">
@@ -244,17 +368,32 @@
                         <div class="flex justify-between items-end border-t mt-4 pt-4">
                             <div class="text-[10px] text-slate-400 font-bold uppercase">
                                 <p class="text-slate-700">#${set.setNumber}</p>
-                                <p>UVP: ${parseFloat(set.price || 0).toFixed(2)} €</p>
+                                <p class="${set.price === 0 ? 'text-red-500 font-black' : ''}">UVP: ${parseFloat(set.price || 0).toFixed(2)} €</p>
                             </div>
                             <div class="text-right">
                                 <p class="text-[9px] font-black text-slate-300 uppercase">Marktwert</p>
-                                <p class="text-xl font-extrabold text-blue-600">${val.toFixed(2)} €</p>
+                                <p class="text-xl font-extrabold text-blue-600">${parseFloat(set.currentValue || 0).toFixed(2)} €</p>
                             </div>
                         </div>
                     </div>
-                </div>`;
-            }).join('');
+                </div>`).join('');
             updateStats();
+        }
+
+        // UTILITIES & MODAL LOGIC (WIEDERHERGESTELLT)
+        function getSubthemeClass(sub) {
+            const s = sub.toLowerCase();
+            if(s.includes("star wars")) return "subtheme-starwars";
+            if(s.includes("ucs") || s.includes("ultimate collector")) return "subtheme-ucs";
+            if(s.includes("modular")) return "subtheme-modular";
+            if(s.includes("technic")) return "subtheme-technic";
+            return "subtheme-default";
+        }
+
+        function setStatus(s) { 
+            currentStatus = s; 
+            document.getElementById('btnNew').className = s === 'New' ? "flex-1 py-3 rounded-xl border-2 font-bold bg-blue-600 text-white border-blue-600 shadow-md" : "flex-1 py-3 rounded-xl border-2 font-bold bg-white text-slate-400 border-slate-100"; 
+            document.getElementById('btnUsed').className = s === 'Used' ? "flex-1 py-3 rounded-xl border-2 font-bold bg-slate-800 text-white border-slate-800 shadow-md" : "flex-1 py-3 rounded-xl border-2 font-bold bg-white text-slate-400 border-slate-100"; 
         }
 
         function openModal(id) {
@@ -264,32 +403,18 @@
             document.getElementById('modalName').innerText = s.name;
             document.getElementById('modalTheme').innerText = s.theme;
             document.getElementById('modalId').innerText = "#" + s.setNumber;
+            document.getElementById('editEan').value = s.ean || "";
             document.getElementById('editRetailPrice').value = s.price || 0;
             document.getElementById('editCurrentValue').value = s.currentValue || 0;
             document.getElementById('editSubtheme').value = s.subtheme || "";
             setStatus(s.status || "Used");
-            updateAutoPriceInfo(s);
             document.getElementById('detailModal').style.display = 'flex';
-        }
-
-        function updateAutoPriceInfo(s) {
-            const info = document.getElementById('autoPriceInfo');
-            const autoVal = currentStatus === 'New' ? (s.valueNew || 0) : (s.valueUsed || 0);
-            info.innerText = `Automatischer Wert für ${currentStatus}: ${autoVal.toFixed(2)} € (Wird genutzt wenn Feld oben 0 ist)`;
-        }
-
-        function setStatus(s) { 
-            currentStatus = s; 
-            document.getElementById('btnNew').className = s === 'New' ? "flex-1 py-3 rounded-xl border-2 font-bold bg-blue-600 text-white border-blue-600" : "flex-1 py-3 rounded-xl border-2 font-bold bg-white text-slate-400 border-slate-100"; 
-            document.getElementById('btnUsed').className = s === 'Used' ? "flex-1 py-3 rounded-xl border-2 font-bold bg-slate-800 text-white border-slate-800" : "flex-1 py-3 rounded-xl border-2 font-bold bg-white text-slate-400 border-slate-100"; 
-            
-            const set = mySets.find(x => x.setNumber === currentEditId);
-            if(set) updateAutoPriceInfo(set);
         }
 
         function saveDetails() {
             const s = mySets.find(x => x.setNumber === currentEditId);
             if(s) {
+                s.ean = document.getElementById('editEan').value;
                 s.price = parseFloat(document.getElementById('editRetailPrice').value) || 0;
                 s.currentValue = parseFloat(document.getElementById('editCurrentValue').value) || 0;
                 s.subtheme = document.getElementById('editSubtheme').value;
@@ -298,11 +423,14 @@
             }
         }
 
-        // Standard-Funktionen
+        function deleteSet(id, e) { if(e) e.stopPropagation(); mySets = mySets.filter(s => s.setNumber !== id); selectedSets.delete(id); saveAndRender(); updateActionBar(); }
+        function toggleSelection(id, e) { e.stopPropagation(); if (selectedSets.has(id)) selectedSets.delete(id); else selectedSets.add(id); updateActionBar(); }
+        function updateActionBar() { document.getElementById('selectedCount').innerText = selectedSets.size; document.getElementById('actionBar').classList.toggle('hidden', selectedSets.size === 0); }
+        function clearSelection() { selectedSets.clear(); updateActionBar(); renderLibrary(); }
         function saveAndRender() { localStorage.setItem('bricksetCollection', JSON.stringify(mySets)); updateCategories(); renderLibrary(); }
         function updateStats() { 
             const p = mySets.reduce((a, b) => a + (parseInt(b.pieces) || 0), 0);
-            const v = mySets.reduce((a, b) => a + getEffectiveValue(b), 0);
+            const v = mySets.reduce((a, b) => a + (parseFloat(b.currentValue) || 0), 0);
             document.getElementById('statSets').innerText = mySets.length;
             document.getElementById('statParts').innerText = p.toLocaleString();
             document.getElementById('statValue').innerText = v.toFixed(2) + " €";
@@ -310,17 +438,17 @@
         function updateCategories() { 
             const ts = [...new Set(mySets.map(s => s.theme))].sort(); 
             const sel = document.getElementById('filterCategory'); 
-            sel.innerHTML = '<option value="all">Alle Themen</option>' + ts.map(t => `<option value="${t}">${t}</option>`).join(''); 
+            const cur = sel.value;
+            sel.innerHTML = '<option value="all">Alle Themen</option>' + ts.map(t => `<option value="${t}" ${t===cur?'selected':''}>${t}</option>`).join(''); 
         }
-        function toggleSelection(id, e) { e.stopPropagation(); if(selectedSets.has(id)) selectedSets.delete(id); else selectedSets.add(id); updateActionBar(); }
-        function updateActionBar() { document.getElementById('actionBar').classList.toggle('hidden', selectedSets.size === 0); document.getElementById('selectedCount').innerText = selectedSets.size; }
-        function clearSelection() { selectedSets.clear(); updateActionBar(); renderLibrary(); }
-        function deleteSelected() { mySets = mySets.filter(s => !selectedSets.has(s.setNumber)); clearSelection(); saveAndRender(); }
-        function applyBulkActions() { const st = document.getElementById('bulkStatus').value; if(st) mySets.forEach(s => { if(selectedSets.has(s.setNumber)) s.status = st; }); clearSelection(); saveAndRender(); }
-        function exportCollection() { const blob = new Blob([JSON.stringify(mySets, null, 2)], {type: "application/json"}); const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = "brix-collection.json"; a.click(); }
-        function importCollection(e) { const reader = new FileReader(); reader.onload = (f) => { mySets = JSON.parse(f.target.result); saveAndRender(); }; reader.readAsText(e.target.files[0]); }
         function closeModal() { document.getElementById('detailModal').style.display = 'none'; }
         function updateStatus(m, c) { const el = document.getElementById('apiStatus'); el.innerText = m; el.className = `mt-4 text-[10px] font-black uppercase italic ${c}`; }
+        function deleteSelected() { mySets = mySets.filter(s => !selectedSets.has(s.setNumber)); clearSelection(); saveAndRender(); }
+        function applyBulkActions() { 
+            const st = document.getElementById('bulkStatus').value; 
+            mySets.forEach(s => { if(selectedSets.has(s.setNumber)) if(st) s.status = st; }); 
+            clearSelection(); saveAndRender(); 
+        }
 
         saveAndRender();
     </script>

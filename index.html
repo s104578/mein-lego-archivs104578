@@ -88,15 +88,28 @@
 
     <nav class="sticky top-0 z-50 glass mb-8 border-b border-slate-200">
         <div class="max-w-7xl mx-auto px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
-            <h1 class="text-2xl font-extrabold text-slate-800">BRIX JUST<span class="text-blue-600">4SEAN™</span></h1>
+            <div class="flex items-center gap-3">
+                <img src="logo.png" alt="Logo" class="w-10 h-10 object-contain rounded-lg shadow-sm" onerror="this.style.display='none'">
+                <h1 class="text-2xl font-extrabold text-slate-800">BRIX JUST<span class="text-blue-600">4SEAN™</span></h1>
+            </div>
+            
             <div class="flex gap-6 text-center">
                 <div><p class="text-[10px] uppercase font-black text-slate-400">Sets</p><p id="statSets" class="font-bold text-slate-800">0</p></div>
                 <div><p class="text-[10px] uppercase font-black text-slate-400">Teile</p><p id="statParts" class="font-bold text-slate-800">0</p></div>
                 <div><p class="text-[10px] uppercase font-black text-slate-400">Sammlungswert</p><p id="statValue" class="font-bold text-blue-600">0.00 €</p></div>
             </div>
-            <div class="flex gap-2">
+
+            <div class="flex gap-2 items-center">
+                <button onclick="exportCollection()" title="Exportieren" class="p-2 hover:bg-slate-100 rounded-xl transition-colors">
+                    <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                </button>
+                <label class="p-2 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer" title="Importieren">
+                    <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                    <input type="file" id="importFile" class="hidden" accept=".json" onchange="importCollection(event)">
+                </label>
+                <div class="w-px h-6 bg-slate-200 mx-1"></div>
                 <select id="filterCategory" onchange="renderLibrary()" class="bg-white border rounded-xl px-3 py-2 text-sm font-bold outline-none"><option value="all">Alle Themen</option></select>
-                <input type="text" id="searchLibrary" oninput="renderLibrary()" placeholder="Suche (Set, Name, Subtheme)..." class="bg-white border rounded-xl px-3 py-2 text-sm outline-none w-40 focus:w-64 transition-all">
+                <input type="text" id="searchLibrary" oninput="renderLibrary()" placeholder="Suche (Set, Name, Barcode)..." class="bg-white border rounded-xl px-3 py-2 text-sm outline-none w-40 focus:w-64 transition-all">
             </div>
         </div>
     </nav>
@@ -163,40 +176,56 @@
         let currentEditId = null;
         let currentStatus = "Used";
 
-        // OPTIMIERTER BRICKECONOMY SCRAPER
+        // EXPORT & IMPORT
+        function exportCollection() {
+            const dataStr = JSON.stringify(mySets, null, 2);
+            const blob = new Blob([dataStr], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `brix-collection-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function importCollection(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (Array.isArray(imported)) {
+                        // Merge Strategie: Nur neue Sets hinzufügen
+                        const existingIds = new Set(mySets.map(s => s.setNumber));
+                        const newItems = imported.filter(s => !existingIds.has(s.setNumber));
+                        mySets = [...newItems, ...mySets];
+                        saveAndRender();
+                        updateStatus(`${newItems.length} Sets importiert`, "text-green-600");
+                    }
+                } catch (err) {
+                    updateStatus("Import fehlgeschlagen: Ungültige Datei", "text-red-600");
+                }
+            };
+            reader.readAsText(file);
+        }
+
         async function scrapeUVP(setNum) {
-            console.log(`🔎 BrickEconomy Intensiv-Scan für Set ${setNum}...`);
             try {
-                // Falls die Nummer kein -1 hat, hängen wir es für die URL an
                 const fullId = setNum.includes('-') ? setNum : `${setNum}-1`;
                 const proxyUrl = `https://corsproxy.io/?${encodeURIComponent('https://www.brickeconomy.com/set/' + fullId + '/')}`;
-                
                 const response = await fetch(proxyUrl);
                 const html = await response.text();
-                
-                // DOM Parser für präzise Suche nutzen
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(html, 'text/html');
-                
-                // Wir suchen in allen relevanten Tags nach dem Text "Retail price"
                 const elements = doc.querySelectorAll('div, td, li, span, p');
-                let foundPrice = 0;
-
                 for (let el of elements) {
-                    // Falls das Element den Text enthält (case-insensitive)
                     if (el.innerText && /retail price/i.test(el.innerText)) {
-                        // Suche nach einer Preis-Formatierung im Text dieses Elements
                         const match = el.innerText.match(/([0-9]+[\.,][0-9]{2})/);
-                        if (match) {
-                            foundPrice = parseFloat(match[1].replace(',', '.'));
-                            console.log(`✅ Erfolg! BrickEconomy Preis für ${setNum}: ${foundPrice} €`);
-                            return foundPrice;
-                        }
+                        if (match) return parseFloat(match[1].replace(',', '.'));
                     }
                 }
-            } catch (e) {
-                console.warn("❌ BrickEconomy Scraper fehlgeschlagen oder geblockt.");
-            }
+            } catch (e) {}
             return 0;
         }
 
@@ -206,10 +235,8 @@
                 const parsed = parseFloat(String(val).replace(',', '.'));
                 return isNaN(parsed) ? 0 : parsed;
             };
-
             let p = parsePrice(s.retailPrice);
             if (p > 0) return p;
-            
             const regions = ['DE', 'UK', 'US'];
             for (let r of regions) {
                 if (s.LEGOCom?.[r]?.retailPrice) {
@@ -226,7 +253,7 @@
                 const res = await fetch(`https://rebrickable.com/api/v3/lego/sets/${setNum}/`, {
                     headers: { 'Authorization': `key ${API_KEY_REBRICKABLE}`, 'Accept': 'application/json' }
                 });
-                if(!res.ok) throw new Error("Rebrickable fehlgeschlagen");
+                if(!res.ok) throw new Error();
                 const data = await res.json();
                 return {
                     setNumber: query,
@@ -247,20 +274,15 @@
             const input = document.getElementById('barcodeInput');
             const query = input.value.trim();
             if (!query) return;
-            
-            updateStatus("Suche bei Brickset...", "text-blue-500 animate-pulse");
+            updateStatus("Suche läuft...", "text-blue-500 animate-pulse");
             let newSetObj = null;
-            
             try {
                 const params = JSON.stringify({ query: query, pageSize: 1, extendedData: 1 });
                 const url = `https://corsproxy.io/?${encodeURIComponent('https://brickset.com/api/v3.asmx/getSets?apiKey=' + API_KEY_BRICKSET + '&userHash=&params=' + params)}`;
                 const res = await fetch(url);
                 const data = await res.json();
-                
                 if (data.status === "success" && data.matches > 0) {
                     const s = data.sets[0];
-                    let foundPrice = extractRRP(s);
-                    
                     newSetObj = {
                         setNumber: String(s.number),
                         name: s.name,
@@ -269,25 +291,16 @@
                         subtheme: s.subtheme || "",
                         ean: "",
                         image: s.image?.imageURL || '',
-                        price: foundPrice, 
+                        price: extractRRP(s), 
                         currentValue: 0,
                         status: "Used"
                     };
-
-                    if (newSetObj.price === 0) {
-                        updateStatus("Prüfe BrickEconomy UVP...", "text-purple-600 animate-pulse");
-                        newSetObj.price = await scrapeUVP(newSetObj.setNumber);
-                    }
+                    if (newSetObj.price === 0) newSetObj.price = await scrapeUVP(newSetObj.setNumber);
                 } else {
-                    updateStatus("Brickset leer. Suche bei Rebrickable...", "text-orange-500 animate-pulse");
                     newSetObj = await fetchFromRebrickable(query);
-                    if (newSetObj) {
-                        updateStatus("Hole UVP von BrickEconomy...", "text-purple-600 animate-pulse");
-                        newSetObj.price = await scrapeUVP(newSetObj.setNumber);
-                    }
+                    if (newSetObj) newSetObj.price = await scrapeUVP(newSetObj.setNumber);
                 }
             } catch (e) {
-                updateStatus("API Error. Nutze Fallback...", "text-red-600");
                 newSetObj = await fetchFromRebrickable(query);
             }
 
@@ -298,15 +311,15 @@
                     mySets.unshift(newSetObj);
                     saveAndRender();
                     input.value = '';
-                    updateStatus("Erfolgreich hinzugefügt!", "text-green-600");
+                    updateStatus("Hinzugefügt!", "text-green-600");
                 }
             } else {
-                updateStatus("Set nirgendwo gefunden.", "text-red-600");
+                updateStatus("Nicht gefunden.", "text-red-600");
             }
         }
 
         async function refreshSelectedSets() {
-            updateStatus("Aktualisiere gewählte Sets...", "text-blue-600 animate-pulse");
+            updateStatus("Aktualisiere...", "text-blue-600 animate-pulse");
             for (let id of selectedSets) {
                 const s = mySets.find(x => x.setNumber === id);
                 if (!s) continue;
@@ -325,13 +338,13 @@
                     }
                 } catch(e) {}
             }
-            updateStatus("Update abgeschlossen", "text-green-600");
             saveAndRender(); clearSelection();
+            updateStatus("Bereit", "text-slate-400");
         }
 
         function deleteSet(id, event) {
             if(event) event.stopPropagation();
-            if(!confirm("Set wirklich löschen?")) return;
+            // Bestätigung entfernt
             mySets = mySets.filter(s => s.setNumber !== id);
             selectedSets.delete(id);
             saveAndRender();
@@ -341,7 +354,15 @@
         function renderLibrary() {
             const term = document.getElementById('searchLibrary').value.toLowerCase();
             const cat = document.getElementById('filterCategory').value;
-            const filtered = mySets.filter(s => (s.name.toLowerCase().includes(term) || s.setNumber.includes(term) || (s.subtheme && s.subtheme.toLowerCase().includes(term))) && (cat === "all" || s.theme === cat));
+            
+            const filtered = mySets.filter(s => {
+                const matchSearch = s.name.toLowerCase().includes(term) || 
+                                   s.setNumber.includes(term) || 
+                                   (s.subtheme && s.subtheme.toLowerCase().includes(term)) ||
+                                   (s.ean && s.ean.toLowerCase().includes(term)); // Barcode Suche
+                const matchCat = (cat === "all" || s.theme === cat);
+                return matchSearch && matchCat;
+            });
             
             document.getElementById('library').innerHTML = filtered.map(set => `
                 <div onclick="openModal('${set.setNumber}')" class="set-card bg-white rounded-[2rem] shadow-lg border border-slate-100 overflow-hidden">
@@ -436,7 +457,12 @@
 
         function closeModal() { document.getElementById('detailModal').style.display = 'none'; }
         function updateStatus(m, c) { const el = document.getElementById('apiStatus'); el.innerText = m; el.className = `mt-4 text-[10px] font-black uppercase italic ${c}`; }
-        function deleteSelected() { if(!confirm("Gewählte Sets löschen?")) return; mySets = mySets.filter(s => !selectedSets.has(s.setNumber)); clearSelection(); saveAndRender(); }
+        
+        function deleteSelected() { 
+            // Bestätigung entfernt
+            mySets = mySets.filter(s => !selectedSets.has(s.setNumber)); 
+            clearSelection(); saveAndRender(); 
+        }
         
         function applyBulkActions() { 
             const st = document.getElementById('bulkStatus').value; 

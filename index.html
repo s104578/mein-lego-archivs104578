@@ -212,42 +212,45 @@
             reader.readAsText(file);
         }
 
-        // BRICKSET SCRAPER (NEU: NUTZT JETZT BRICKSET STATT BRICKECONOMY)
-        async function scrapeUVP(setNum) {
+        // BRICKSET SCRAPER FÜR UVP & CURRENT VALUE (NEW/USED)
+        async function scrapeBricksetData(setNum) {
+            let results = { rrp: 0, valNew: 0, valUsed: 0 };
             try {
                 const fullId = setNum.includes('-') ? setNum : `${setNum}-1`;
-                // Wir crawlen die Brickset Detailseite
                 const proxyUrl = `https://corsproxy.io/?${encodeURIComponent('https://brickset.com/sets/' + fullId)}`;
                 const response = await fetch(proxyUrl);
                 const html = await response.text();
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(html, 'text/html');
                 
-                // Brickset listet Preise oft in einer Definitionsliste <dt>RRP</dt><dd>...</dd>
                 const dts = doc.querySelectorAll('dt');
-                let rrpText = "";
                 for (let dt of dts) {
-                    if (dt.innerText.trim() === "RRP") {
-                        rrpText = dt.nextElementSibling.innerText; // Der Inhalt von <dd>
-                        break;
+                    const label = dt.innerText.trim();
+                    const dd = dt.nextElementSibling;
+                    if (!dd) continue;
+
+                    // 1. UVP / RRP Suche
+                    if (label === "RRP") {
+                        const deMatch = dd.innerText.match(/(\d+[\.,]\d{2})€/);
+                        if (deMatch) results.rrp = parseFloat(deMatch[1].replace(',', '.'));
+                        else {
+                            const genMatch = dd.innerText.match(/(\d+[\.,]\d{2})/);
+                            if (genMatch) results.rrp = parseFloat(genMatch[1].replace(',', '.'));
+                        }
+                    }
+
+                    // 2. Marktwert / Current Value Suche (New & Used)
+                    if (label === "Current value") {
+                        const text = dd.innerHTML; // Nutze innerHTML um nach <br> zu trennen
+                        const newMatch = text.match(/New:.*?~€(\d+)/);
+                        const usedMatch = text.match(/Used:.*?~€(\d+)/);
+                        
+                        if (newMatch) results.valNew = parseFloat(newMatch[1]);
+                        if (usedMatch) results.valUsed = parseFloat(usedMatch[1]);
                     }
                 }
-
-                if (rrpText) {
-                    // Priorität 1: Euro Preis (Deutschland/Europa)
-                    const deMatch = rrpText.match(/(\d+[\.,]\d{2})€/);
-                    if (deMatch) return parseFloat(deMatch[1].replace(',', '.'));
-
-                    // Priorität 2: Dollar Preis
-                    const usMatch = rrpText.match(/\$(\d+[\.,]\d{2})/);
-                    if (usMatch) return parseFloat(usMatch[1].replace(',', '.'));
-
-                    // Fallback: Irgendeine Zahl im RRP Feld
-                    const genericMatch = rrpText.match(/(\d+[\.,]\d{2})/);
-                    if (genericMatch) return parseFloat(genericMatch[1].replace(',', '.'));
-                }
             } catch (e) { console.error("Scraper Error:", e); }
-            return 0;
+            return results;
         }
 
         function extractRRP(s) {
@@ -286,6 +289,8 @@
                     image: data.set_img_url || '',
                     price: 0, 
                     currentValue: 0,
+                    valNew: 0,
+                    valUsed: 0,
                     status: "Used"
                 };
             } catch (e) { return null; }
@@ -302,6 +307,7 @@
                 const url = `https://corsproxy.io/?${encodeURIComponent('https://brickset.com/api/v3.asmx/getSets?apiKey=' + API_KEY_BRICKSET + '&userHash=&params=' + params)}`;
                 const res = await fetch(url);
                 const data = await res.json();
+                
                 if (data.status === "success" && data.matches > 0) {
                     const s = data.sets[0];
                     newSetObj = {
@@ -314,15 +320,24 @@
                         image: s.image?.imageURL || '',
                         price: extractRRP(s), 
                         currentValue: 0,
+                        valNew: 0,
+                        valUsed: 0,
                         status: "Used"
                     };
-                    // Wenn API keine UVP hat, Brickset-Scraper nutzen
-                    if (newSetObj.price === 0) newSetObj.price = await scrapeUVP(newSetObj.setNumber);
                 } else {
                     newSetObj = await fetchFromRebrickable(query);
-                    if (newSetObj) newSetObj.price = await scrapeUVP(newSetObj.setNumber);
                 }
-            } catch (e) { newSetObj = await fetchFromRebrickable(query); }
+
+                if (newSetObj) {
+                    const scraped = await scrapeBricksetData(newSetObj.setNumber);
+                    if (newSetObj.price === 0) newSetObj.price = scraped.rrp;
+                    newSetObj.valNew = scraped.valNew;
+                    newSetObj.valUsed = scraped.valUsed;
+                    // Aktuellen Wert basierend auf Initial-Status setzen
+                    newSetObj.currentValue = newSetObj.status === 'New' ? scraped.valNew : scraped.valUsed;
+                }
+
+            } catch (e) { console.error(e); }
 
             if (newSetObj) {
                 if(mySets.find(x => x.setNumber === newSetObj.setNumber)) {
@@ -341,19 +356,11 @@
             for (let id of selectedSets) {
                 const s = mySets.find(x => x.setNumber === id);
                 if (!s) continue;
-                try {
-                    const params = JSON.stringify({ query: s.setNumber, pageSize: 1, extendedData: 1 });
-                    const url = `https://corsproxy.io/?${encodeURIComponent('https://brickset.com/api/v3.asmx/getSets?apiKey=' + API_KEY_BRICKSET + '&userHash=&params=' + params)}`;
-                    const res = await fetch(url);
-                    const data = await res.json();
-                    if (data.matches > 0) {
-                        const api = data.sets[0];
-                        let p = extractRRP(api);
-                        // Falls API leer, Scraper nutzen
-                        if(p === 0) p = await scrapeUVP(s.setNumber);
-                        if(p > 0) s.price = p;
-                    }
-                } catch(e) {}
+                const scraped = await scrapeBricksetData(s.setNumber);
+                if (scraped.rrp > 0) s.price = scraped.rrp;
+                s.valNew = scraped.valNew;
+                s.valUsed = scraped.valUsed;
+                s.currentValue = s.status === 'New' ? scraped.valNew : scraped.valUsed;
             }
             saveAndRender(); clearSelection();
             updateStatus("Bereit", "text-slate-400");
@@ -412,6 +419,13 @@
             currentStatus = s; 
             document.getElementById('btnNew').className = s === 'New' ? "flex-1 py-3 rounded-xl border-2 font-bold bg-blue-600 text-white border-blue-600 shadow-md" : "flex-1 py-3 rounded-xl border-2 font-bold bg-white text-slate-400 border-slate-100"; 
             document.getElementById('btnUsed').className = s === 'Used' ? "flex-1 py-3 rounded-xl border-2 font-bold bg-slate-800 text-white border-slate-800 shadow-md" : "flex-1 py-3 rounded-xl border-2 font-bold bg-white text-slate-400 border-slate-100"; 
+            
+            // Wenn im Modal der Status geändert wird, aktualisiere das Marktwert-Feld sofort mit den gecrawlten Daten
+            const currentSet = mySets.find(x => x.setNumber === currentEditId);
+            if (currentSet) {
+                const newVal = s === 'New' ? (currentSet.valNew || 0) : (currentSet.valUsed || 0);
+                document.getElementById('editCurrentValue').value = newVal;
+            }
         }
 
         function openModal(id) {
@@ -464,7 +478,15 @@
         function deleteSelected() { mySets = mySets.filter(s => !selectedSets.has(s.setNumber)); clearSelection(); saveAndRender(); }
         function applyBulkActions() { 
             const st = document.getElementById('bulkStatus').value; 
-            mySets.forEach(s => { if(selectedSets.has(s.setNumber)) if(st) s.status = st; }); 
+            mySets.forEach(s => { 
+                if(selectedSets.has(s.setNumber)) {
+                    if(st) {
+                        s.status = st;
+                        // Wert bei Bulk-Änderung ebenfalls anpassen
+                        s.currentValue = st === 'New' ? (s.valNew || 0) : (s.valUsed || 0);
+                    }
+                }
+            }); 
             clearSelection(); saveAndRender(); 
         }
 

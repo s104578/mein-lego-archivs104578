@@ -105,6 +105,9 @@
             </div>
 
             <div class="flex gap-2 items-center">
+                <button onclick="selectAllVisible()" title="Alle auswählen" class="p-2 hover:bg-slate-100 rounded-xl transition-colors">
+                    <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                </button>
                 <button onclick="exportCollection()" title="Exportieren" class="p-2 hover:bg-slate-100 rounded-xl transition-colors">
                     <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                 </button>
@@ -212,7 +215,7 @@
             reader.readAsText(file);
         }
 
-        // BRICKSET SCRAPER FÜR UVP & CURRENT VALUE (NEW/USED)
+        // BRICKSET SCRAPER FÜR UVP & CURRENT VALUE
         async function scrapeBricksetData(setNum) {
             let results = { rrp: 0, valNew: 0, valUsed: 0 };
             try {
@@ -229,7 +232,6 @@
                     const dd = dt.nextElementSibling;
                     if (!dd) continue;
 
-                    // 1. UVP / RRP Suche
                     if (label === "RRP") {
                         const deMatch = dd.innerText.match(/(\d+[\.,]\d{2})€/);
                         if (deMatch) results.rrp = parseFloat(deMatch[1].replace(',', '.'));
@@ -239,12 +241,10 @@
                         }
                     }
 
-                    // 2. Marktwert / Current Value Suche (New & Used)
                     if (label === "Current value") {
-                        const text = dd.innerHTML; // Nutze innerHTML um nach <br> zu trennen
+                        const text = dd.innerHTML;
                         const newMatch = text.match(/New:.*?~€(\d+)/);
                         const usedMatch = text.match(/Used:.*?~€(\d+)/);
-                        
                         if (newMatch) results.valNew = parseFloat(newMatch[1]);
                         if (usedMatch) results.valUsed = parseFloat(usedMatch[1]);
                     }
@@ -287,11 +287,7 @@
                     subtheme: "",
                     ean: "",
                     image: data.set_img_url || '',
-                    price: 0, 
-                    currentValue: 0,
-                    valNew: 0,
-                    valUsed: 0,
-                    status: "Used"
+                    price: 0, currentValue: 0, valNew: 0, valUsed: 0, status: "Used"
                 };
             } catch (e) { return null; }
         }
@@ -312,17 +308,9 @@
                     const s = data.sets[0];
                     newSetObj = {
                         setNumber: String(s.number),
-                        name: s.name,
-                        pieces: s.pieces || 0,
-                        theme: s.theme,
-                        subtheme: s.subtheme || "",
-                        ean: "",
-                        image: s.image?.imageURL || '',
-                        price: extractRRP(s), 
-                        currentValue: 0,
-                        valNew: 0,
-                        valUsed: 0,
-                        status: "Used"
+                        name: s.name, pieces: s.pieces || 0, theme: s.theme, subtheme: s.subtheme || "",
+                        ean: "", image: s.image?.imageURL || '', price: extractRRP(s), 
+                        currentValue: 0, valNew: 0, valUsed: 0, status: "Used"
                     };
                 } else {
                     newSetObj = await fetchFromRebrickable(query);
@@ -333,10 +321,8 @@
                     if (newSetObj.price === 0) newSetObj.price = scraped.rrp;
                     newSetObj.valNew = scraped.valNew;
                     newSetObj.valUsed = scraped.valUsed;
-                    // Aktuellen Wert basierend auf Initial-Status setzen
                     newSetObj.currentValue = newSetObj.status === 'New' ? scraped.valNew : scraped.valUsed;
                 }
-
             } catch (e) { console.error(e); }
 
             if (newSetObj) {
@@ -344,8 +330,7 @@
                     updateStatus("Bereits vorhanden!", "text-orange-600");
                 } else {
                     mySets.unshift(newSetObj);
-                    saveAndRender();
-                    input.value = '';
+                    saveAndRender(); input.value = '';
                     updateStatus("Hinzugefügt!", "text-green-600");
                 }
             } else { updateStatus("Nicht gefunden.", "text-red-600"); }
@@ -406,6 +391,18 @@
             updateStats();
         }
 
+        // NEUE FUNKTION: ALLE SICHTBAREN SETS AUSWÄHLEN
+        function selectAllVisible() {
+            const term = document.getElementById('searchLibrary').value.toLowerCase();
+            const cat = document.getElementById('filterCategory').value;
+            mySets.forEach(s => {
+                const matchSearch = s.name.toLowerCase().includes(term) || s.setNumber.includes(term) || (s.subtheme && s.subtheme.toLowerCase().includes(term));
+                const matchCat = (cat === "all" || s.theme === cat);
+                if (matchSearch && matchCat) selectedSets.add(s.setNumber);
+            });
+            updateActionBar(); renderLibrary();
+        }
+
         function getSubthemeClass(sub) {
             const s = sub.toLowerCase();
             if(s.includes("star wars")) return "subtheme-starwars";
@@ -419,8 +416,6 @@
             currentStatus = s; 
             document.getElementById('btnNew').className = s === 'New' ? "flex-1 py-3 rounded-xl border-2 font-bold bg-blue-600 text-white border-blue-600 shadow-md" : "flex-1 py-3 rounded-xl border-2 font-bold bg-white text-slate-400 border-slate-100"; 
             document.getElementById('btnUsed').className = s === 'Used' ? "flex-1 py-3 rounded-xl border-2 font-bold bg-slate-800 text-white border-slate-800 shadow-md" : "flex-1 py-3 rounded-xl border-2 font-bold bg-white text-slate-400 border-slate-100"; 
-            
-            // Wenn im Modal der Status geändert wird, aktualisiere das Marktwert-Feld sofort mit den gecrawlten Daten
             const currentSet = mySets.find(x => x.setNumber === currentEditId);
             if (currentSet) {
                 const newVal = s === 'New' ? (currentSet.valNew || 0) : (currentSet.valUsed || 0);
@@ -455,7 +450,12 @@
             }
         }
 
-        function deleteSet(id, e) { if(e) e.stopPropagation(); mySets = mySets.filter(s => s.setNumber !== id); selectedSets.delete(id); saveAndRender(); updateActionBar(); }
+        function deleteSet(id, e) { 
+            if(e) e.stopPropagation(); 
+            mySets = mySets.filter(s => s.setNumber !== id); 
+            selectedSets.delete(id); 
+            saveAndRender(); updateActionBar(); 
+        }
         function toggleSelection(id, e) { e.stopPropagation(); if (selectedSets.has(id)) selectedSets.delete(id); else selectedSets.add(id); updateActionBar(); }
         function updateActionBar() { document.getElementById('selectedCount').innerText = selectedSets.size; document.getElementById('actionBar').classList.toggle('hidden', selectedSets.size === 0); }
         function clearSelection() { selectedSets.clear(); updateActionBar(); renderLibrary(); }
@@ -478,15 +478,7 @@
         function deleteSelected() { mySets = mySets.filter(s => !selectedSets.has(s.setNumber)); clearSelection(); saveAndRender(); }
         function applyBulkActions() { 
             const st = document.getElementById('bulkStatus').value; 
-            mySets.forEach(s => { 
-                if(selectedSets.has(s.setNumber)) {
-                    if(st) {
-                        s.status = st;
-                        // Wert bei Bulk-Änderung ebenfalls anpassen
-                        s.currentValue = st === 'New' ? (s.valNew || 0) : (s.valUsed || 0);
-                    }
-                }
-            }); 
+            mySets.forEach(s => { if(selectedSets.has(s.setNumber)) { if(st) { s.status = st; s.currentValue = st === 'New' ? (s.valNew || 0) : (s.valUsed || 0); } } }); 
             clearSelection(); saveAndRender(); 
         }
 

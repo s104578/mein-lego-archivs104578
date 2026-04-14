@@ -57,6 +57,10 @@
         .subtheme-default { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
 
         #detailModal { display: none; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); }
+
+        /* SCROLL TOP BUTTON STYLE */
+        #scrollTopBtn { display: none; transition: all 0.3s ease; }
+        #scrollTopBtn:hover { transform: translateY(-5px); }
     </style>
 </head>
 <body class="min-h-screen pb-12">
@@ -175,6 +179,12 @@
         </div>
     </div>
 
+    <button id="scrollTopBtn" onclick="scrollToTop()" class="fixed bottom-8 right-8 z-[70] glass p-4 rounded-2xl shadow-xl text-blue-600 border border-blue-100">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
+        </svg>
+    </button>
+
     <script>
         const API_KEY_BRICKSET = '3-N4Lr-Ug0H-M49ki';
         const API_KEY_REBRICKABLE = '74d1510666ec62fef948d197af293799';
@@ -183,6 +193,20 @@
         let selectedSets = new Set();
         let currentEditId = null;
         let currentStatus = "Used";
+
+        // Scroll Logic
+        window.onscroll = function() {
+            const btn = document.getElementById("scrollTopBtn");
+            if (document.body.scrollTop > 400 || document.documentElement.scrollTop > 400) {
+                btn.style.display = "block";
+            } else {
+                btn.style.display = "none";
+            }
+        };
+
+        function scrollToTop() {
+            window.scrollTo({top: 0, behavior: 'smooth'});
+        }
 
         // EXPORT & IMPORT
         function exportCollection() {
@@ -391,7 +415,6 @@
             updateStats();
         }
 
-        // NEUE FUNKTION: ALLE SICHTBAREN SETS AUSWÄHLEN
         function selectAllVisible() {
             const term = document.getElementById('searchLibrary').value.toLowerCase();
             const cat = document.getElementById('filterCategory').value;
@@ -450,12 +473,7 @@
             }
         }
 
-        function deleteSet(id, e) { 
-            if(e) e.stopPropagation(); 
-            mySets = mySets.filter(s => s.setNumber !== id); 
-            selectedSets.delete(id); 
-            saveAndRender(); updateActionBar(); 
-        }
+        function deleteSet(id, e) { if(e) e.stopPropagation(); mySets = mySets.filter(s => s.setNumber !== id); selectedSets.delete(id); saveAndRender(); updateActionBar(); }
         function toggleSelection(id, e) { e.stopPropagation(); if (selectedSets.has(id)) selectedSets.delete(id); else selectedSets.add(id); updateActionBar(); }
         function updateActionBar() { document.getElementById('selectedCount').innerText = selectedSets.size; document.getElementById('actionBar').classList.toggle('hidden', selectedSets.size === 0); }
         function clearSelection() { selectedSets.clear(); updateActionBar(); renderLibrary(); }

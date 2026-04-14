@@ -1,3 +1,6 @@
+Hier ist der angepasste Code. Ich habe die `scrapeUVP`-Funktion so erweitert, dass sie nun explizit nach dem HTML-Muster `<dt>RRP</dt><dd>...</dd>` sucht, die Euro-Werte priorisiert und Dollar-Werte (USD) als 1:1-Backup nutzt, wie von dir gewünscht.
+
+```html
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -218,24 +221,49 @@
         async function scrapeUVP(setNum) {
             try {
                 const fullId = setNum.includes('-') ? setNum : `${setNum}-1`;
-                const proxyUrl = `https://corsproxy.io/?${encodeURIComponent('https://www.brickeconomy.com/set/' + fullId + '/')}`;
-                const response = await fetch(proxyUrl);
-                const html = await response.text();
+                // Brickeconomy Scraper (Backup)
+                const economyProxy = `https://corsproxy.io/?${encodeURIComponent('https://www.brickeconomy.com/set/' + fullId + '/')}`;
+                const economyRes = await fetch(economyProxy);
+                const html = await economyRes.text();
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(html, 'text/html');
-                
                 const elements = doc.querySelectorAll('div, td, li, span, p, dt, dd');
                 for (let el of elements) {
-                    // Suche explizit nach "Retail price" im Text
                     if (el.innerText && /retail price/i.test(el.innerText)) {
                         const match = el.innerText.match(/([0-9]+[\.,][0-9]{2})/);
-                        if (match) {
-                            const val = parseFloat(match[1].replace(',', '.'));
-                            console.log(`UVP gefunden: ${val} €`);
-                            return val;
+                        if (match) return parseFloat(match[1].replace(',', '.'));
+                    }
+                }
+
+                // Brickset Website Scraper (für das dt/dd Muster)
+                const bricksetProxy = `https://corsproxy.io/?${encodeURIComponent('https://brickset.com/sets/' + fullId)}`;
+                const bricksetRes = await fetch(bricksetProxy);
+                const bHtml = await bricksetRes.text();
+                const bDoc = parser.parseFromString(bHtml, 'text/html');
+                const dtElements = bDoc.querySelectorAll('dt');
+                
+                let foundEUR = 0;
+                let foundUSD = 0;
+
+                for (let dt of dtElements) {
+                    if (dt.textContent.trim() === "RRP") {
+                        const dd = dt.nextElementSibling;
+                        if (dd && dd.tagName === "DD") {
+                            const text = dd.textContent;
+                            // Suche Euro (z.B. 79.99€)
+                            const eurMatch = text.match(/([0-9]+[\.,][0-9]{2})€/);
+                            if (eurMatch) foundEUR = parseFloat(eurMatch[1].replace(',', '.'));
+                            
+                            // Suche US Dollar (z.B. $79.99)
+                            const usdMatch = text.match(/\$([0-9]+[\.,][0-9]{2})/);
+                            if (usdMatch) foundUSD = parseFloat(usdMatch[1].replace(',', '.'));
                         }
                     }
                 }
+                
+                if (foundEUR > 0) return foundEUR;
+                if (foundUSD > 0) return foundUSD; // 1:1 Übernahme wie gewünscht
+
             } catch (e) {
                 console.warn("Scraper Error", e);
             }

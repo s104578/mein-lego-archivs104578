@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Brix Just4Sean - Collection Manager</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -60,11 +60,33 @@
 
         #scrollTopBtn { display: none; transition: all 0.3s ease; }
         #scrollTopBtn:hover { transform: translateY(-5px); }
+        /* Verhindert horizontales Scrollen auf Handys */
+body { overflow-x: hidden; width: 100%; -webkit-tap-highlight-color: transparent; }
+
+/* Optimiert Modals für mobile Bildschirme */
+#detailModal, #duplicateModal { 
+    display: none; 
+    background: rgba(15, 23, 42, 0.7); 
+    backdrop-filter: blur(8px);
+    z-index: 1000;
+}
+
+/* Verhindert automatisches Zoomen in Textfeldern auf dem iPhone */
+input[type="text"], input[type="number"], select { font-size: 16px !important; }
+
+/* Responsive Grid: 1 Spalte auf Mobile, 2 auf Tablet, 4 auf PC */
+#library {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+@media (min-width: 640px) { #library { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1024px) { #library { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
     </style>
 </head>
 <body class="min-h-screen pb-12">
 
-    <div id="actionBar" class="fixed top-0 left-0 right-0 z-[60] bg-blue-600 text-white py-4 px-6 shadow-2xl hidden">
+    <div id="actionBar" class="fixed bottom-0 left-0 right-0 z-[100] bg-blue-600 text-white p-4 shadow-2xl hidden md:top-0 md:bottom-auto">
         <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
             <div class="flex items-center gap-4">
                 <span id="selectedCount" class="bg-white text-blue-600 px-3 py-1 rounded-full font-black text-sm">0</span>
@@ -136,8 +158,8 @@
         <div id="library" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"></div>
     </main>
 
-    <div id="duplicateModal" class="fixed inset-0 z-[110] flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden p-8 relative border-t-8 border-blue-600">
+   <div id="duplicateModal" class="fixed inset-0 flex items-end md:items-center justify-center">
+    <div class="bg-white w-full max-w-md rounded-t-[2rem] md:rounded-[2rem] p-6 shadow-2xl">
             <h3 class="text-2xl font-black text-slate-800 mb-2">Set bereits vorhanden!</h3>
             <p class="text-slate-500 text-sm mb-6 font-medium">Möchtest du weitere Exemplare von Set <span id="dupSetNum" class="font-black text-blue-600"></span> zur Sammlung hinzufügen?</p>
             
@@ -159,8 +181,8 @@
         </div>
     </div>
 
-    <div id="detailModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-5xl rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col md:flex-row relative">
+    <div id="detailModal" class="fixed inset-0 flex items-end md:items-center justify-center">
+    <div class="bg-white w-full max-w-4xl h-[90vh] md:h-auto md:rounded-[2rem] rounded-t-[2rem] overflow-hidden flex flex-col md:flex-row relative">
             <button onclick="closeModal()" class="absolute top-6 right-6 text-slate-400 hover:text-slate-600 z-10"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
             <div class="md:w-2/5 bg-slate-50 p-8 flex flex-col items-center justify-center border-r border-slate-100">
                 <img id="modalImg" src="" class="max-h-64 object-contain drop-shadow-2xl mb-8">

@@ -244,7 +244,7 @@
         let selectedSets = new Set();
         let currentEditId = null;
         let currentStatus = "New";
-        let tempDupId = null; // Für das Duplicate-Modal
+        let tempDupId = null;
 
         window.onscroll = function() {
             const btn = document.getElementById("scrollTopBtn");
@@ -369,11 +369,10 @@
             const query = input.value.trim();
             if (!query) return;
 
-            // CHECK DUPLICATE BEFORE FETCH
             const existingSet = mySets.find(x => x.setNumber === query || x.ean === query);
             if(existingSet) {
                 openDuplicateModal(existingSet.setNumber);
-                input.value = '';
+                input.value = ''; // Eingabemaske zurücksetzen
                 return;
             }
 
@@ -409,12 +408,15 @@
 
             if (newSetObj) {
                 mySets.unshift(newSetObj);
-                saveAndRender(); input.value = '';
+                saveAndRender(); 
+                input.value = ''; // Eingabemaske zurücksetzen
                 updateStatus("Hinzugefügt (Neu)!", "text-green-600");
-            } else { updateStatus("Nicht gefunden.", "text-red-600"); }
+            } else { 
+                updateStatus("Nicht gefunden.", "text-red-600");
+                input.value = ''; // Auch bei Nicht-Fund zurücksetzen für neuen Scan
+            }
         }
 
-        // DUPLICATE MODAL LOGIC
         function openDuplicateModal(id) {
             tempDupId = id;
             document.getElementById('dupSetNum').innerText = id;

@@ -165,12 +165,12 @@ input, select {
     </nav>
 
     <main class="max-w-7xl mx-auto px-6">
-       <div class="max-w-2xl mx-auto mb-10 px-2">
+      <div class="max-w-2xl mx-auto mb-10 px-2">
     <div class="bg-white p-1 rounded-full shadow-lg flex items-center border border-slate-200">
         <input type="text" id="barcodeInput" autofocus 
                class="flex-1 pl-4 md:pl-6 pr-2 py-2 md:py-3 rounded-full text-sm md:text-base outline-none min-w-0" 
-               placeholder="Set-Nr.../Barcode">
-        <button onclick="fetchSets()" 
+               placeholder="Set-Nr..."
+               onkeydown="if(event.key === 'Enter') fetchSets()"> <button onclick="fetchSets()" 
                 class="bg-blue-600 text-white font-bold px-4 py-2 md:px-6 md:py-3 rounded-full active:scale-95 transition-all text-xs md:text-sm whitespace-nowrap ml-1">
             Hinzufügen
         </button>

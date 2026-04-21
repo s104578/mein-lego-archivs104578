@@ -58,7 +58,6 @@
 
         #detailModal, #duplicateModal { display: none; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); }
 
-        /* SCROLL TOP BUTTON STYLE */
         #scrollTopBtn { display: none; transition: all 0.3s ease; }
         #scrollTopBtn:hover { transform: translateY(-5px); }
     </style>
@@ -145,7 +144,7 @@
             <div class="space-y-4 mb-8">
                 <div class="bg-blue-50 p-4 rounded-2xl border border-blue-100">
                     <p class="text-[10px] font-black text-blue-600 uppercase mb-1 italic">+ Anzahl Neu</p>
-                    <input type="number" id="dupAddNew" value="1" min="0" class="bg-transparent font-bold text-blue-800 w-full outline-none text-xl">
+                    <input type="number" id="dupAddNew" value="0" min="0" class="bg-transparent font-bold text-blue-800 w-full outline-none text-xl">
                 </div>
                 <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
                     <p class="text-[10px] font-black text-slate-500 uppercase mb-1 italic">+ Anzahl Gebraucht</p>
@@ -372,7 +371,7 @@
             const existingSet = mySets.find(x => x.setNumber === query || x.ean === query);
             if(existingSet) {
                 openDuplicateModal(existingSet.setNumber);
-                input.value = ''; // Eingabemaske zurücksetzen
+                input.value = ''; 
                 return;
             }
 
@@ -409,24 +408,29 @@
             if (newSetObj) {
                 mySets.unshift(newSetObj);
                 saveAndRender(); 
-                input.value = ''; // Eingabemaske zurücksetzen
+                input.value = ''; 
                 updateStatus("Hinzugefügt (Neu)!", "text-green-600");
             } else { 
                 updateStatus("Nicht gefunden.", "text-red-600");
-                input.value = ''; // Auch bei Nicht-Fund zurücksetzen für neuen Scan
+                input.value = ''; 
             }
         }
 
+        // DUPLICATE MODAL LOGIC
         function openDuplicateModal(id) {
             tempDupId = id;
             document.getElementById('dupSetNum').innerText = id;
-            document.getElementById('dupAddNew').value = 1;
+            // Felder explizit auf 0 setzen
+            document.getElementById('dupAddNew').value = 0;
             document.getElementById('dupAddUsed').value = 0;
             document.getElementById('duplicateModal').style.display = 'flex';
         }
 
         function closeDuplicateModal() {
             document.getElementById('duplicateModal').style.display = 'none';
+            // Felder zurücksetzen
+            document.getElementById('dupAddNew').value = 0;
+            document.getElementById('dupAddUsed').value = 0;
             tempDupId = null;
         }
 

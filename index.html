@@ -138,9 +138,9 @@
     </main>
 
     <div id="detailModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-4xl rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col md:flex-row relative">
+        <div class="bg-white w-full max-w-5xl rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col md:flex-row relative">
             <button onclick="closeModal()" class="absolute top-6 right-6 text-slate-400 hover:text-slate-600 z-10"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
-            <div class="md:w-1/2 bg-slate-50 p-8 flex flex-col items-center justify-center border-r border-slate-100">
+            <div class="md:w-2/5 bg-slate-50 p-8 flex flex-col items-center justify-center border-r border-slate-100">
                 <img id="modalImg" src="" class="max-h-64 object-contain drop-shadow-2xl mb-8">
                 <div class="w-full text-center md:text-left">
                     <p class="text-xs font-black text-blue-600 uppercase tracking-widest" id="modalTheme"></p>
@@ -148,7 +148,7 @@
                     <p class="text-slate-400 font-bold mt-1" id="modalId"></p>
                 </div>
             </div>
-            <div class="md:w-1/2 p-8 pt-12 space-y-6">
+            <div class="md:w-3/5 p-8 pt-12 space-y-6 overflow-y-auto max-h-[90vh]">
                 <div class="grid grid-cols-2 gap-4">
                     <div class="bg-slate-50 p-4 rounded-2xl">
                         <p class="text-[10px] font-black text-slate-400 uppercase">Barcode / EAN</p>
@@ -168,18 +168,38 @@
                     </div>
                     <div class="bg-blue-50 p-4 rounded-2xl border border-blue-200">
                         <p class="text-[10px] font-black text-blue-600 uppercase">Anzahl Neu</p>
-                        <input type="number" id="editQtyNew" min="0" class="bg-transparent font-bold text-blue-800 w-full outline-none">
+                        <input type="number" id="editQtyNew" min="0" oninput="refreshModalCalculation()" class="bg-transparent font-bold text-blue-800 w-full outline-none">
                     </div>
                     <div class="bg-slate-100 p-4 rounded-2xl border border-slate-200">
                         <p class="text-[10px] font-black text-slate-500 uppercase">Anzahl Gebraucht</p>
-                        <input type="number" id="editQtyUsed" min="0" class="bg-transparent font-bold text-slate-800 w-full outline-none">
+                        <input type="number" id="editQtyUsed" min="0" oninput="refreshModalCalculation()" class="bg-transparent font-bold text-slate-800 w-full outline-none">
                     </div>
                 </div>
+
+                <div class="bg-slate-50 rounded-2xl p-5 border border-slate-200">
+                    <p class="text-[10px] font-black text-slate-400 uppercase mb-4 tracking-widest text-center">Wert-Analyse dieses Sets</p>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-slate-500">Neu (<span id="calcQtyNew">0</span>x):</span>
+                            <span class="font-bold text-blue-600" id="calcValNew">0.00 €</span>
+                        </div>
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-slate-500">Gebraucht (<span id="calcQtyUsed">0</span>x):</span>
+                            <span class="font-bold text-slate-700" id="calcValUsed">0.00 €</span>
+                        </div>
+                        <div class="h-px bg-slate-200 my-2"></div>
+                        <div class="flex justify-between items-center">
+                            <span class="font-black text-slate-800 uppercase text-xs">Gesamtwert Set:</span>
+                            <span class="font-black text-blue-600 text-xl" id="calcTotal">0.00 €</span>
+                        </div>
+                    </div>
+                </div>
+
                 <div>
-                    <p class="text-[10px] font-black text-slate-400 uppercase mb-3">Zustand (Hauptfokus)</p>
+                    <p class="text-[10px] font-black text-slate-400 uppercase mb-3">Zustand (Fokus ändern)</p>
                     <div class="flex gap-3">
-                        <button onclick="setStatus('New')" id="btnNew" class="flex-1 py-3 rounded-xl border-2 font-bold transition-all">New</button>
-                        <button onclick="setStatus('Used')" id="btnUsed" class="flex-1 py-3 rounded-xl border-2 font-bold transition-all">Used</button>
+                        <button onclick="updateStatusAndQty('New')" id="btnNew" class="flex-1 py-3 rounded-xl border-2 font-bold transition-all">New</button>
+                        <button onclick="updateStatusAndQty('Used')" id="btnUsed" class="flex-1 py-3 rounded-xl border-2 font-bold transition-all">Used</button>
                     </div>
                 </div>
                 <button onclick="saveDetails()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold shadow-lg hover:bg-blue-700 transition-all">Änderungen speichern</button>
@@ -200,7 +220,7 @@
         let mySets = JSON.parse(localStorage.getItem('bricksetCollection')) || [];
         let selectedSets = new Set();
         let currentEditId = null;
-        let currentStatus = "Used";
+        let currentStatus = "New";
 
         window.onscroll = function() {
             const btn = document.getElementById("scrollTopBtn");
@@ -314,8 +334,8 @@
                     subtheme: "",
                     ean: "",
                     image: data.set_img_url || '',
-                    price: 0, currentValue: 0, valNew: 0, valUsed: 0, status: "Used",
-                    qtyNew: 0, qtyUsed: 1 // Standardmäßig 1 gebraucht
+                    price: 0, currentValue: 0, valNew: 0, valUsed: 0, status: "New",
+                    qtyNew: 1, qtyUsed: 0 // Standardmäßig 1 Neu
                 };
             } catch (e) { return null; }
         }
@@ -338,8 +358,8 @@
                         setNumber: String(s.number),
                         name: s.name, pieces: s.pieces || 0, theme: s.theme, subtheme: s.subtheme || "",
                         ean: "", image: s.image?.imageURL || '', price: extractRRP(s), 
-                        currentValue: 0, valNew: 0, valUsed: 0, status: "Used",
-                        qtyNew: 0, qtyUsed: 1
+                        currentValue: 0, valNew: 0, valUsed: 0, status: "New",
+                        qtyNew: 1, qtyUsed: 0
                     };
                 } else {
                     newSetObj = await fetchFromRebrickable(query);
@@ -350,7 +370,7 @@
                     if (newSetObj.price === 0) newSetObj.price = scraped.rrp;
                     newSetObj.valNew = scraped.valNew;
                     newSetObj.valUsed = scraped.valUsed;
-                    newSetObj.currentValue = newSetObj.status === 'New' ? scraped.valNew : scraped.valUsed;
+                    newSetObj.currentValue = scraped.valNew > 0 ? scraped.valNew : 0;
                 }
             } catch (e) { console.error(e); }
 
@@ -360,7 +380,7 @@
                 } else {
                     mySets.unshift(newSetObj);
                     saveAndRender(); input.value = '';
-                    updateStatus("Hinzugefügt!", "text-green-600");
+                    updateStatus("Hinzugefügt (Neu)!", "text-green-600");
                 }
             } else { updateStatus("Nicht gefunden.", "text-red-600"); }
         }
@@ -444,15 +464,56 @@
             return "subtheme-default";
         }
 
+        // NEU: LOGIK ZUM AUTOMATISCHEN VERSCHIEBEN DER ANZAHL BEIM ZUSTANDSWECHSEL
+        function updateStatusAndQty(s) { 
+            const qNewInput = document.getElementById('editQtyNew');
+            const qUsedInput = document.getElementById('editQtyUsed');
+            let qN = parseInt(qNewInput.value) || 0;
+            let qU = parseInt(qUsedInput.value) || 0;
+
+            if (currentStatus === 'New' && s === 'Used') {
+                if (qN > 0) { qN--; qU++; }
+            } else if (currentStatus === 'Used' && s === 'New') {
+                if (qU > 0) { qU--; qN++; }
+            }
+
+            qNewInput.value = qN;
+            qUsedInput.value = qU;
+            setStatus(s);
+            refreshModalCalculation();
+        }
+
         function setStatus(s) { 
             currentStatus = s; 
             document.getElementById('btnNew').className = s === 'New' ? "flex-1 py-3 rounded-xl border-2 font-bold bg-blue-600 text-white border-blue-600 shadow-md" : "flex-1 py-3 rounded-xl border-2 font-bold bg-white text-slate-400 border-slate-100"; 
             document.getElementById('btnUsed').className = s === 'Used' ? "flex-1 py-3 rounded-xl border-2 font-bold bg-slate-800 text-white border-slate-800 shadow-md" : "flex-1 py-3 rounded-xl border-2 font-bold bg-white text-slate-400 border-slate-100"; 
+            
             const currentSet = mySets.find(x => x.setNumber === currentEditId);
             if (currentSet) {
                 const newVal = s === 'New' ? (currentSet.valNew || 0) : (currentSet.valUsed || 0);
                 if (newVal > 0) document.getElementById('editCurrentValue').value = newVal;
             }
+        }
+
+        // NEU: AKTUALISIERT DIE ANZEIGE INNERHALB DES MODALS
+        function refreshModalCalculation() {
+            const s = mySets.find(x => x.setNumber === currentEditId);
+            if (!s) return;
+
+            const qN = parseInt(document.getElementById('editQtyNew').value) || 0;
+            const qU = parseInt(document.getElementById('editQtyUsed').value) || 0;
+            
+            const valN = (s.valNew && s.valNew > 0) ? s.valNew : (parseFloat(document.getElementById('editCurrentValue').value) || 0);
+            const valU = (s.valUsed && s.valUsed > 0) ? s.valUsed : (parseFloat(document.getElementById('editCurrentValue').value) || 0);
+
+            const totalN = qN * valN;
+            const totalU = qU * valU;
+
+            document.getElementById('calcQtyNew').innerText = qN;
+            document.getElementById('calcQtyUsed').innerText = qU;
+            document.getElementById('calcValNew').innerText = totalN.toFixed(2) + " €";
+            document.getElementById('calcValUsed').innerText = totalU.toFixed(2) + " €";
+            document.getElementById('calcTotal').innerText = (totalN + totalU).toFixed(2) + " €";
         }
 
         function openModal(id) {
@@ -468,7 +529,8 @@
             document.getElementById('editSubtheme').value = s.subtheme || "";
             document.getElementById('editQtyNew').value = s.qtyNew || 0;
             document.getElementById('editQtyUsed').value = s.qtyUsed || 0;
-            setStatus(s.status || "Used");
+            setStatus(s.status || "New");
+            refreshModalCalculation();
             document.getElementById('detailModal').style.display = 'flex';
         }
 
@@ -505,7 +567,6 @@
                 totalSetsCount += (qN + qU);
                 totalPieces += (pieces * (qN + qU));
                 
-                // Preisberechnung: Falls valNew/valUsed vorhanden, diese nehmen, sonst den manuellen currentValue
                 const valN = (s.valNew && s.valNew > 0) ? s.valNew : (parseFloat(s.currentValue) || 0);
                 const valU = (s.valUsed && s.valUsed > 0) ? s.valUsed : (parseFloat(s.currentValue) || 0);
                 

@@ -166,9 +166,17 @@
                         <p class="text-[10px] font-black text-slate-400 uppercase">Subtheme (Tags)</p>
                         <input type="text" id="editSubtheme" class="bg-transparent font-bold text-slate-800 w-full outline-none" placeholder="z.B. UCS, Modular...">
                     </div>
+                    <div class="bg-blue-50 p-4 rounded-2xl border border-blue-200">
+                        <p class="text-[10px] font-black text-blue-600 uppercase">Anzahl Neu</p>
+                        <input type="number" id="editQtyNew" min="0" class="bg-transparent font-bold text-blue-800 w-full outline-none">
+                    </div>
+                    <div class="bg-slate-100 p-4 rounded-2xl border border-slate-200">
+                        <p class="text-[10px] font-black text-slate-500 uppercase">Anzahl Gebraucht</p>
+                        <input type="number" id="editQtyUsed" min="0" class="bg-transparent font-bold text-slate-800 w-full outline-none">
+                    </div>
                 </div>
                 <div>
-                    <p class="text-[10px] font-black text-slate-400 uppercase mb-3">Zustand</p>
+                    <p class="text-[10px] font-black text-slate-400 uppercase mb-3">Zustand (Hauptfokus)</p>
                     <div class="flex gap-3">
                         <button onclick="setStatus('New')" id="btnNew" class="flex-1 py-3 rounded-xl border-2 font-bold transition-all">New</button>
                         <button onclick="setStatus('Used')" id="btnUsed" class="flex-1 py-3 rounded-xl border-2 font-bold transition-all">Used</button>
@@ -194,7 +202,6 @@
         let currentEditId = null;
         let currentStatus = "Used";
 
-        // Scroll Logic
         window.onscroll = function() {
             const btn = document.getElementById("scrollTopBtn");
             if (document.body.scrollTop > 400 || document.documentElement.scrollTop > 400) {
@@ -208,7 +215,6 @@
             window.scrollTo({top: 0, behavior: 'smooth'});
         }
 
-        // EXPORT & IMPORT
         function exportCollection() {
             const dataStr = JSON.stringify(mySets, null, 2);
             const blob = new Blob([dataStr], { type: "application/json" });
@@ -239,7 +245,6 @@
             reader.readAsText(file);
         }
 
-        // BRICKSET SCRAPER FÜR UVP & CURRENT VALUE
         async function scrapeBricksetData(setNum) {
             let results = { rrp: 0, valNew: 0, valUsed: 0 };
             try {
@@ -255,7 +260,6 @@
                     const label = dt.innerText.trim();
                     const dd = dt.nextElementSibling;
                     if (!dd) continue;
-
                     if (label === "RRP") {
                         const deMatch = dd.innerText.match(/(\d+[\.,]\d{2})€/);
                         if (deMatch) results.rrp = parseFloat(deMatch[1].replace(',', '.'));
@@ -264,7 +268,6 @@
                             if (genMatch) results.rrp = parseFloat(genMatch[1].replace(',', '.'));
                         }
                     }
-
                     if (label === "Current value") {
                         const text = dd.innerHTML;
                         const newMatch = text.match(/New:.*?~€(\d+)/);
@@ -311,7 +314,8 @@
                     subtheme: "",
                     ean: "",
                     image: data.set_img_url || '',
-                    price: 0, currentValue: 0, valNew: 0, valUsed: 0, status: "Used"
+                    price: 0, currentValue: 0, valNew: 0, valUsed: 0, status: "Used",
+                    qtyNew: 0, qtyUsed: 1 // Standardmäßig 1 gebraucht
                 };
             } catch (e) { return null; }
         }
@@ -334,7 +338,8 @@
                         setNumber: String(s.number),
                         name: s.name, pieces: s.pieces || 0, theme: s.theme, subtheme: s.subtheme || "",
                         ean: "", image: s.image?.imageURL || '', price: extractRRP(s), 
-                        currentValue: 0, valNew: 0, valUsed: 0, status: "Used"
+                        currentValue: 0, valNew: 0, valUsed: 0, status: "Used",
+                        qtyNew: 0, qtyUsed: 1
                     };
                 } else {
                     newSetObj = await fetchFromRebrickable(query);
@@ -392,6 +397,10 @@
                     </button>
                     <div class="h-48 flex items-center justify-center p-6 relative">
                         <img src="${set.image}" class="max-h-full object-contain drop-shadow-xl" onerror="this.src='https://via.placeholder.com/150'">
+                        <div class="absolute bottom-2 right-4 flex gap-1">
+                            ${(set.qtyNew || 0) > 0 ? `<div class="bg-blue-600 text-white text-[9px] font-black w-5 h-5 flex items-center justify-center rounded-full shadow-lg border-2 border-white">${set.qtyNew}</div>` : ''}
+                            ${(set.qtyUsed || 0) > 0 ? `<div class="bg-slate-400 text-white text-[9px] font-black w-5 h-5 flex items-center justify-center rounded-full shadow-lg border-2 border-white">${set.qtyUsed}</div>` : ''}
+                        </div>
                         <div class="absolute bottom-2 left-4 flex gap-1 flex-wrap pr-4">
                             <span class="text-[8px] font-bold px-2 py-0.5 rounded-full ${set.status === 'New' ? 'bg-blue-600' : 'bg-slate-700'} text-white uppercase">${set.status}</span>
                             ${set.subtheme ? `<span class="text-[8px] px-2 py-0.5 rounded-full ${getSubthemeClass(set.subtheme)}">${set.subtheme}</span>` : ''}
@@ -442,7 +451,7 @@
             const currentSet = mySets.find(x => x.setNumber === currentEditId);
             if (currentSet) {
                 const newVal = s === 'New' ? (currentSet.valNew || 0) : (currentSet.valUsed || 0);
-                document.getElementById('editCurrentValue').value = newVal;
+                if (newVal > 0) document.getElementById('editCurrentValue').value = newVal;
             }
         }
 
@@ -457,6 +466,8 @@
             document.getElementById('editRetailPrice').value = s.price || 0;
             document.getElementById('editCurrentValue').value = s.currentValue || 0;
             document.getElementById('editSubtheme').value = s.subtheme || "";
+            document.getElementById('editQtyNew').value = s.qtyNew || 0;
+            document.getElementById('editQtyUsed').value = s.qtyUsed || 0;
             setStatus(s.status || "Used");
             document.getElementById('detailModal').style.display = 'flex';
         }
@@ -468,6 +479,8 @@
                 s.price = parseFloat(document.getElementById('editRetailPrice').value) || 0;
                 s.currentValue = parseFloat(document.getElementById('editCurrentValue').value) || 0;
                 s.subtheme = document.getElementById('editSubtheme').value;
+                s.qtyNew = parseInt(document.getElementById('editQtyNew').value) || 0;
+                s.qtyUsed = parseInt(document.getElementById('editQtyUsed').value) || 0;
                 s.status = currentStatus;
                 saveAndRender(); closeModal();
             }
@@ -478,13 +491,32 @@
         function updateActionBar() { document.getElementById('selectedCount').innerText = selectedSets.size; document.getElementById('actionBar').classList.toggle('hidden', selectedSets.size === 0); }
         function clearSelection() { selectedSets.clear(); updateActionBar(); renderLibrary(); }
         function saveAndRender() { localStorage.setItem('bricksetCollection', JSON.stringify(mySets)); updateCategories(); renderLibrary(); }
+        
         function updateStats() { 
-            const p = mySets.reduce((a, b) => a + (parseInt(b.pieces) || 0), 0);
-            const v = mySets.reduce((a, b) => a + (parseFloat(b.currentValue) || 0), 0);
-            document.getElementById('statSets').innerText = mySets.length;
-            document.getElementById('statParts').innerText = p.toLocaleString();
-            document.getElementById('statValue').innerText = v.toFixed(2) + " €";
+            let totalPieces = 0;
+            let totalValue = 0;
+            let totalSetsCount = 0;
+
+            mySets.forEach(s => {
+                const qN = parseInt(s.qtyNew) || 0;
+                const qU = parseInt(s.qtyUsed) || 0;
+                const pieces = parseInt(s.pieces) || 0;
+                
+                totalSetsCount += (qN + qU);
+                totalPieces += (pieces * (qN + qU));
+                
+                // Preisberechnung: Falls valNew/valUsed vorhanden, diese nehmen, sonst den manuellen currentValue
+                const valN = (s.valNew && s.valNew > 0) ? s.valNew : (parseFloat(s.currentValue) || 0);
+                const valU = (s.valUsed && s.valUsed > 0) ? s.valUsed : (parseFloat(s.currentValue) || 0);
+                
+                totalValue += (qN * valN) + (qU * valU);
+            });
+
+            document.getElementById('statSets').innerText = totalSetsCount;
+            document.getElementById('statParts').innerText = totalPieces.toLocaleString();
+            document.getElementById('statValue').innerText = totalValue.toFixed(2) + " €";
         }
+
         function updateCategories() { 
             const ts = [...new Set(mySets.map(s => s.theme))].sort(); 
             const sel = document.getElementById('filterCategory'); 
@@ -496,7 +528,7 @@
         function deleteSelected() { mySets = mySets.filter(s => !selectedSets.has(s.setNumber)); clearSelection(); saveAndRender(); }
         function applyBulkActions() { 
             const st = document.getElementById('bulkStatus').value; 
-            mySets.forEach(s => { if(selectedSets.has(s.setNumber)) { if(st) { s.status = st; s.currentValue = st === 'New' ? (s.valNew || 0) : (s.valUsed || 0); } } }); 
+            mySets.forEach(s => { if(selectedSets.has(s.setNumber)) { if(st) { s.status = st; } } }); 
             clearSelection(); saveAndRender(); 
         }
 

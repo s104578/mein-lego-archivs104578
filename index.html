@@ -409,57 +409,64 @@ input, select {
             } catch (e) { return null; }
         }
 
-        async function fetchSets() {
-            const input = document.getElementById('barcodeInput');
-            const query = input.value.trim();
-            if (!query) return;
+       async function fetchSets() {
+    const input = document.getElementById('barcodeInput');
+    // .trim() entfernt versehentliche Leerzeichen, die am PC öfter passieren
+    const query = input.value.trim();
+    if (!query) return;
 
-            const existingSet = mySets.find(x => x.setNumber === query || x.ean === query);
-            if(existingSet) {
-                openDuplicateModal(existingSet.setNumber);
-                input.value = ''; 
-                return;
-            }
+    // Diese Prüfung MUSS am Anfang stehen
+    // Wir wandeln ALLES in Strings um, um "123" mit 123 vergleichen zu können
+    const existingSet = mySets.find(x => String(x.setNumber).trim() === String(query).trim());
 
-            updateStatus("Suche läuft...", "text-blue-500 animate-pulse");
-            let newSetObj = null;
-            try {
-                const params = JSON.stringify({ query: query, pageSize: 1, extendedData: 1 });
-                const url = `https://corsproxy.io/?${encodeURIComponent('https://brickset.com/api/v3.asmx/getSets?apiKey=' + API_KEY_BRICKSET + '&userHash=&params=' + params)}`;
-                const res = await fetch(url);
-                const data = await res.json();
-                
-                if (data.status === "success" && data.matches > 0) {
-                    const s = data.sets[0];
-                    newSetObj = {
-                        setNumber: String(s.number),
-                        name: s.name, pieces: s.pieces || 0, theme: s.theme, subtheme: s.subtheme || "",
-                        ean: "", image: s.image?.imageURL || '', price: extractRRP(s), 
-                        currentValue: 0, valNew: 0, valUsed: 0, status: "New",
-                        qtyNew: 1, qtyUsed: 0
-                    };
-                } else {
-                    newSetObj = await fetchFromRebrickable(query);
-                }
+    if (existingSet) {
+        console.log("Set gefunden, öffne Modal für:", existingSet.setNumber);
+        openDuplicateModal(existingSet.setNumber);
+        input.value = '';
+        return; // Ganz wichtig: Hier abbrechen!
+    }
 
-                if (newSetObj) {
-                    const scraped = await scrapeBricksetData(newSetObj.setNumber);
-                    if (newSetObj.price === 0) newSetObj.price = scraped.rrp;
-                    newSetObj.valNew = scraped.valNew;
-                    newSetObj.valUsed = scraped.valUsed;
-                    newSetObj.currentValue = scraped.valNew > 0 ? scraped.valNew : 0;
-                }
-            } catch (e) { console.error(e); }
+    // Ab hier nur weiter, wenn das Set NEU ist
+    updateStatus("Suche läuft...", "text-blue-500 animate-pulse");
+    
+    try {
+        const params = JSON.stringify({ query: query, pageSize: 1, extendedData: 1 });
+        const url = `https://corsproxy.io/?${encodeURIComponent('https://brickset.com/api/v3.asmx/getSets?apiKey=' + API_KEY_BRICKSET + '&userHash=&params=' + params)}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        
+        if (data.status === "success" && data.matches > 0) {
+            const s = data.sets[0];
+            const sc = await scrapeBricksetData(s.number);
+            
+            const newSet = {
+                setNumber: String(s.number), 
+                name: s.name, 
+                pieces: s.pieces || 0, 
+                theme: s.theme, 
+                subtheme: s.subtheme || "",
+                image: s.image?.imageURL || '', 
+                price: sc.rrp || s.retailPrice || 0, 
+                currentValue: sc.valNew || 0, 
+                valNew: sc.valNew, 
+                valUsed: sc.valUsed, 
+                status: "New", 
+                qtyNew: 1, 
+                qtyUsed: 0
+            };
 
-            if (newSetObj) {
-                mySets.unshift(newSetObj);
-                saveAndRender(); 
-                input.value = ''; 
-                updateStatus("Hinzugefügt (Neu)!", "text-green-600");
-            } else { 
-                updateStatus("Nicht gefunden.", "text-red-600");
-                input.value = ''; 
-            }
+            mySets.unshift(newSet);
+            saveAndRender();
+            updateStatus("Hinzugefügt!", "text-green-600");
+        } else {
+            updateStatus("Nicht gefunden", "text-red-600");
+        }
+    } catch (e) {
+        console.error(e);
+        updateStatus("API Error", "text-red-600");
+    }
+    input.value = '';
+} // <--- Hier darf nur EINE Klammer stehen!
         }
 
         // DUPLICATE MODAL LOGIC

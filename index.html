@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; overflow-x: hidden; width: 100%; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; }
         .glass { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.4); }
         
         .set-card { transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); cursor: pointer; position: relative; }
@@ -56,10 +56,44 @@
         .subtheme-technic { background: #475569; color: white; }
         .subtheme-default { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
 
-        #detailModal, #duplicateModal { display: none; position: fixed; inset: 0; z-index: 1000; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(8px); justify-content: center; align-items: center; }
+        #detailModal, #duplicateModal { display: none; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); }
 
-        input[type="text"], input[type="number"], select { font-size: 16px !important; }
         #scrollTopBtn { display: none; transition: all 0.3s ease; }
+        #scrollTopBtn:hover { transform: translateY(-5px); }
+        /* Verhindert horizontales Scrollen auf Handys */
+body { overflow-x: hidden; width: 100%; -webkit-tap-highlight-color: transparent; }
+
+/* Optimiert Modals für mobile Bildschirme */
+#detailModal, #duplicateModal { 
+    display: none; 
+    background: rgba(15, 23, 42, 0.7); 
+    backdrop-filter: blur(8px);
+    z-index: 1000;
+}
+
+/* Verhindert automatisches Zoomen in Textfeldern auf dem iPhone */
+input[type="text"], input[type="number"], select { font-size: 16px !important; }
+
+/* Responsive Grid: 1 Spalte auf Mobile, 2 auf Tablet, 4 auf PC */
+#library {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+@media (min-width: 640px) { #library { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1024px) { #library { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+        /* Verhindert, dass die Seite nach rechts "wackelt" */
+html, body { 
+    overflow-x: hidden; 
+    width: 100%;
+    position: relative;
+}
+
+/* Verhindert das Überlaufen von Inputs */
+input, select {
+    max-width: 100%;
+    box-sizing: border-box;
+}
     </style>
 </head>
 <body class="min-h-screen pb-12">
@@ -68,13 +102,14 @@
         <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
             <div class="flex items-center gap-4">
                 <span id="selectedCount" class="bg-white text-blue-600 px-3 py-1 rounded-full font-black text-sm">0</span>
-                <p class="font-bold text-sm">Sets ausgewählt</p>
+                <p class="font-bold">Sets ausgewählt</p>
                 <button onclick="clearSelection()" class="text-blue-100 hover:text-white text-xs underline">Abbrechen</button>
             </div>
             <div class="flex items-center gap-3">
                 <button onclick="refreshSelectedSets()" title="Preise aktualisieren" class="p-2 bg-blue-500 hover:bg-blue-400 rounded-lg transition-colors border border-blue-400">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 </button>
+                <div class="h-8 w-[1px] bg-blue-400 mx-1"></div>
                 <select id="bulkStatus" class="bg-blue-700 rounded-lg px-3 py-2 text-sm font-bold outline-none border-none">
                     <option value="">Status...</option>
                     <option value="New">New</option>
@@ -89,11 +124,12 @@
     </div>
 
     <nav class="sticky top-0 z-50 glass mb-8 border-b border-slate-200">
-        <div class="max-w-7xl mx-auto px-6 py-4 flex flex-col lg:flex-row justify-between items-center gap-4">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-200">
                     <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M7 11V7a5 5 0 0 1 10 0v4" /><rect x="3" y="11" width="18" height="9" rx="2" />
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                        <rect x="3" y="11" width="18" height="9" rx="2" />
                     </svg>
                 </div>
                 <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">BRIX JUST<span class="text-blue-600">4SEAN™</span></h1>
@@ -105,7 +141,7 @@
                 <div><p class="text-[10px] uppercase font-black text-slate-400">Sammlungswert</p><p id="statValue" class="font-bold text-blue-600">0.00 €</p></div>
             </div>
 
-            <div class="flex gap-2 items-center flex-wrap justify-center">
+            <div class="flex gap-2 items-center">
                 <button onclick="selectAllVisible()" title="Alle auswählen" class="p-2 hover:bg-slate-100 rounded-xl transition-colors">
                     <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
                 </button>
@@ -116,30 +152,41 @@
                     <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
                     <input type="file" id="importFile" class="hidden" accept=".json" onchange="importCollection(event)">
                 </label>
-                <select id="filterCategory" onchange="renderLibrary()" class="bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm font-bold outline-none">
-                    <option value="all">Alle Themen</option>
-                </select>
-                <input type="text" id="searchLibrary" oninput="renderLibrary()" placeholder="Suchen..." class="bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none w-32 md:w-48">
-            </div>
+               <div class="flex flex-col sm:flex-row gap-2">
+    <select id="filterCategory" onchange="renderLibrary()" 
+            class="bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm font-bold outline-none w-full sm:w-auto">
+        <option value="all">Alle Themen</option>
+    </select>
+    <input type="text" id="searchLibrary" oninput="renderLibrary()" 
+           placeholder="Sammlung durchsuchen..." 
+           class="bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none flex-1 w-full">
+</div>
         </div>
     </nav>
 
     <main class="max-w-7xl mx-auto px-6">
-        <div class="max-w-2xl mx-auto mb-10">
-            <div class="bg-white p-1 rounded-full shadow-lg flex items-center border border-slate-200">
-                <input type="text" id="barcodeInput" autofocus class="flex-1 pl-6 pr-2 py-3 rounded-full text-sm md:text-base outline-none min-w-0" placeholder="Set-Nr oder Barcode..." onkeydown="if(event.key === 'Enter') fetchSets()">
-                <button onclick="fetchSets()" class="bg-blue-600 text-white font-bold px-6 py-3 rounded-full active:scale-95 transition-all text-sm whitespace-nowrap ml-1">Hinzufügen</button>
-            </div>
-            <p id="apiStatus" class="mt-4 text-[10px] font-black text-slate-400 uppercase italic text-center">Bereit</p>
+       <div class="max-w-2xl mx-auto mb-10 px-2">
+    <div class="bg-white p-1 rounded-full shadow-lg flex items-center border border-slate-200">
+        <input type="text" id="barcodeInput" autofocus 
+               class="flex-1 pl-4 md:pl-6 pr-2 py-2 md:py-3 rounded-full text-sm md:text-base outline-none min-w-0" 
+               placeholder="Set-Nr..."
+               onkeydown="if(event.key === 'Enter') fetchSets()"> <button onclick="fetchSets()" 
+                class="bg-blue-600 text-white font-bold px-4 py-2 md:px-6 md:py-3 rounded-full active:scale-95 transition-all text-xs md:text-sm whitespace-nowrap ml-1">
+            Hinzufügen
+        </button>
+    </div>
+    <p id="apiStatus" class="mt-3 text-center text-[10px] font-black text-slate-400 uppercase italic">Bereit</p>
+</div>
+            <p id="apiStatus" class="mt-4 text-[10px] font-black text-slate-400 uppercase italic">Bereit</p>
         </div>
-
         <div id="library" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"></div>
     </main>
 
-    <div id="duplicateModal">
-        <div class="bg-white w-full max-w-md rounded-[2rem] p-8 shadow-2xl mx-4">
-            <h3 class="text-2xl font-black text-slate-800 mb-2">Bereits vorhanden!</h3>
-            <p class="text-slate-500 text-sm mb-6 font-medium">Set <span id="dupSetNum" class="font-black text-blue-600"></span> ist schon in der Liste. Wie viele willst du hinzufügen?</p>
+   <div id="duplicateModal" class="fixed inset-0 flex items-end md:items-center justify-center">
+    <div class="bg-white w-full max-w-md rounded-t-[2rem] md:rounded-[2rem] p-6 shadow-2xl">
+            <h3 class="text-2xl font-black text-slate-800 mb-2">Set bereits vorhanden!</h3>
+            <p class="text-slate-500 text-sm mb-6 font-medium">Möchtest du weitere Exemplare von Set <span id="dupSetNum" class="font-black text-blue-600"></span> zur Sammlung hinzufügen?</p>
+            
             <div class="space-y-4 mb-8">
                 <div class="bg-blue-50 p-4 rounded-2xl border border-blue-100">
                     <p class="text-[10px] font-black text-blue-600 uppercase mb-1 italic">+ Anzahl Neu</p>
@@ -150,6 +197,7 @@
                     <input type="number" id="dupAddUsed" value="0" min="0" class="bg-transparent font-bold text-slate-800 w-full outline-none text-xl">
                 </div>
             </div>
+
             <div class="flex gap-3">
                 <button onclick="closeDuplicateModal()" class="flex-1 py-3 rounded-xl font-bold text-slate-400 hover:bg-slate-100 transition-all">Abbrechen</button>
                 <button onclick="confirmAddDuplicate()" class="flex-[2] bg-blue-600 text-white py-3 rounded-xl font-bold shadow-lg hover:bg-blue-700 transition-all">Hinzufügen</button>
@@ -157,8 +205,8 @@
         </div>
     </div>
 
-    <div id="detailModal">
-        <div class="bg-white w-full max-w-4xl max-h-[90vh] md:rounded-[2rem] overflow-hidden flex flex-col md:flex-row relative mx-4">
+    <div id="detailModal" class="fixed inset-0 flex items-end md:items-center justify-center">
+    <div class="bg-white w-full max-w-4xl h-[90vh] md:h-auto md:rounded-[2rem] rounded-t-[2rem] overflow-hidden flex flex-col md:flex-row relative">
             <button onclick="closeModal()" class="absolute top-6 right-6 text-slate-400 hover:text-slate-600 z-10"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
             <div class="md:w-2/5 bg-slate-50 p-8 flex flex-col items-center justify-center border-r border-slate-100">
                 <img id="modalImg" src="" class="max-h-64 object-contain drop-shadow-2xl mb-8">
@@ -168,7 +216,7 @@
                     <p class="text-slate-400 font-bold mt-1" id="modalId"></p>
                 </div>
             </div>
-            <div class="md:w-3/5 p-8 space-y-6 overflow-y-auto">
+            <div class="md:w-3/5 p-8 pt-12 space-y-6 overflow-y-auto max-h-[90vh]">
                 <div class="grid grid-cols-2 gap-4">
                     <div class="bg-slate-50 p-4 rounded-2xl">
                         <p class="text-[10px] font-black text-slate-400 uppercase">Barcode / EAN</p>
@@ -182,6 +230,10 @@
                         <p class="text-[10px] font-black text-blue-500 uppercase">Marktwert (€)</p>
                         <input type="number" id="editCurrentValue" step="0.01" class="bg-transparent font-bold text-blue-700 w-full outline-none text-xl">
                     </div>
+                    <div class="bg-slate-50 p-4 rounded-2xl col-span-2">
+                        <p class="text-[10px] font-black text-slate-400 uppercase">Subtheme (Tags)</p>
+                        <input type="text" id="editSubtheme" class="bg-transparent font-bold text-slate-800 w-full outline-none" placeholder="z.B. UCS, Modular...">
+                    </div>
                     <div class="bg-blue-50 p-4 rounded-2xl border border-blue-200">
                         <p class="text-[10px] font-black text-blue-600 uppercase">Anzahl Neu</p>
                         <input type="number" id="editQtyNew" min="0" oninput="refreshModalCalculation()" class="bg-transparent font-bold text-blue-800 w-full outline-none">
@@ -191,8 +243,32 @@
                         <input type="number" id="editQtyUsed" min="0" oninput="refreshModalCalculation()" class="bg-transparent font-bold text-slate-800 w-full outline-none">
                     </div>
                 </div>
+
                 <div class="bg-slate-50 rounded-2xl p-5 border border-slate-200">
-                    <div class="flex justify-between items-center"><span class="font-black text-slate-800 uppercase text-xs">Gesamtwert Set:</span><span class="font-black text-blue-600 text-xl" id="calcTotal">0.00 €</span></div>
+                    <p class="text-[10px] font-black text-slate-400 uppercase mb-4 tracking-widest text-center">Wert-Analyse dieses Sets</p>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-slate-500">Neu (<span id="calcQtyNew">0</span>x):</span>
+                            <span class="font-bold text-blue-600" id="calcValNew">0.00 €</span>
+                        </div>
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-slate-500">Gebraucht (<span id="calcQtyUsed">0</span>x):</span>
+                            <span class="font-bold text-slate-700" id="calcValUsed">0.00 €</span>
+                        </div>
+                        <div class="h-px bg-slate-200 my-2"></div>
+                        <div class="flex justify-between items-center">
+                            <span class="font-black text-slate-800 uppercase text-xs">Gesamtwert Set:</span>
+                            <span class="font-black text-blue-600 text-xl" id="calcTotal">0.00 €</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <p class="text-[10px] font-black text-slate-400 uppercase mb-3">Zustand (Fokus ändern)</p>
+                    <div class="flex gap-3">
+                        <button onclick="updateStatusAndQty('New')" id="btnNew" class="flex-1 py-3 rounded-xl border-2 font-bold transition-all">New</button>
+                        <button onclick="updateStatusAndQty('Used')" id="btnUsed" class="flex-1 py-3 rounded-xl border-2 font-bold transition-all">Used</button>
+                    </div>
                 </div>
                 <button onclick="saveDetails()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold shadow-lg hover:bg-blue-700 transition-all">Änderungen speichern</button>
             </div>
@@ -200,7 +276,9 @@
     </div>
 
     <button id="scrollTopBtn" onclick="scrollToTop()" class="fixed bottom-8 right-8 z-[70] glass p-4 rounded-2xl shadow-xl text-blue-600 border border-blue-100">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
+        </svg>
     </button>
 
     <script>
@@ -210,29 +288,141 @@
         let mySets = JSON.parse(localStorage.getItem('bricksetCollection')) || [];
         let selectedSets = new Set();
         let currentEditId = null;
+        let currentStatus = "New";
         let tempDupId = null;
 
-        // --- Core Logic ---
+        window.onscroll = function() {
+            const btn = document.getElementById("scrollTopBtn");
+            if (document.body.scrollTop > 400 || document.documentElement.scrollTop > 400) {
+                btn.style.display = "block";
+            } else {
+                btn.style.display = "none";
+            }
+        };
+
+        function scrollToTop() {
+            window.scrollTo({top: 0, behavior: 'smooth'});
+        }
+
+        function exportCollection() {
+            const dataStr = JSON.stringify(mySets, null, 2);
+            const blob = new Blob([dataStr], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `brix-collection-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function importCollection(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (Array.isArray(imported)) {
+                        const existingIds = new Set(mySets.map(s => s.setNumber));
+                        const newItems = imported.filter(s => !existingIds.has(s.setNumber));
+                        mySets = [...newItems, ...mySets];
+                        saveAndRender();
+                        updateStatus(`${newItems.length} Sets importiert`, "text-green-600");
+                    }
+                } catch (err) { updateStatus("Import fehlgeschlagen", "text-red-600"); }
+            };
+            reader.readAsText(file);
+        }
+
+        async function scrapeBricksetData(setNum) {
+            let results = { rrp: 0, valNew: 0, valUsed: 0 };
+            try {
+                const fullId = setNum.includes('-') ? setNum : `${setNum}-1`;
+                const proxyUrl = `https://corsproxy.io/?${encodeURIComponent('https://brickset.com/sets/' + fullId)}`;
+                const response = await fetch(proxyUrl);
+                const html = await response.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                
+                const dts = doc.querySelectorAll('dt');
+                for (let dt of dts) {
+                    const label = dt.innerText.trim();
+                    const dd = dt.nextElementSibling;
+                    if (!dd) continue;
+                    if (label === "RRP") {
+                        const deMatch = dd.innerText.match(/(\d+[\.,]\d{2})€/);
+                        if (deMatch) results.rrp = parseFloat(deMatch[1].replace(',', '.'));
+                        else {
+                            const genMatch = dd.innerText.match(/(\d+[\.,]\d{2})/);
+                            if (genMatch) results.rrp = parseFloat(genMatch[1].replace(',', '.'));
+                        }
+                    }
+                    if (label === "Current value") {
+                        const text = dd.innerHTML;
+                        const newMatch = text.match(/New:.*?~€(\d+)/);
+                        const usedMatch = text.match(/Used:.*?~€(\d+)/);
+                        if (newMatch) results.valNew = parseFloat(newMatch[1]);
+                        if (usedMatch) results.valUsed = parseFloat(usedMatch[1]);
+                    }
+                }
+            } catch (e) { console.error("Scraper Error:", e); }
+            return results;
+        }
+
+        function extractRRP(s) {
+            const parsePrice = (val) => {
+                if (!val) return 0;
+                const parsed = parseFloat(String(val).replace(',', '.'));
+                return isNaN(parsed) ? 0 : parsed;
+            };
+            let p = parsePrice(s.retailPrice);
+            if (p > 0) return p;
+            const regions = ['DE', 'UK', 'US'];
+            for (let r of regions) {
+                if (s.LEGOCom?.[r]?.retailPrice) {
+                    p = parsePrice(s.LEGOCom[r].retailPrice);
+                    if (p > 0) return p;
+                }
+            }
+            return 0;
+        }
+
+        async function fetchFromRebrickable(query) {
+            const setNum = query.includes('-') ? query : `${query}-1`;
+            try {
+                const res = await fetch(`https://rebrickable.com/api/v3/lego/sets/${setNum}/`, {
+                    headers: { 'Authorization': `key ${API_KEY_REBRICKABLE}`, 'Accept': 'application/json' }
+                });
+                if(!res.ok) throw new Error();
+                const data = await res.json();
+                return {
+                    setNumber: query,
+                    name: data.name || "Unbekanntes Set",
+                    pieces: data.num_parts || 0,
+                    theme: "LEGO",
+                    subtheme: "",
+                    ean: "",
+                    image: data.set_img_url || '',
+                    price: 0, currentValue: 0, valNew: 0, valUsed: 0, status: "New",
+                    qtyNew: 1, qtyUsed: 0
+                };
+            } catch (e) { return null; }
+        }
+
         async function fetchSets() {
             const input = document.getElementById('barcodeInput');
             const query = input.value.trim();
             if (!query) return;
 
-            // STRENGER DUBLETTEN-CHECK (PC & Handy sicher)
-            const existingSet = mySets.find(x => 
-                String(x.setNumber).trim() === String(query).trim() || 
-                (x.ean && String(x.ean).trim() === String(query).trim())
-            );
-
-            if (existingSet) {
+            const existingSet = mySets.find(x => x.setNumber === query || x.ean === query);
+            if(existingSet) {
                 openDuplicateModal(existingSet.setNumber);
-                input.value = '';
+                input.value = ''; 
                 return;
             }
 
             updateStatus("Suche läuft...", "text-blue-500 animate-pulse");
             let newSetObj = null;
-
             try {
                 const params = JSON.stringify({ query: query, pageSize: 1, extendedData: 1 });
                 const url = `https://corsproxy.io/?${encodeURIComponent('https://brickset.com/api/v3.asmx/getSets?apiKey=' + API_KEY_BRICKSET + '&userHash=&params=' + params)}`;
@@ -254,26 +444,29 @@
 
                 if (newSetObj) {
                     const scraped = await scrapeBricksetData(newSetObj.setNumber);
-                    newSetObj.price = newSetObj.price || scraped.rrp;
+                    if (newSetObj.price === 0) newSetObj.price = scraped.rrp;
                     newSetObj.valNew = scraped.valNew;
                     newSetObj.valUsed = scraped.valUsed;
-                    newSetObj.currentValue = scraped.valNew || 0;
+                    newSetObj.currentValue = scraped.valNew > 0 ? scraped.valNew : 0;
                 }
             } catch (e) { console.error(e); }
 
             if (newSetObj) {
                 mySets.unshift(newSetObj);
-                saveAndRender();
-                updateStatus("Hinzugefügt!", "text-green-600");
-            } else {
-                updateStatus("Nicht gefunden", "text-red-600");
+                saveAndRender(); 
+                input.value = ''; 
+                updateStatus("Hinzugefügt (Neu)!", "text-green-600");
+            } else { 
+                updateStatus("Nicht gefunden.", "text-red-600");
+                input.value = ''; 
             }
-            input.value = '';
         }
 
+        // DUPLICATE MODAL LOGIC
         function openDuplicateModal(id) {
             tempDupId = id;
             document.getElementById('dupSetNum').innerText = id;
+            // Felder explizit auf 0 setzen
             document.getElementById('dupAddNew').value = 0;
             document.getElementById('dupAddUsed').value = 0;
             document.getElementById('duplicateModal').style.display = 'flex';
@@ -281,210 +474,231 @@
 
         function closeDuplicateModal() {
             document.getElementById('duplicateModal').style.display = 'none';
+            // Felder zurücksetzen
+            document.getElementById('dupAddNew').value = 0;
+            document.getElementById('dupAddUsed').value = 0;
+            tempDupId = null;
         }
 
         function confirmAddDuplicate() {
-            const s = mySets.find(x => String(x.setNumber) === String(tempDupId));
+            const s = mySets.find(x => x.setNumber === tempDupId);
             if(s) {
-                s.qtyNew = (parseInt(s.qtyNew) || 0) + (parseInt(document.getElementById('dupAddNew').value) || 0);
-                s.qtyUsed = (parseInt(s.qtyUsed) || 0) + (parseInt(document.getElementById('dupAddUsed').value) || 0);
+                const addN = parseInt(document.getElementById('dupAddNew').value) || 0;
+                const addU = parseInt(document.getElementById('dupAddUsed').value) || 0;
+                s.qtyNew = (parseInt(s.qtyNew) || 0) + addN;
+                s.qtyUsed = (parseInt(s.qtyUsed) || 0) + addU;
                 saveAndRender();
+                updateStatus(`${addN + addU} Exemplare hinzugefügt`, "text-blue-600");
             }
             closeDuplicateModal();
         }
 
-        // --- Support Functions ---
-        async function scrapeBricksetData(setNum) {
-            let res = { rrp: 0, valNew: 0, valUsed: 0 };
-            try {
-                const id = setNum.includes('-') ? setNum : `${setNum}-1`;
-                const response = await fetch(`https://corsproxy.io/?${encodeURIComponent('https://brickset.com/sets/' + id)}`);
-                const html = await response.text();
-                const doc = new DOMParser().parseFromString(html, 'text/html');
-                doc.querySelectorAll('dt').forEach(dt => {
-                    const label = dt.innerText.trim();
-                    const dd = dt.nextElementSibling;
-                    if (label === "RRP") {
-                        const m = dd.innerText.match(/(\d+[\.,]\d{2})€/);
-                        if (m) res.rrp = parseFloat(m[1].replace(',', '.'));
-                    }
-                    if (label === "Current value") {
-                        const n = dd.innerHTML.match(/New:.*?~€(\d+)/);
-                        const u = dd.innerHTML.match(/Used:.*?~€(\d+)/);
-                        if (n) res.valNew = parseFloat(n[1]);
-                        if (u) res.valUsed = parseFloat(u[1]);
-                    }
-                });
-            } catch (e) {}
-            return res;
-        }
-
-        function extractRRP(s) {
-            const p = s.retailPrice || s.LEGOCom?.DE?.retailPrice || s.LEGOCom?.UK?.retailPrice || 0;
-            return parseFloat(String(p).replace(',', '.')) || 0;
-        }
-
-        async function fetchFromRebrickable(query) {
-            try {
-                const id = query.includes('-') ? query : `${query}-1`;
-                const res = await fetch(`https://rebrickable.com/api/v3/lego/sets/${id}/`, {
-                    headers: { 'Authorization': `key ${API_KEY_REBRICKABLE}` }
-                });
-                const data = await res.json();
-                return res.ok ? { setNumber: query, name: data.name, pieces: data.num_parts, theme: "LEGO", subtheme: "", image: data.set_img_url, status: "New", qtyNew: 1, qtyUsed: 0, currentValue: 0 } : null;
-            } catch (e) { return null; }
-        }
-
-        function saveAndRender() {
-            localStorage.setItem('bricksetCollection', JSON.stringify(mySets));
-            updateStats();
-            updateCategories();
-            renderLibrary();
+        async function refreshSelectedSets() {
+            updateStatus("Update läuft...", "text-blue-600 animate-pulse");
+            for (let id of selectedSets) {
+                const s = mySets.find(x => x.setNumber === id);
+                if (!s) continue;
+                const scraped = await scrapeBricksetData(s.setNumber);
+                if (scraped.rrp > 0) s.price = scraped.rrp;
+                s.valNew = scraped.valNew;
+                s.valUsed = scraped.valUsed;
+                s.currentValue = s.status === 'New' ? scraped.valNew : scraped.valUsed;
+            }
+            saveAndRender(); clearSelection();
+            updateStatus("Bereit", "text-slate-400");
         }
 
         function renderLibrary() {
             const term = document.getElementById('searchLibrary').value.toLowerCase();
             const cat = document.getElementById('filterCategory').value;
-            const filtered = mySets.filter(s => (s.name.toLowerCase().includes(term) || s.setNumber.includes(term)) && (cat === "all" || s.theme === cat));
+            const filtered = mySets.filter(s => {
+                const matchSearch = s.name.toLowerCase().includes(term) || s.setNumber.includes(term) || (s.subtheme && s.subtheme.toLowerCase().includes(term));
+                const matchCat = (cat === "all" || s.theme === cat);
+                return matchSearch && matchCat;
+            });
             
             document.getElementById('library').innerHTML = filtered.map(set => `
                 <div onclick="openModal('${set.setNumber}')" class="set-card bg-white rounded-[2rem] shadow-lg border border-slate-100 overflow-hidden">
                     <input type="checkbox" ${selectedSets.has(set.setNumber) ? 'checked' : ''} onclick="toggleSelection('${set.setNumber}', event)" class="select-checkbox absolute top-5 left-5 z-20 w-5 h-5 rounded-md accent-blue-600">
+                    <button onclick="deleteSet('${set.setNumber}', event)" class="absolute top-4 right-4 z-20 p-2 bg-red-50 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    </button>
                     <div class="h-48 flex items-center justify-center p-6 relative">
                         <img src="${set.image}" class="max-h-full object-contain drop-shadow-xl" onerror="this.src='https://via.placeholder.com/150'">
                         <div class="absolute bottom-2 right-4 flex gap-1">
-                            ${set.qtyNew > 0 ? `<div class="bg-blue-600 text-white text-[9px] font-black w-5 h-5 flex items-center justify-center rounded-full border-2 border-white">${set.qtyNew}</div>` : ''}
-                            ${set.qtyUsed > 0 ? `<div class="bg-slate-400 text-white text-[9px] font-black w-5 h-5 flex items-center justify-center rounded-full border-2 border-white">${set.qtyUsed}</div>` : ''}
+                            ${(set.qtyNew || 0) > 0 ? `<div class="bg-blue-600 text-white text-[9px] font-black w-5 h-5 flex items-center justify-center rounded-full shadow-lg border-2 border-white">${set.qtyNew}</div>` : ''}
+                            ${(set.qtyUsed || 0) > 0 ? `<div class="bg-slate-400 text-white text-[9px] font-black w-5 h-5 flex items-center justify-center rounded-full shadow-lg border-2 border-white">${set.qtyUsed}</div>` : ''}
+                        </div>
+                        <div class="absolute bottom-2 left-4 flex gap-1 flex-wrap pr-4">
+                            <span class="text-[8px] font-bold px-2 py-0.5 rounded-full ${set.status === 'New' ? 'bg-blue-600' : 'bg-slate-700'} text-white uppercase">${set.status}</span>
+                            ${set.subtheme ? `<span class="text-[8px] px-2 py-0.5 rounded-full ${getSubthemeClass(set.subtheme)}">${set.subtheme}</span>` : ''}
                         </div>
                     </div>
                     <div class="p-6 pt-2">
                         <span class="text-[9px] font-black text-blue-600 bg-blue-50 px-2 py-1 rounded uppercase">${set.theme}</span>
-                        <h3 class="font-bold text-slate-800 text-sm mt-2 line-clamp-1">${set.name}</h3>
-                        <div class="flex justify-between items-center mt-4">
-                            <p class="text-xs font-black text-slate-400">${set.setNumber}</p>
-                            <p class="text-sm font-black text-blue-600">${((set.qtyNew * set.valNew) + (set.qtyUsed * set.valUsed) || 0).toFixed(2)} €</p>
+                        <h3 class="font-bold text-slate-800 text-sm mt-2 h-10 overflow-hidden">${set.name}</h3>
+                        <div class="flex justify-between items-end border-t mt-4 pt-4">
+                            <div class="text-[10px] text-slate-400 font-bold uppercase">
+                                <p class="text-slate-700">#${set.setNumber}</p>
+                                <p class="${set.price === 0 ? 'text-red-500 font-black' : ''}">UVP: ${parseFloat(set.price || 0).toFixed(2)} €</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-[9px] font-black text-slate-300 uppercase">Marktwert</p>
+                                <p class="text-xl font-extrabold text-blue-600">${parseFloat(set.currentValue || 0).toFixed(2)} €</p>
+                            </div>
                         </div>
                     </div>
-                </div>
-            `).join('');
+                </div>`).join('');
+            updateStats();
+        }
+
+        function selectAllVisible() {
+            const term = document.getElementById('searchLibrary').value.toLowerCase();
+            const cat = document.getElementById('filterCategory').value;
+            mySets.forEach(s => {
+                const matchSearch = s.name.toLowerCase().includes(term) || s.setNumber.includes(term) || (s.subtheme && s.subtheme.toLowerCase().includes(term));
+                const matchCat = (cat === "all" || s.theme === cat);
+                if (matchSearch && matchCat) selectedSets.add(s.setNumber);
+            });
+            updateActionBar(); renderLibrary();
+        }
+
+        function getSubthemeClass(sub) {
+            const s = sub.toLowerCase();
+            if(s.includes("star wars")) return "subtheme-starwars";
+            if(s.includes("ucs") || s.includes("ultimate collector")) return "subtheme-ucs";
+            if(s.includes("modular")) return "subtheme-modular";
+            if(s.includes("technic")) return "subtheme-technic";
+            return "subtheme-default";
+        }
+
+        function updateStatusAndQty(s) { 
+            const qNewInput = document.getElementById('editQtyNew');
+            const qUsedInput = document.getElementById('editQtyUsed');
+            let qN = parseInt(qNewInput.value) || 0;
+            let qU = parseInt(qUsedInput.value) || 0;
+
+            if (currentStatus === 'New' && s === 'Used') {
+                if (qN > 0) { qN--; qU++; }
+            } else if (currentStatus === 'Used' && s === 'New') {
+                if (qU > 0) { qU--; qN++; }
+            }
+
+            qNewInput.value = qN;
+            qUsedInput.value = qU;
+            setStatus(s);
+            refreshModalCalculation();
+        }
+
+        function setStatus(s) { 
+            currentStatus = s; 
+            document.getElementById('btnNew').className = s === 'New' ? "flex-1 py-3 rounded-xl border-2 font-bold bg-blue-600 text-white border-blue-600 shadow-md" : "flex-1 py-3 rounded-xl border-2 font-bold bg-white text-slate-400 border-slate-100"; 
+            document.getElementById('btnUsed').className = s === 'Used' ? "flex-1 py-3 rounded-xl border-2 font-bold bg-slate-800 text-white border-slate-800 shadow-md" : "flex-1 py-3 rounded-xl border-2 font-bold bg-white text-slate-400 border-slate-100"; 
+            
+            const currentSet = mySets.find(x => x.setNumber === currentEditId);
+            if (currentSet) {
+                const newVal = s === 'New' ? (currentSet.valNew || 0) : (currentSet.valUsed || 0);
+                if (newVal > 0) document.getElementById('editCurrentValue').value = newVal;
+            }
+        }
+
+        function refreshModalCalculation() {
+            const s = mySets.find(x => x.setNumber === currentEditId);
+            if (!s) return;
+
+            const qN = parseInt(document.getElementById('editQtyNew').value) || 0;
+            const qU = parseInt(document.getElementById('editQtyUsed').value) || 0;
+            
+            const valN = (s.valNew && s.valNew > 0) ? s.valNew : (parseFloat(document.getElementById('editCurrentValue').value) || 0);
+            const valU = (s.valUsed && s.valUsed > 0) ? s.valUsed : (parseFloat(document.getElementById('editCurrentValue').value) || 0);
+
+            const totalN = qN * valN;
+            const totalU = qU * valU;
+
+            document.getElementById('calcQtyNew').innerText = qN;
+            document.getElementById('calcQtyUsed').innerText = qU;
+            document.getElementById('calcValNew').innerText = totalN.toFixed(2) + " €";
+            document.getElementById('calcValUsed').innerText = totalU.toFixed(2) + " €";
+            document.getElementById('calcTotal').innerText = (totalN + totalU).toFixed(2) + " €";
         }
 
         function openModal(id) {
             const s = mySets.find(x => x.setNumber === id);
-            if (!s) return;
             currentEditId = id;
             document.getElementById('modalImg').src = s.image;
             document.getElementById('modalName').innerText = s.name;
             document.getElementById('modalTheme').innerText = s.theme;
             document.getElementById('modalId').innerText = "#" + s.setNumber;
             document.getElementById('editEan').value = s.ean || "";
-            document.getElementById('editRetailPrice').value = s.price;
-            document.getElementById('editCurrentValue').value = s.valNew;
-            document.getElementById('editQtyNew').value = s.qtyNew;
-            document.getElementById('editQtyUsed').value = s.qtyUsed;
+            document.getElementById('editRetailPrice').value = s.price || 0;
+            document.getElementById('editCurrentValue').value = s.currentValue || 0;
+            document.getElementById('editSubtheme').value = s.subtheme || "";
+            document.getElementById('editQtyNew').value = s.qtyNew || 0;
+            document.getElementById('editQtyUsed').value = s.qtyUsed || 0;
+            setStatus(s.status || "New");
             refreshModalCalculation();
             document.getElementById('detailModal').style.display = 'flex';
         }
 
-        function closeModal() { document.getElementById('detailModal').style.display = 'none'; }
-
         function saveDetails() {
             const s = mySets.find(x => x.setNumber === currentEditId);
-            if (s) {
+            if(s) {
                 s.ean = document.getElementById('editEan').value;
                 s.price = parseFloat(document.getElementById('editRetailPrice').value) || 0;
-                s.valNew = parseFloat(document.getElementById('editCurrentValue').value) || 0;
+                s.currentValue = parseFloat(document.getElementById('editCurrentValue').value) || 0;
+                s.subtheme = document.getElementById('editSubtheme').value;
                 s.qtyNew = parseInt(document.getElementById('editQtyNew').value) || 0;
                 s.qtyUsed = parseInt(document.getElementById('editQtyUsed').value) || 0;
-                saveAndRender();
+                s.status = currentStatus;
+                saveAndRender(); closeModal();
             }
-            closeModal();
         }
 
-        function refreshModalCalculation() {
-            const qN = parseInt(document.getElementById('editQtyNew').value) || 0;
-            const qU = parseInt(document.getElementById('editQtyUsed').value) || 0;
-            const vN = parseFloat(document.getElementById('editCurrentValue').value) || 0;
-            const vU = vN * 0.7; // Schätzung für Gebraucht
-            document.getElementById('calcTotal').innerText = ((qN * vN) + (qU * vU)).toFixed(2) + " €";
-        }
+        function deleteSet(id, e) { if(e) e.stopPropagation(); mySets = mySets.filter(s => s.setNumber !== id); selectedSets.delete(id); saveAndRender(); updateActionBar(); }
+        function toggleSelection(id, e) { e.stopPropagation(); if (selectedSets.has(id)) selectedSets.delete(id); else selectedSets.add(id); updateActionBar(); }
+        function updateActionBar() { document.getElementById('selectedCount').innerText = selectedSets.size; document.getElementById('actionBar').classList.toggle('hidden', selectedSets.size === 0); }
+        function clearSelection() { selectedSets.clear(); updateActionBar(); renderLibrary(); }
+        function saveAndRender() { localStorage.setItem('bricksetCollection', JSON.stringify(mySets)); updateCategories(); renderLibrary(); }
+        
+        function updateStats() { 
+            let totalPieces = 0;
+            let totalValue = 0;
+            let totalSetsCount = 0;
 
-        function updateStats() {
-            let totalValue = 0, totalParts = 0;
             mySets.forEach(s => {
-                totalParts += (s.pieces * (s.qtyNew + s.qtyUsed));
-                totalValue += (s.qtyNew * s.valNew) + (s.qtyUsed * (s.valUsed || s.valNew * 0.7));
+                const qN = parseInt(s.qtyNew) || 0;
+                const qU = parseInt(s.qtyUsed) || 0;
+                const pieces = parseInt(s.pieces) || 0;
+                
+                totalSetsCount += (qN + qU);
+                totalPieces += (pieces * (qN + qU));
+                
+                const valN = (s.valNew && s.valNew > 0) ? s.valNew : (parseFloat(s.currentValue) || 0);
+                const valU = (s.valUsed && s.valUsed > 0) ? s.valUsed : (parseFloat(s.currentValue) || 0);
+                
+                totalValue += (qN * valN) + (qU * valU);
             });
-            document.getElementById('statSets').innerText = mySets.length;
-            document.getElementById('statParts').innerText = totalParts.toLocaleString();
+
+            document.getElementById('statSets').innerText = totalSetsCount;
+            document.getElementById('statParts').innerText = totalPieces.toLocaleString();
             document.getElementById('statValue').innerText = totalValue.toFixed(2) + " €";
         }
 
-        function updateCategories() {
-            const ts = [...new Set(mySets.map(s => s.theme))].sort();
-            const sel = document.getElementById('filterCategory');
+        function updateCategories() { 
+            const ts = [...new Set(mySets.map(s => s.theme))].sort(); 
+            const sel = document.getElementById('filterCategory'); 
             const cur = sel.value;
-            sel.innerHTML = '<option value="all">Alle Themen</option>' + ts.map(t => `<option value="${t}" ${t===cur?'selected':''}>${t}</option>`).join('');
+            sel.innerHTML = '<option value="all">Alle Themen</option>' + ts.map(t => `<option value="${t}" ${t===cur?'selected':''}>${t}</option>`).join(''); 
+        }
+        function closeModal() { document.getElementById('detailModal').style.display = 'none'; }
+        function updateStatus(m, c) { const el = document.getElementById('apiStatus'); el.innerText = m; el.className = `mt-4 text-[10px] font-black uppercase italic ${c}`; }
+        function deleteSelected() { mySets = mySets.filter(s => !selectedSets.has(s.setNumber)); clearSelection(); saveAndRender(); }
+        function applyBulkActions() { 
+            const st = document.getElementById('bulkStatus').value; 
+            mySets.forEach(s => { if(selectedSets.has(s.setNumber)) { if(st) { s.status = st; } } }); 
+            clearSelection(); saveAndRender(); 
         }
 
-        function toggleSelection(id, e) {
-            e.stopPropagation();
-            selectedSets.has(id) ? selectedSets.delete(id) : selectedSets.add(id);
-            document.getElementById('actionBar').classList.toggle('hidden', selectedSets.size === 0);
-            document.getElementById('selectedCount').innerText = selectedSets.size;
-        }
-
-        function clearSelection() {
-            selectedSets.clear();
-            document.getElementById('actionBar').classList.add('hidden');
-            renderLibrary();
-        }
-
-        function deleteSelected() {
-            if(confirm("Markierte Sets löschen?")) {
-                mySets = mySets.filter(s => !selectedSets.has(s.setNumber));
-                clearSelection();
-                saveAndRender();
-            }
-        }
-
-        function selectAllVisible() {
-            const term = document.getElementById('searchLibrary').value.toLowerCase();
-            mySets.forEach(s => { if(s.name.toLowerCase().includes(term)) selectedSets.add(s.setNumber); });
-            document.getElementById('actionBar').classList.remove('hidden');
-            document.getElementById('selectedCount').innerText = selectedSets.size;
-            renderLibrary();
-        }
-
-        function exportCollection() {
-            const blob = new Blob([JSON.stringify(mySets, null, 2)], { type: "application/json" });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url; a.download = `brix-collection.json`; a.click();
-        }
-
-        function importCollection(event) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                try {
-                    const imported = JSON.parse(e.target.result);
-                    mySets = [...imported, ...mySets.filter(s => !imported.find(i => i.setNumber === s.setNumber))];
-                    saveAndRender();
-                } catch(err) { alert("Fehler beim Import"); }
-            };
-            reader.readAsText(event.target.files[0]);
-        }
-
-        function updateStatus(m, c) {
-            const el = document.getElementById('apiStatus');
-            el.innerText = m;
-            el.className = `mt-4 text-[10px] font-black uppercase italic ${c}`;
-        }
-
-        window.onscroll = () => { document.getElementById("scrollTopBtn").style.display = window.scrollY > 400 ? "block" : "none"; };
-        function scrollToTop() { window.scrollTo({top: 0, behavior: 'smooth'}); }
-
-        // Initial Start
         saveAndRender();
     </script>
 </body>

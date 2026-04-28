@@ -409,11 +409,12 @@ input, select {
             } catch (e) { return null; }
         }
 
-        async function fetchSets() {
+       async function fetchSets() {
             const input = document.getElementById('barcodeInput');
             const query = input.value.trim();
             if (!query) return;
 
+            // Prüft, ob die Eingabe bereits als Set-Nummer ODER als Barcode existiert
             const existingSet = mySets.find(x => x.setNumber === query || x.ean === query);
             if(existingSet) {
                 openDuplicateModal(existingSet.setNumber);
@@ -433,13 +434,25 @@ input, select {
                     const s = data.sets[0];
                     newSetObj = {
                         setNumber: String(s.number),
-                        name: s.name, pieces: s.pieces || 0, theme: s.theme, subtheme: s.subtheme || "",
-                        ean: "", image: s.image?.imageURL || '', price: extractRRP(s), 
-                        currentValue: 0, valNew: 0, valUsed: 0, status: "New",
-                        qtyNew: 1, qtyUsed: 0
+                        name: s.name, 
+                        pieces: s.pieces || 0, 
+                        theme: s.theme, 
+                        subtheme: s.subtheme || "",
+                        ean: query, // Speichert den gescannten Barcode/Eingabe direkt hier
+                        image: s.image?.imageURL || '', 
+                        price: extractRRP(s), 
+                        currentValue: 0, 
+                        valNew: 0, 
+                        valUsed: 0, 
+                        status: "New",
+                        qtyNew: 1, 
+                        qtyUsed: 0
                     };
                 } else {
                     newSetObj = await fetchFromRebrickable(query);
+                    if (newSetObj) {
+                        newSetObj.ean = query; // Speichert Barcode auch bei Rebrickable-Fallback
+                    }
                 }
 
                 if (newSetObj) {

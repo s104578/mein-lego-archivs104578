@@ -300,6 +300,21 @@ input, select {
             }
         };
 
+        // Schließt das Detail- oder Dubletten-Modal bei Klick auf den Hintergrund
+window.addEventListener('click', function(event) {
+    const detailModal = document.getElementById('detailModal');
+    const duplicateModal = document.getElementById('duplicateModal');
+    
+    // Wenn das Detail-Modal offen ist und genau auf den Hintergrund geklickt wurde
+    if (event.target === detailModal) {
+        closeModal();
+    }
+    
+    // Wenn das Dubletten-Modal offen ist und genau auf den Hintergrund geklickt wurde
+    if (event.target === duplicateModal) {
+        closeDuplicateModal();
+    }
+});
         function scrollToTop() {
             window.scrollTo({top: 0, behavior: 'smooth'});
         }

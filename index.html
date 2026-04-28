@@ -170,7 +170,7 @@ input, select {
         <input type="text" id="barcodeInput" autofocus 
                class="flex-1 pl-4 md:pl-6 pr-2 py-2 md:py-3 rounded-full text-sm md:text-base outline-none min-w-0" 
                placeholder="Set-Nr/Barcode"
-               onkeydown="if(event.key === 'Enter') fetchSets()"> <button onclick="fetchSets()" 
+               onkeydown="if(event.key === 'Enter') s()"> <button onclick="s()" 
                 class="bg-blue-600 text-white font-bold px-4 py-2 md:px-6 md:py-3 rounded-full active:scale-95 transition-all text-xs md:text-sm whitespace-nowrap ml-1">
             Hinzufügen
         </button>
@@ -429,7 +429,7 @@ window.addEventListener('click', function(event) {
             const query = input.value.trim();
             if (!query) return;
 
-            // Prüft Dubletten: Entweder über die Setnummer oder den Barcode
+            // Dubletten-Check: Sucht in der Sammlung nach Setnummer ODER Barcode
             const existingSet = mySets.find(x => x.setNumber === query || x.ean === query);
             if(existingSet) {
                 openDuplicateModal(existingSet.setNumber);
@@ -453,7 +453,7 @@ window.addEventListener('click', function(event) {
                         pieces: s.pieces || 0, 
                         theme: s.theme, 
                         subtheme: s.subtheme || "",
-                        // Logik: Nur speichern, wenn die Eingabe lang genug für einen Barcode ist
+                        // Speichert die Eingabe nur als EAN, wenn sie >= 11 Zeichen ist (Barcode-Länge)
                         ean: query.length >= 11 ? query : "", 
                         image: s.image?.imageURL || '', 
                         price: extractRRP(s), 
@@ -465,20 +465,27 @@ window.addEventListener('click', function(event) {
                         qtyUsed: 0
                     };
                 } else {
+                    // Fallback zu Rebrickable
                     newSetObj = await fetchFromRebrickable(query);
                     if (newSetObj && query.length >= 11) {
-                        newSetObj.ean = query; // Speichert EAN auch hier nur bei entsprechender Länge
+                        newSetObj.ean = query;
                     }
                 }
 
                 if (newSetObj) {
                     const scraped = await scrapeBricksetData(newSetObj.setNumber);
                     if (newSetObj.price === 0) newSetObj.price = scraped.rrp;
+                    
+                    // Marktwerte vom Scraper hinterlegen
                     newSetObj.valNew = scraped.valNew;
                     newSetObj.valUsed = scraped.valUsed;
-                    newSetObj.currentValue = s.valNew > 0 ? s.valNew : 0;
+                    
+                    // Sofortige Zuweisung für die Anzeige auf der Kachel
+                    newSetObj.currentValue = scraped.valNew > 0 ? scraped.valNew : 0;
                 }
-            } catch (e) { console.error(e); }
+            } catch (e) { 
+                console.error("Fehler beim Abrufen:", e); 
+            }
 
             if (newSetObj) {
                 mySets.unshift(newSetObj);

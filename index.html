@@ -373,9 +373,9 @@
                         }
                     }
                     if (label === "Current value") {
-                        const text = dd.innerHTML;
-                        const newMatch = text.match(/New:.*?~€(\d+)/);
-                        const usedMatch = text.match(/Used:.*?~€(\d+)/);
+                        const text = dd.innerText; // Hier lag die Änderung: innerText statt innerHTML für stabilere Regex
+                        const newMatch = text.match(/New:.*?€(\d+)/);
+                        const usedMatch = text.match(/Used:.*?€(\d+)/);
                         if (newMatch) results.valNew = parseFloat(newMatch[1]);
                         if (usedMatch) results.valUsed = parseFloat(usedMatch[1]);
                     }
@@ -527,7 +527,6 @@
                 const s = mySets.find(x => x.setNumber === id);
                 if (!s) continue;
                 
-                // 1. Brickset API für Basisdaten (Jahr, Teile, RRP)
                 try {
                     const params = JSON.stringify({ query: s.setNumber, pageSize: 1, extendedData: 1 });
                     const url = `https://corsproxy.io/?${encodeURIComponent('https://brickset.com/api/v3.asmx/getSets?apiKey=' + API_KEY_BRICKSET + '&userHash=&params=' + params)}`;
@@ -541,14 +540,21 @@
                     }
                 } catch(e) {}
 
-                // 2. Scraper für Marktwerte & Fallback
                 const scraped = await scrapeBricksetData(s.setNumber);
                 if (scraped.rrp > 0) s.price = scraped.rrp;
                 if (scraped.year > 0) s.year = scraped.year;
                 if (scraped.pieces > 0) s.pieces = scraped.pieces;
-                s.valNew = scraped.valNew;
-                s.valUsed = scraped.valUsed;
-                s.currentValue = s.status === 'New' ? scraped.valNew : scraped.valUsed;
+                
+                // Wichtiger Fix: Marktwerte überschreiben
+                s.valNew = scraped.valNew > 0 ? scraped.valNew : s.valNew;
+                s.valUsed = scraped.valUsed > 0 ? scraped.valUsed : s.valUsed;
+                
+                // Aktuellen Marktwert basierend auf Status setzen
+                if (s.status === 'New') {
+                    s.currentValue = s.valNew > 0 ? s.valNew : s.currentValue;
+                } else {
+                    s.currentValue = s.valUsed > 0 ? s.valUsed : s.currentValue;
+                }
             }
             saveAndRender(); clearSelection();
             updateStatus("Daten aktualisiert", "text-slate-400");

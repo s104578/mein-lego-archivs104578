@@ -364,7 +364,6 @@
                     const label = dt.innerText.trim();
                     const dd = dt.nextElementSibling;
                     if (!dd) continue;
-
                     if (label === "RRP") {
                         const deMatch = dd.innerText.match(/(\d+[\.,]\d{2})€/);
                         if (deMatch) results.rrp = parseFloat(deMatch[1].replace(',', '.'));
@@ -373,7 +372,6 @@
                             if (genMatch) results.rrp = parseFloat(genMatch[1].replace(',', '.'));
                         }
                     }
-
                     if (label === "Current value") {
                         const text = dd.innerHTML;
                         const newMatch = text.match(/New:.*?~€(\d+)/);

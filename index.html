@@ -60,40 +60,34 @@
 
         #scrollTopBtn { display: none; transition: all 0.3s ease; }
         #scrollTopBtn:hover { transform: translateY(-5px); }
-        /* Verhindert horizontales Scrollen auf Handys */
-body { overflow-x: hidden; width: 100%; -webkit-tap-highlight-color: transparent; }
+        body { overflow-x: hidden; width: 100%; -webkit-tap-highlight-color: transparent; }
 
-/* Optimiert Modals für mobile Bildschirme */
-#detailModal, #duplicateModal { 
-    display: none; 
-    background: rgba(15, 23, 42, 0.7); 
-    backdrop-filter: blur(8px);
-    z-index: 1000;
-}
+        #detailModal, #duplicateModal { 
+            display: none; 
+            background: rgba(15, 23, 42, 0.7); 
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+        }
 
-/* Verhindert automatisches Zoomen in Textfeldern auf dem iPhone */
-input[type="text"], input[type="number"], select { font-size: 16px !important; }
+        input[type="text"], input[type="number"], select { font-size: 16px !important; }
 
-/* Responsive Grid: 1 Spalte auf Mobile, 2 auf Tablet, 4 auf PC */
-#library {
-    display: grid;
-    gap: 1rem;
-    grid-template-columns: repeat(1, minmax(0, 1fr));
-}
-@media (min-width: 640px) { #library { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (min-width: 1024px) { #library { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
-        /* Verhindert, dass die Seite nach rechts "wackelt" */
-html, body { 
-    overflow-x: hidden; 
-    width: 100%;
-    position: relative;
-}
+        #library {
+            display: grid;
+            gap: 1rem;
+            grid-template-columns: repeat(1, minmax(0, 1fr));
+        }
+        @media (min-width: 640px) { #library { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+        @media (min-width: 1024px) { #library { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+        html, body { 
+            overflow-x: hidden; 
+            width: 100%;
+            position: relative;
+        }
 
-/* Verhindert das Überlaufen von Inputs */
-input, select {
-    max-width: 100%;
-    box-sizing: border-box;
-}
+        input, select {
+            max-width: 100%;
+            box-sizing: border-box;
+        }
     </style>
 </head>
 <body class="min-h-screen pb-12">
@@ -106,7 +100,7 @@ input, select {
                 <button onclick="clearSelection()" class="text-blue-100 hover:text-white text-xs underline">Abbrechen</button>
             </div>
             <div class="flex items-center gap-3">
-                <button onclick="refreshSelectedSets()" title="Preise aktualisieren" class="p-2 bg-blue-500 hover:bg-blue-400 rounded-lg transition-colors border border-blue-400">
+                <button onclick="refreshSelectedSets()" title="Alle Daten aktualisieren" class="p-2 bg-blue-500 hover:bg-blue-400 rounded-lg transition-colors border border-blue-400">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 </button>
                 <div class="h-8 w-[1px] bg-blue-400 mx-1"></div>
@@ -141,42 +135,50 @@ input, select {
                 <div><p class="text-[10px] uppercase font-black text-slate-400">Sammlungswert</p><p id="statValue" class="font-bold text-blue-600">0.00 €</p></div>
             </div>
 
-            <div class="flex gap-2 items-center">
-                <button onclick="selectAllVisible()" title="Alle auswählen" class="p-2 hover:bg-slate-100 rounded-xl transition-colors">
-                    <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
-                </button>
-                <button onclick="exportCollection()" title="Exportieren" class="p-2 hover:bg-slate-100 rounded-xl transition-colors">
-                    <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                </button>
-                <label class="p-2 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer" title="Importieren">
-                    <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                    <input type="file" id="importFile" class="hidden" accept=".json" onchange="importCollection(event)">
-                </label>
-               <div class="flex flex-col sm:flex-row gap-2">
-    <select id="filterCategory" onchange="renderLibrary()" 
-            class="bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm font-bold outline-none w-full sm:w-auto">
-        <option value="all">Alle Themen</option>
-    </select>
-    <input type="text" id="searchLibrary" oninput="renderLibrary()" 
-           placeholder="Sammlung durchsuchen..." 
-           class="bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none flex-1 w-full">
-</div>
+            <div class="flex flex-col gap-2 items-center">
+                <div class="flex gap-2">
+                    <button onclick="selectAllVisible()" title="Alle auswählen" class="p-2 hover:bg-slate-100 rounded-xl transition-colors">
+                        <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                    </button>
+                    <button onclick="exportCollection()" title="Exportieren" class="p-2 hover:bg-slate-100 rounded-xl transition-colors">
+                        <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                    </button>
+                    <label class="p-2 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer" title="Importieren">
+                        <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                        <input type="file" id="importFile" class="hidden" accept=".json" onchange="importCollection(event)">
+                    </label>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-2 w-full">
+                    <select id="filterCategory" onchange="renderLibrary()" class="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold outline-none">
+                        <option value="all">Alle Themen</option>
+                    </select>
+                    <select id="filterSecondary" onchange="renderLibrary()" class="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold outline-none">
+                        <option value="all">Kein Zusatzfilter</option>
+                        <optgroup label="Zustand">
+                            <option value="status-New">Zustand: New</option>
+                            <option value="status-Used">Zustand: Used</option>
+                        </optgroup>
+                        <optgroup label="Jahr" id="filterYearGroup"></optgroup>
+                    </select>
+                    <input type="text" id="searchLibrary" oninput="renderLibrary()" placeholder="Suchen..." class="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs outline-none flex-1">
+                </div>
+            </div>
         </div>
     </nav>
 
     <main class="max-w-7xl mx-auto px-6">
        <div class="max-w-2xl mx-auto mb-10 px-2">
-    <div class="bg-white p-1 rounded-full shadow-lg flex items-center border border-slate-200">
-        <input type="text" id="barcodeInput" autofocus 
-               class="flex-1 pl-4 md:pl-6 pr-2 py-2 md:py-3 rounded-full text-sm md:text-base outline-none min-w-0" 
-               placeholder="Set-Nr/Barcode"
-               onkeydown="if(event.key === 'Enter') fetchSets()"> <button onclick="fetchSets()" 
-                class="bg-blue-600 text-white font-bold px-4 py-2 md:px-6 md:py-3 rounded-full active:scale-95 transition-all text-xs md:text-sm whitespace-nowrap ml-1">
-            Hinzufügen
-        </button>
-    </div>
-    <p id="apiStatus" class="mt-3 text-center text-[10px] font-black text-slate-400 uppercase italic">Bereit</p>
-</div>
+            <div class="bg-white p-1 rounded-full shadow-lg flex items-center border border-slate-200">
+                <input type="text" id="barcodeInput" autofocus 
+                       class="flex-1 pl-4 md:pl-6 pr-2 py-2 md:py-3 rounded-full text-sm md:text-base outline-none min-w-0" 
+                       placeholder="Set-Nr/Barcode"
+                       onkeydown="if(event.key === 'Enter') fetchSets()"> 
+                <button onclick="fetchSets()" class="bg-blue-600 text-white font-bold px-4 py-2 md:px-6 md:py-3 rounded-full active:scale-95 transition-all text-xs md:text-sm whitespace-nowrap ml-1">
+                    Hinzufügen
+                </button>
+            </div>
+            <p id="apiStatus" class="mt-3 text-center text-[10px] font-black text-slate-400 uppercase italic">Bereit</p>
+        </div>
         <div id="library" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"></div>
     </main>
 
@@ -306,21 +308,13 @@ input, select {
             }
         };
 
-        // Schließt das Detail- oder Dubletten-Modal bei Klick auf den Hintergrund
-window.addEventListener('click', function(event) {
-    const detailModal = document.getElementById('detailModal');
-    const duplicateModal = document.getElementById('duplicateModal');
-    
-    // Wenn das Detail-Modal offen ist und genau auf den Hintergrund geklickt wurde
-    if (event.target === detailModal) {
-        closeModal();
-    }
-    
-    // Wenn das Dubletten-Modal offen ist und genau auf den Hintergrund geklickt wurde
-    if (event.target === duplicateModal) {
-        closeDuplicateModal();
-    }
-});
+        window.addEventListener('click', function(event) {
+            const detailModal = document.getElementById('detailModal');
+            const duplicateModal = document.getElementById('duplicateModal');
+            if (event.target === detailModal) closeModal();
+            if (event.target === duplicateModal) closeDuplicateModal();
+        });
+
         function scrollToTop() {
             window.scrollTo({top: 0, behavior: 'smooth'});
         }
@@ -356,7 +350,7 @@ window.addEventListener('click', function(event) {
         }
 
         async function scrapeBricksetData(setNum) {
-            let results = { rrp: 0, valNew: 0, valUsed: 0 };
+            let results = { rrp: 0, valNew: 0, valUsed: 0, year: 0, pieces: 0 };
             try {
                 const fullId = setNum.includes('-') ? setNum : `${setNum}-1`;
                 const proxyUrl = `https://corsproxy.io/?${encodeURIComponent('https://brickset.com/sets/' + fullId)}`;
@@ -385,6 +379,8 @@ window.addEventListener('click', function(event) {
                         if (newMatch) results.valNew = parseFloat(newMatch[1]);
                         if (usedMatch) results.valUsed = parseFloat(usedMatch[1]);
                     }
+                    if (label === "Year released") results.year = parseInt(dd.innerText.trim()) || 0;
+                    if (label === "Pieces") results.pieces = parseInt(dd.innerText.trim()) || 0;
                 }
             } catch (e) { console.error("Scraper Error:", e); }
             return results;
@@ -472,14 +468,14 @@ window.addEventListener('click', function(event) {
                     };
                 } else {
                     newSetObj = await fetchFromRebrickable(query);
-                    if (newSetObj && query.length >= 11) {
-                        newSetObj.ean = query;
-                    }
+                    if (newSetObj && query.length >= 11) newSetObj.ean = query;
                 }
 
                 if (newSetObj) {
                     const scraped = await scrapeBricksetData(newSetObj.setNumber);
                     if (newSetObj.price === 0) newSetObj.price = scraped.rrp;
+                    if (newSetObj.year === 0) newSetObj.year = scraped.year;
+                    if (newSetObj.pieces === 0) newSetObj.pieces = scraped.pieces;
                     newSetObj.valNew = scraped.valNew;
                     newSetObj.valUsed = scraped.valUsed;
                     newSetObj.currentValue = scraped.valNew > 0 ? scraped.valNew : 0;
@@ -526,27 +522,54 @@ window.addEventListener('click', function(event) {
         }
 
         async function refreshSelectedSets() {
-            updateStatus("Update läuft...", "text-blue-600 animate-pulse");
+            updateStatus("Vollständiges Update...", "text-blue-600 animate-pulse");
             for (let id of selectedSets) {
                 const s = mySets.find(x => x.setNumber === id);
                 if (!s) continue;
+                
+                // 1. Brickset API für Basisdaten (Jahr, Teile, RRP)
+                try {
+                    const params = JSON.stringify({ query: s.setNumber, pageSize: 1, extendedData: 1 });
+                    const url = `https://corsproxy.io/?${encodeURIComponent('https://brickset.com/api/v3.asmx/getSets?apiKey=' + API_KEY_BRICKSET + '&userHash=&params=' + params)}`;
+                    const res = await fetch(url);
+                    const data = await res.json();
+                    if (data.status === "success" && data.matches > 0) {
+                        const apiSet = data.sets[0];
+                        s.year = apiSet.year || s.year;
+                        s.pieces = apiSet.pieces || s.pieces;
+                        s.price = extractRRP(apiSet) || s.price;
+                    }
+                } catch(e) {}
+
+                // 2. Scraper für Marktwerte & Fallback
                 const scraped = await scrapeBricksetData(s.setNumber);
                 if (scraped.rrp > 0) s.price = scraped.rrp;
+                if (scraped.year > 0) s.year = scraped.year;
+                if (scraped.pieces > 0) s.pieces = scraped.pieces;
                 s.valNew = scraped.valNew;
                 s.valUsed = scraped.valUsed;
                 s.currentValue = s.status === 'New' ? scraped.valNew : scraped.valUsed;
             }
             saveAndRender(); clearSelection();
-            updateStatus("Bereit", "text-slate-400");
+            updateStatus("Daten aktualisiert", "text-slate-400");
         }
 
         function renderLibrary() {
             const term = document.getElementById('searchLibrary').value.toLowerCase();
             const cat = document.getElementById('filterCategory').value;
+            const sec = document.getElementById('filterSecondary').value;
+
             const filtered = mySets.filter(s => {
                 const matchSearch = s.name.toLowerCase().includes(term) || s.setNumber.includes(term) || (s.subtheme && s.subtheme.toLowerCase().includes(term));
                 const matchCat = (cat === "all" || s.theme === cat);
-                return matchSearch && matchCat;
+                
+                let matchSec = true;
+                if (sec !== "all") {
+                    if (sec.startsWith("status-")) matchSec = s.status === sec.replace("status-", "");
+                    else if (sec.startsWith("year-")) matchSec = String(s.year) === sec.replace("year-", "");
+                }
+
+                return matchSearch && matchCat && matchSec;
             });
             
             document.getElementById('library').innerHTML = filtered.map(set => `
@@ -567,7 +590,10 @@ window.addEventListener('click', function(event) {
                         </div>
                     </div>
                     <div class="p-6 pt-2">
-                        <span class="text-[9px] font-black text-blue-600 bg-blue-50 px-2 py-1 rounded uppercase">${set.theme}</span>
+                        <div class="flex justify-between items-start">
+                            <span class="text-[9px] font-black text-blue-600 bg-blue-50 px-2 py-1 rounded uppercase">${set.theme}</span>
+                            <span class="text-[9px] font-bold text-slate-400">${set.year || '---'}</span>
+                        </div>
                         <h3 class="font-bold text-slate-800 text-sm mt-2 h-10 overflow-hidden">${set.name}</h3>
                         <div class="flex justify-between items-end border-t mt-4 pt-4">
                             <div class="text-[10px] text-slate-400 font-bold uppercase">
@@ -587,10 +613,17 @@ window.addEventListener('click', function(event) {
         function selectAllVisible() {
             const term = document.getElementById('searchLibrary').value.toLowerCase();
             const cat = document.getElementById('filterCategory').value;
+            const sec = document.getElementById('filterSecondary').value;
+
             mySets.forEach(s => {
                 const matchSearch = s.name.toLowerCase().includes(term) || s.setNumber.includes(term) || (s.subtheme && s.subtheme.toLowerCase().includes(term));
                 const matchCat = (cat === "all" || s.theme === cat);
-                if (matchSearch && matchCat) selectedSets.add(s.setNumber);
+                let matchSec = true;
+                if (sec !== "all") {
+                    if (sec.startsWith("status-")) matchSec = s.status === sec.replace("status-", "");
+                    else if (sec.startsWith("year-")) matchSec = String(s.year) === sec.replace("year-", "");
+                }
+                if (matchSearch && matchCat && matchSec) selectedSets.add(s.setNumber);
             });
             updateActionBar(); renderLibrary();
         }
@@ -610,11 +643,8 @@ window.addEventListener('click', function(event) {
             let qN = parseInt(qNewInput.value) || 0;
             let qU = parseInt(qUsedInput.value) || 0;
 
-            if (currentStatus === 'New' && s === 'Used') {
-                if (qN > 0) { qN--; qU++; }
-            } else if (currentStatus === 'Used' && s === 'New') {
-                if (qU > 0) { qU--; qN++; }
-            }
+            if (currentStatus === 'New' && s === 'Used') { if (qN > 0) { qN--; qU++; } }
+            else if (currentStatus === 'Used' && s === 'New') { if (qU > 0) { qU--; qN++; } }
 
             qNewInput.value = qN;
             qUsedInput.value = qU;
@@ -637,16 +667,12 @@ window.addEventListener('click', function(event) {
         function refreshModalCalculation() {
             const s = mySets.find(x => x.setNumber === currentEditId);
             if (!s) return;
-
             const qN = parseInt(document.getElementById('editQtyNew').value) || 0;
             const qU = parseInt(document.getElementById('editQtyUsed').value) || 0;
-            
             const valN = (s.valNew && s.valNew > 0) ? s.valNew : (parseFloat(document.getElementById('editCurrentValue').value) || 0);
             const valU = (s.valUsed && s.valUsed > 0) ? s.valUsed : (parseFloat(document.getElementById('editCurrentValue').value) || 0);
-
             const totalN = qN * valN;
             const totalU = qU * valU;
-
             document.getElementById('calcQtyNew').innerText = qN;
             document.getElementById('calcQtyUsed').innerText = qU;
             document.getElementById('calcValNew').innerText = totalN.toFixed(2) + " €";
@@ -694,27 +720,25 @@ window.addEventListener('click', function(event) {
         function toggleSelection(id, e) { e.stopPropagation(); if (selectedSets.has(id)) selectedSets.delete(id); else selectedSets.add(id); updateActionBar(); }
         function updateActionBar() { document.getElementById('selectedCount').innerText = selectedSets.size; document.getElementById('actionBar').classList.toggle('hidden', selectedSets.size === 0); }
         function clearSelection() { selectedSets.clear(); updateActionBar(); renderLibrary(); }
-        function saveAndRender() { localStorage.setItem('bricksetCollection', JSON.stringify(mySets)); updateCategories(); renderLibrary(); }
+        
+        function saveAndRender() { 
+            localStorage.setItem('bricksetCollection', JSON.stringify(mySets)); 
+            updateCategories(); 
+            updateSecondaryFilter();
+            renderLibrary(); 
+        }
         
         function updateStats() { 
-            let totalPieces = 0;
-            let totalValue = 0;
-            let totalSetsCount = 0;
-
+            let totalPieces = 0; let totalValue = 0; let totalSetsCount = 0;
             mySets.forEach(s => {
-                const qN = parseInt(s.qtyNew) || 0;
-                const qU = parseInt(s.qtyUsed) || 0;
+                const qN = parseInt(s.qtyNew) || 0; const qU = parseInt(s.qtyUsed) || 0;
                 const pieces = parseInt(s.pieces) || 0;
-                
                 totalSetsCount += (qN + qU);
                 totalPieces += (pieces * (qN + qU));
-                
                 const valN = (s.valNew && s.valNew > 0) ? s.valNew : (parseFloat(s.currentValue) || 0);
                 const valU = (s.valUsed && s.valUsed > 0) ? s.valUsed : (parseFloat(s.currentValue) || 0);
-                
                 totalValue += (qN * valN) + (qU * valU);
             });
-
             document.getElementById('statSets').innerText = totalSetsCount;
             document.getElementById('statParts').innerText = totalPieces.toLocaleString();
             document.getElementById('statValue').innerText = totalValue.toFixed(2) + " €";
@@ -726,12 +750,19 @@ window.addEventListener('click', function(event) {
             const cur = sel.value;
             sel.innerHTML = '<option value="all">Alle Themen</option>' + ts.map(t => `<option value="${t}" ${t===cur?'selected':''}>${t}</option>`).join(''); 
         }
+
+        function updateSecondaryFilter() {
+            const years = [...new Set(mySets.map(s => s.year).filter(y => y > 0))].sort((a,b) => b-a);
+            const group = document.getElementById('filterYearGroup');
+            group.innerHTML = years.map(y => `<option value="year-${y}">Jahr: ${y}</option>`).join('');
+        }
+
         function closeModal() { document.getElementById('detailModal').style.display = 'none'; }
         function updateStatus(m, c) { const el = document.getElementById('apiStatus'); el.innerText = m; el.className = `mt-4 text-[10px] font-black uppercase italic ${c}`; }
         function deleteSelected() { mySets = mySets.filter(s => !selectedSets.has(s.setNumber)); clearSelection(); saveAndRender(); }
         function applyBulkActions() { 
             const st = document.getElementById('bulkStatus').value; 
-            mySets.forEach(s => { if(selectedSets.has(s.setNumber)) { if(st) { s.status = st; } } }); 
+            mySets.forEach(s => { if(selectedSets.has(s.setNumber)) { if(st) s.status = st; } }); 
             clearSelection(); saveAndRender(); 
         }
 

@@ -56,118 +56,66 @@
         .subtheme-technic { background: #475569; color: white; }
         .subtheme-default { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
 
-        #detailModal, #duplicateModal { display: none; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); }
+        #detailModal, #duplicateModal { display: none; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(8px); z-index: 1000; }
 
         #scrollTopBtn { display: none; transition: all 0.3s ease; }
         #scrollTopBtn:hover { transform: translateY(-5px); }
-        body { overflow-x: hidden; width: 100%; -webkit-tap-highlight-color: transparent; }
 
-        #detailModal, #duplicateModal { 
-            display: none; 
-            background: rgba(15, 23, 42, 0.7); 
-            backdrop-filter: blur(8px);
-            z-index: 1000;
-        }
+        #filterSidebar { transition: transform 0.3s ease-in-out; z-index: 1001; }
+        .sidebar-open { transform: translateX(0) !important; }
 
-        input[type="text"], input[type="number"], select { font-size: 16px !important; }
-
-        #library {
-            display: grid;
-            gap: 1rem;
-            grid-template-columns: repeat(1, minmax(0, 1fr));
-        }
-        @media (min-width: 640px) { #library { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-        @media (min-width: 1024px) { #library { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
-        html, body { 
-            overflow-x: hidden; 
-            width: 100%;
-            position: relative;
-        }
-
-        input, select {
-            max-width: 100%;
-            box-sizing: border-box;
-        }
-       range-container
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 6px; cursor: pointer; background: #e2e8f0; border-radius: 3px; }
+        input[type=range]::-webkit-slider-thumb { height: 18px; width: 18px; border-radius: 50%; background: #2563eb; cursor: pointer; -webkit-appearance: none; margin-top: -6px; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
     </style>
 </head>
 <body class="min-h-screen pb-12">
+
     <!-- Sidebar für Filter & Sortierung -->
-<!-- Overlay: Schließt die Sidebar, wenn man daneben klickt -->
-<div id="sidebarOverlay" onclick="toggleSidebar()" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[1000] hidden transition-opacity"></div>
-
-<!-- Sidebar für Filter & Sortierung -->
-<div id="filterSidebar" class="fixed top-0 right-0 h-full w-80 bg-white shadow-2xl p-6 translate-x-full transition-transform duration-300 ease-in-out z-[1001] overflow-y-auto">
-    <div class="flex justify-between items-center mb-8">
-        <h2 class="text-xl font-black text-slate-800 uppercase tracking-tight">Filter & Sortierung</h2>
-        <button onclick="toggleSidebar()" class="text-slate-400 hover:text-slate-800 transition-colors">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
-            </svg>
-        </button>
-    </div>
-
-    <div class="space-y-8">
-        <!-- Sortierung -->
-        <div>
-            <p class="text-[10px] font-black text-slate-400 uppercase mb-3 tracking-widest">Sortieren nach</p>
-            <div class="flex flex-col gap-2">
-                <select id="sortFactor" onchange="renderLibrary()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:border-blue-500 transition-all">
-                    <option value="added">Zuletzt hinzugefügt</option>
-                    <option value="number">Setnummer</option>
-                    <option value="price">Marktwert</option>
-                    <option value="pieces">Teileanzahl</option>
-                    <option value="year">Erscheinungsjahr</option>
-                </select>
-                <div class="flex gap-2">
-                    <button onclick="setSortDir('asc')" id="sortAsc" class="flex-1 py-2 rounded-xl border-2 font-bold transition-all border-slate-100 text-slate-400">▲</button>
-                    <button onclick="setSortDir('desc')" id="sortDesc" class="flex-1 py-2 rounded-xl border-2 font-bold transition-all border-blue-600 bg-blue-600 text-white shadow-md">▼</button>
-                </div>
-            </div>
+    <div id="filterSidebar" class="fixed top-0 right-0 h-full w-80 bg-white shadow-2xl p-6 translate-x-full overflow-y-auto">
+        <div class="flex justify-between items-center mb-8">
+            <h2 class="text-xl font-black text-slate-800 uppercase tracking-tight">Filter & Sortierung</h2>
+            <button onclick="toggleSidebar()" class="text-slate-400 hover:text-slate-800">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
         </div>
 
-        <!-- Filter-Sektion mit Doppel-Slidern -->
-        <div class="space-y-10">
-            <!-- Jahr Slider -->
+        <div class="space-y-8">
             <div>
-                <div class="flex justify-between mb-2">
-                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Jahr: <span id="labelYear" class="text-blue-600 font-bold">1970 - 2026</span></p>
-                </div>
-                <div class="range-container">
-                    <input type="range" id="yearMin" min="1970" max="2026" value="1970" oninput="updateSliderLabels(); renderLibrary()">
-                    <input type="range" id="yearMax" min="1970" max="2026" value="2026" oninput="updateSliderLabels(); renderLibrary()">
+                <p class="text-[10px] font-black text-slate-400 uppercase mb-3 tracking-widest">Sortieren nach</p>
+                <div class="flex flex-col gap-2">
+                    <select id="sortFactor" onchange="renderLibrary()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold outline-none">
+                        <option value="number">Setnummer</option>
+                        <option value="price" selected>Marktwert</option>
+                        <option value="pieces">Teileanzahl</option>
+                        <option value="year">Erscheinungsjahr</option>
+                    </select>
+                    <div class="flex gap-2">
+                        <button onclick="setSortDir('asc')" id="sortAsc" class="flex-1 py-2 rounded-xl border-2 font-bold transition-all border-slate-100 text-slate-400">▲</button>
+                        <button onclick="setSortDir('desc')" id="sortDesc" class="flex-1 py-2 rounded-xl border-2 font-bold transition-all border-blue-600 bg-blue-600 text-white shadow-md">▼</button>
+                    </div>
                 </div>
             </div>
 
-            <!-- Teile Slider -->
-            <div>
-                <div class="flex justify-between mb-2">
-                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Teile: <span id="labelPieces" class="text-blue-600 font-bold">0 - 10000</span></p>
+            <div class="space-y-6">
+                <div>
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Jahr bis: <span id="labelYear" class="text-blue-600">2026</span></p>
+                    <input type="range" id="rangeYear" min="1970" max="2026" value="2026" oninput="updateSliderLabels(); renderLibrary()">
                 </div>
-                <div class="range-container">
-                    <input type="range" id="piecesMin" min="0" max="10000" step="50" value="0" oninput="updateSliderLabels(); renderLibrary()">
-                    <input type="range" id="piecesMax" min="0" max="10000" step="50" value="10000" oninput="updateSliderLabels(); renderLibrary()">
+                <div>
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Teile bis: <span id="labelPieces" class="text-blue-600">10000</span></p>
+                    <input type="range" id="rangePieces" min="0" max="10000" step="50" value="10000" oninput="updateSliderLabels(); renderLibrary()">
                 </div>
-            </div>
-
-            <!-- Preis Slider -->
-            <div>
-                <div class="flex justify-between mb-2">
-                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Wert: <span id="labelPrice" class="text-blue-600 font-bold">0€ - 2000€</span></p>
-                </div>
-                <div class="range-container">
-                    <input type="range" id="priceMin" min="0" max="2000" step="10" value="0" oninput="updateSliderLabels(); renderLibrary()">
-                    <input type="range" id="priceMax" min="0" max="2000" step="10" value="2000" oninput="updateSliderLabels(); renderLibrary()">
+                <div>
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Max. Wert: <span id="labelPrice" class="text-blue-600">2000 €</span></p>
+                    <input type="range" id="rangePrice" min="0" max="2000" step="10" value="2000" oninput="updateSliderLabels(); renderLibrary()">
                 </div>
             </div>
+            <button onclick="resetFilters()" class="w-full py-3 rounded-xl border border-slate-200 text-xs font-bold text-slate-500 hover:bg-slate-50">Filter zurücksetzen</button>
         </div>
-
-        <button onclick="resetFilters()" class="w-full py-4 rounded-2xl border border-slate-200 text-[10px] font-black text-slate-500 uppercase tracking-widest hover:bg-slate-50 active:scale-95 transition-all">
-            Filter zurücksetzen
-        </button>
     </div>
-</div>
 
+    <!-- Bulk Action Bar -->
     <div id="actionBar" class="fixed bottom-0 left-0 right-0 z-[100] bg-blue-600 text-white p-4 shadow-2xl hidden md:top-0 md:bottom-auto">
         <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
             <div class="flex items-center gap-4">
@@ -176,12 +124,11 @@
                 <button onclick="clearSelection()" class="text-blue-100 hover:text-white text-xs underline">Abbrechen</button>
             </div>
             <div class="flex items-center gap-3">
-                <button onclick="refreshSelectedSets()" title="Alle Daten aktualisieren" class="p-2 bg-blue-500 hover:bg-blue-400 rounded-lg transition-colors border border-blue-400">
+                <button onclick="refreshSelectedSets()" title="Marktwerte aktualisieren" class="p-2 bg-blue-500 hover:bg-blue-400 rounded-lg transition-colors border border-blue-400">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 </button>
-                <div class="h-8 w-[1px] bg-blue-400 mx-1"></div>
                 <select id="bulkStatus" class="bg-blue-700 rounded-lg px-3 py-2 text-sm font-bold outline-none border-none">
-                    <option value="">Status...</option>
+                    <option value="">Status ändern...</option>
                     <option value="New">New</option>
                     <option value="Used">Used</option>
                 </select>
@@ -193,14 +140,12 @@
         </div>
     </div>
 
+    <!-- Header / Navigation -->
     <nav class="sticky top-0 z-50 glass mb-8 border-b border-slate-200">
         <div class="max-w-7xl mx-auto px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-200">
-                    <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                        <rect x="3" y="11" width="18" height="9" rx="2" />
-                    </svg>
+                    <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 11V7a5 5 0 0 1 10 0v4"/><rect x="3" y="11" width="18" height="9" rx="2"/></svg>
                 </div>
                 <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">BRIX JUST<span class="text-blue-600">4SEAN™</span></h1>
             </div>
@@ -208,15 +153,15 @@
             <div class="flex gap-6 text-center">
                 <div><p class="text-[10px] uppercase font-black text-slate-400">Sets</p><p id="statSets" class="font-bold text-slate-800">0</p></div>
                 <div><p class="text-[10px] uppercase font-black text-slate-400">Teile</p><p id="statParts" class="font-bold text-slate-800">0</p></div>
-                <div><p class="text-[10px] uppercase font-black text-slate-400">Sammlungswert</p><p id="statValue" class="font-bold text-blue-600">0.00 €</p></div>
+                <div><p class="text-[10px] uppercase font-black text-slate-400">Gesamtwert</p><p id="statValue" class="font-bold text-blue-600">0.00 €</p></div>
             </div>
 
             <div class="flex flex-col gap-2 items-center">
                 <div class="flex gap-2">
                     <button onclick="toggleSidebar()" class="flex items-center gap-2 px-4 py-2 bg-slate-800 text-white rounded-xl text-xs font-black hover:bg-slate-700 transition-all shadow-lg">
-    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
-    FILTER & SORTIERUNG
-</button>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+                        FILTER & SORTIERUNG
+                    </button>
                     <button onclick="selectAllVisible()" title="Alle auswählen" class="p-2 hover:bg-slate-100 rounded-xl transition-colors">
                         <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
                     </button>
@@ -228,56 +173,45 @@
                         <input type="file" id="importFile" class="hidden" accept=".json" onchange="importCollection(event)">
                     </label>
                 </div>
-                <div class="flex flex-col sm:flex-row gap-2 w-full">
-                    <select id="filterCategory" onchange="renderLibrary()" class="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold outline-none">
-                        <option value="all">Alle Themen</option>
-                    </select>
-                    <select id="filterSecondary" onchange="renderLibrary()" class="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold outline-none">
-                        <option value="all">Kein Zusatzfilter</option>
-                        <optgroup label="Zustand">
-                            <option value="status-New">Zustand: New</option>
-                            <option value="status-Used">Zustand: Used</option>
-                        </optgroup>
-                        <optgroup label="Jahr" id="filterYearGroup"></optgroup>
-                    </select>
-                    <input type="text" id="searchLibrary" oninput="renderLibrary()" placeholder="Suchen..." class="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs outline-none flex-1">
-                </div>
             </div>
         </div>
     </nav>
 
+    <!-- Suche / Add Bereich -->
     <main class="max-w-7xl mx-auto px-6">
-       <div class="max-w-2xl mx-auto mb-10 px-2">
+        <div class="max-w-2xl mx-auto mb-10 px-2">
             <div class="bg-white p-1 rounded-full shadow-lg flex items-center border border-slate-200">
-                <input type="text" id="barcodeInput" autofocus 
-                       class="flex-1 pl-4 md:pl-6 pr-2 py-2 md:py-3 rounded-full text-sm md:text-base outline-none min-w-0" 
-                       placeholder="Set-Nr/Barcode"
-                       onkeydown="if(event.key === 'Enter') fetchSets()"> 
-                <button onclick="fetchSets()" class="bg-blue-600 text-white font-bold px-4 py-2 md:px-6 md:py-3 rounded-full active:scale-95 transition-all text-xs md:text-sm whitespace-nowrap ml-1">
-                    Hinzufügen
-                </button>
+                <input type="text" id="barcodeInput" autofocus class="flex-1 pl-6 pr-2 py-3 rounded-full text-base outline-none min-w-0" placeholder="Set-Nr oder Barcode eingeben..." onkeydown="if(event.key === 'Enter') fetchSets()"> 
+                <button onclick="fetchSets()" class="bg-blue-600 text-white font-bold px-6 py-3 rounded-full active:scale-95 transition-all text-sm whitespace-nowrap ml-1">Hinzufügen</button>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-2 mt-4">
+                <select id="filterCategory" onchange="renderLibrary()" class="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold outline-none flex-1">
+                    <option value="all">Alle Themen</option>
+                </select>
+                <input type="text" id="searchLibrary" oninput="renderLibrary()" placeholder="Sammlung durchsuchen..." class="bg-white border border-slate-200 rounded-xl px-4 py-2 text-xs outline-none flex-[2]">
             </div>
             <p id="apiStatus" class="mt-3 text-center text-[10px] font-black text-slate-400 uppercase italic">Bereit</p>
         </div>
+
+        <!-- Library Grid -->
         <div id="library" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"></div>
     </main>
 
-   <div id="duplicateModal" class="fixed inset-0 flex items-end md:items-center justify-center">
-    <div class="bg-white w-full max-w-md rounded-t-[2rem] md:rounded-[2rem] p-6 shadow-2xl">
-            <h3 class="text-2xl font-black text-slate-800 mb-2">Set bereits vorhanden!</h3>
-            <p class="text-slate-500 text-sm mb-6 font-medium">Möchtest du weitere Exemplare von Set <span id="dupSetNum" class="font-black text-blue-600"></span> zur Sammlung hinzufügen?</p>
-            
+    <!-- Modals -->
+    <div id="duplicateModal" class="fixed inset-0 flex items-end md:items-center justify-center">
+        <div class="bg-white w-full max-w-md rounded-t-[2rem] md:rounded-[2rem] p-6 shadow-2xl">
+            <h3 class="text-2xl font-black text-slate-800 mb-2">Bereits vorhanden!</h3>
+            <p class="text-slate-500 text-sm mb-6 font-medium">Set <span id="dupSetNum" class="font-black text-blue-600"></span> ist schon in der Liste.</p>
             <div class="space-y-4 mb-8">
                 <div class="bg-blue-50 p-4 rounded-2xl border border-blue-100">
-                    <p class="text-[10px] font-black text-blue-600 uppercase mb-1 italic">+ Anzahl Neu</p>
+                    <p class="text-[10px] font-black text-blue-600 uppercase mb-1">+ Anzahl Neu</p>
                     <input type="number" id="dupAddNew" value="0" min="0" class="bg-transparent font-bold text-blue-800 w-full outline-none text-xl">
                 </div>
                 <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
-                    <p class="text-[10px] font-black text-slate-500 uppercase mb-1 italic">+ Anzahl Gebraucht</p>
+                    <p class="text-[10px] font-black text-slate-500 uppercase mb-1">+ Anzahl Gebraucht</p>
                     <input type="number" id="dupAddUsed" value="0" min="0" class="bg-transparent font-bold text-slate-800 w-full outline-none text-xl">
                 </div>
             </div>
-
             <div class="flex gap-3">
                 <button onclick="closeDuplicateModal()" class="flex-1 py-3 rounded-xl font-bold text-slate-400 hover:bg-slate-100 transition-all">Abbrechen</button>
                 <button onclick="confirmAddDuplicate()" class="flex-[2] bg-blue-600 text-white py-3 rounded-xl font-bold shadow-lg hover:bg-blue-700 transition-all">Hinzufügen</button>
@@ -286,122 +220,68 @@
     </div>
 
     <div id="detailModal" class="fixed inset-0 flex items-end md:items-center justify-center">
-    <div class="bg-white w-full max-w-4xl h-[90vh] md:h-auto md:rounded-[2rem] rounded-t-[2rem] overflow-hidden flex flex-col md:flex-row relative">
+        <div class="bg-white w-full max-w-4xl h-[90vh] md:h-auto md:rounded-[2rem] rounded-t-[2rem] overflow-hidden flex flex-col md:flex-row relative">
             <button onclick="closeModal()" class="absolute top-6 right-6 text-slate-400 hover:text-slate-600 z-10"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
             <div class="md:w-2/5 bg-slate-50 p-8 flex flex-col items-center justify-center border-r border-slate-100">
                 <img id="modalImg" src="" class="max-h-64 object-contain drop-shadow-2xl mb-8">
-                <div class="w-full text-center md:text-left">
+                <div class="w-full text-center">
                     <p class="text-xs font-black text-blue-600 uppercase tracking-widest" id="modalTheme"></p>
                     <h2 class="text-2xl font-extrabold text-slate-800" id="modalName"></h2>
                     <p class="text-slate-400 font-bold mt-1" id="modalId"></p>
                 </div>
             </div>
-            <div class="md:w-3/5 p-8 pt-12 space-y-6 overflow-y-auto max-h-[90vh]">
+            <div class="md:w-3/5 p-8 space-y-6 overflow-y-auto">
                 <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-slate-50 p-4 rounded-2xl">
-                        <p class="text-[10px] font-black text-slate-400 uppercase">Barcode / EAN</p>
-                        <input type="text" id="editEan" class="bg-transparent font-bold text-slate-800 w-full outline-none" placeholder="-">
+                    <div class="bg-slate-50 p-3 rounded-xl">
+                        <p class="text-[10px] font-black text-slate-400 uppercase">EAN / Barcode</p>
+                        <input type="text" id="editEan" class="bg-transparent font-bold text-slate-800 w-full outline-none">
                     </div>
-                    <div class="bg-slate-50 p-4 rounded-2xl">
+                    <div class="bg-slate-50 p-3 rounded-xl">
                         <p class="text-[10px] font-black text-slate-400 uppercase">UVP Preis (€)</p>
                         <input type="number" id="editRetailPrice" step="0.01" class="bg-transparent font-bold text-slate-800 w-full outline-none">
                     </div>
-                    <div class="bg-slate-50 p-4 rounded-2xl">
-                        <p class="text-[10px] font-black text-slate-400 uppercase">Erscheinungsjahr</p>
-                        <input type="number" id="editYear" class="bg-transparent font-bold text-slate-800 w-full outline-none" placeholder="z.B. 2023">
+                    <div class="bg-slate-50 p-3 rounded-xl">
+                        <p class="text-[10px] font-black text-slate-400 uppercase">Jahr</p>
+                        <input type="number" id="editYear" class="bg-transparent font-bold text-slate-800 w-full outline-none">
                     </div>
-                    <div class="bg-slate-50 p-4 rounded-2xl">
-                        <p class="text-[10px] font-black text-slate-400 uppercase">Teileanzahl</p>
-                        <input type="number" id="editPieces" class="bg-transparent font-bold text-slate-800 w-full outline-none" placeholder="0">
+                    <div class="bg-slate-50 p-3 rounded-xl">
+                        <p class="text-[10px] font-black text-slate-400 uppercase">Teile</p>
+                        <input type="number" id="editPieces" class="bg-transparent font-bold text-slate-800 w-full outline-none">
                     </div>
-                    <div class="bg-blue-50 p-4 rounded-2xl border border-blue-100 col-span-2">
-                        <p class="text-[10px] font-black text-blue-500 uppercase">Marktwert (€)</p>
-                        <input type="number" id="editCurrentValue" step="0.01" class="bg-transparent font-bold text-blue-700 w-full outline-none text-xl">
+                    <div class="bg-blue-50 p-4 rounded-xl col-span-2">
+                        <p class="text-[10px] font-black text-blue-500 uppercase">Zentraler Marktwert (€)</p>
+                        <input type="number" id="editCurrentValue" step="0.01" class="bg-transparent font-bold text-blue-700 w-full outline-none text-xl" oninput="refreshModalCalculation()">
                     </div>
-                    <div class="bg-slate-50 p-4 rounded-2xl col-span-2">
-                        <p class="text-[10px] font-black text-slate-400 uppercase">Subtheme (Tags)</p>
-                        <input type="text" id="editSubtheme" class="bg-transparent font-bold text-slate-800 w-full outline-none" placeholder="z.B. UCS, Modular...">
-                    </div>
-                    <div class="bg-blue-50 p-4 rounded-2xl border border-blue-200">
-                        <p class="text-[10px] font-black text-blue-600 uppercase">Anzahl Neu</p>
+                    <div class="bg-blue-100 p-3 rounded-xl">
+                        <p class="text-[10px] font-black text-blue-600 uppercase">Menge Neu</p>
                         <input type="number" id="editQtyNew" min="0" oninput="refreshModalCalculation()" class="bg-transparent font-bold text-blue-800 w-full outline-none">
                     </div>
-                    <div class="bg-slate-100 p-4 rounded-2xl border border-slate-200">
-                        <p class="text-[10px] font-black text-slate-500 uppercase">Anzahl Gebraucht</p>
+                    <div class="bg-slate-200 p-3 rounded-xl">
+                        <p class="text-[10px] font-black text-slate-500 uppercase">Menge Gebraucht</p>
                         <input type="number" id="editQtyUsed" min="0" oninput="refreshModalCalculation()" class="bg-transparent font-bold text-slate-800 w-full outline-none">
                     </div>
                 </div>
-
-                <div class="bg-slate-50 rounded-2xl p-5 border border-slate-200">
-                    <p class="text-[10px] font-black text-slate-400 uppercase mb-4 tracking-widest text-center">Wert-Analyse dieses Sets</p>
-                    <div class="space-y-3">
-                        <div class="flex justify-between items-center text-sm">
-                            <span class="text-slate-500">Neu (<span id="calcQtyNew">0</span>x):</span>
-                            <span class="font-bold text-blue-600" id="calcValNew">0.00 €</span>
-                        </div>
-                        <div class="flex justify-between items-center text-sm">
-                            <span class="text-slate-500">Gebraucht (<span id="calcQtyUsed">0</span>x):</span>
-                            <span class="font-bold text-slate-700" id="calcValUsed">0.00 €</span>
-                        </div>
-                        <div class="h-px bg-slate-200 my-2"></div>
-                        <div class="flex justify-between items-center">
-                            <span class="font-black text-slate-800 uppercase text-xs">Gesamtwert Set:</span>
-                            <span class="font-black text-blue-600 text-xl" id="calcTotal">0.00 €</span>
-                        </div>
-                    </div>
+                <div class="bg-slate-800 text-white p-5 rounded-2xl">
+                    <div class="flex justify-between items-center"><span class="text-xs uppercase opacity-60">Wert Neu:</span><span id="calcValNew" class="font-bold text-blue-400">0.00 €</span></div>
+                    <div class="flex justify-between items-center"><span class="text-xs uppercase opacity-60">Wert Used:</span><span id="calcValUsed" class="font-bold text-slate-300">0.00 €</span></div>
+                    <div class="h-px bg-slate-700 my-2"></div>
+                    <div class="flex justify-between items-center"><span class="font-black uppercase">Gesamtwert:</span><span id="calcTotal" class="text-xl font-black text-white">0.00 €</span></div>
                 </div>
-
-                <div>
-                    <p class="text-[10px] font-black text-slate-400 uppercase mb-3">Zustand (Fokus ändern)</p>
-                    <div class="flex gap-3">
-                        <button onclick="updateStatusAndQty('New')" id="btnNew" class="flex-1 py-3 rounded-xl border-2 font-bold transition-all">New</button>
-                        <button onclick="updateStatusAndQty('Used')" id="btnUsed" class="flex-1 py-3 rounded-xl border-2 font-bold transition-all">Used</button>
-                    </div>
+                <div class="flex gap-2">
+                    <button onclick="updateStatusAndQty('New')" id="btnNew" class="flex-1 py-3 rounded-xl border-2 font-bold">Setze Fokus: New</button>
+                    <button onclick="updateStatusAndQty('Used')" id="btnUsed" class="flex-1 py-3 rounded-xl border-2 font-bold">Setze Fokus: Used</button>
                 </div>
-                <button onclick="saveDetails()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold shadow-lg hover:bg-blue-700 transition-all">Änderungen speichern</button>
+                <button onclick="saveDetails()" class="w-full bg-blue-600 text-white py-4 rounded-xl font-black shadow-lg hover:bg-blue-700 transition-all uppercase tracking-widest">Speichern</button>
             </div>
         </div>
     </div>
 
     <button id="scrollTopBtn" onclick="scrollToTop()" class="fixed bottom-8 right-8 z-[70] glass p-4 rounded-2xl shadow-xl text-blue-600 border border-blue-100">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
-        </svg>
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
     </button>
 
     <script>
-        let currentSortDir = 'desc'; // Standard: Absteigend
-
-function toggleSidebar() {
-    document.getElementById('filterSidebar').classList.toggle('sidebar-open');
-}
-        
-function setSortDir(dir) {
-    currentSortDir = dir;
-    // Visuelle Umschaltung der Piktogramm-Buttons
-    document.getElementById('sortAsc').className = dir === 'asc' ? "flex-1 py-2 rounded-xl border-2 font-bold bg-blue-600 text-white border-blue-600" : "flex-1 py-2 rounded-xl border-2 font-bold bg-white text-slate-400 border-slate-100";
-    document.getElementById('sortDesc').className = dir === 'desc' ? "flex-1 py-2 rounded-xl border-2 font-bold bg-blue-600 text-white border-blue-600" : "flex-1 py-2 rounded-xl border-2 font-bold bg-white text-slate-400 border-slate-100";
-    renderLibrary();
-}
-
-function updateSliderLabels() {
-    const yMin = document.getElementById('yearMin').value;
-    const yMax = document.getElementById('yearMax').value;
-    document.getElementById('labelYear').innerText = `${yMin} - ${yMax}`;
-    
-    // Logik: Min darf nicht größer als Max sein
-    if(parseInt(yMin) > parseInt(yMax)) { document.getElementById('yearMin').value = yMax; }
-    
-    // (Gleiches für Price und Pieces einfügen...)
-}
-
-function resetFilters() {
-    document.getElementById('rangeYear').value = 2026;
-    document.getElementById('rangePieces').value = 10000;
-    document.getElementById('rangePrice').value = 2000;
-    updateSliderLabels();
-    renderLibrary();
-}
+        // API & State
         const API_KEY_BRICKSET = '3-N4Lr-Ug0H-M49ki';
         const API_KEY_REBRICKABLE = '74d1510666ec62fef948d197af293799';
         
@@ -409,311 +289,123 @@ function resetFilters() {
         let selectedSets = new Set();
         let currentEditId = null;
         let currentStatus = "New";
-        let tempDupId = null;
+        let currentSortDir = 'desc';
 
-        window.onscroll = function() {
-            const btn = document.getElementById("scrollTopBtn");
-            if (document.body.scrollTop > 400 || document.documentElement.scrollTop > 400) {
-                btn.style.display = "block";
-            } else {
-                btn.style.display = "none";
-            }
-        };
-
-        window.addEventListener('click', function(event) {
-            const detailModal = document.getElementById('detailModal');
-            const duplicateModal = document.getElementById('duplicateModal');
-            if (event.target === detailModal) closeModal();
-            if (event.target === duplicateModal) closeDuplicateModal();
-        });
-
-        function scrollToTop() {
-            window.scrollTo({top: 0, behavior: 'smooth'});
+        // --- Core Functions ---
+        function toggleSidebar() { document.getElementById('filterSidebar').classList.toggle('sidebar-open'); }
+        function scrollToTop() { window.scrollTo({top: 0, behavior: 'smooth'}); }
+        function setSortDir(dir) {
+            currentSortDir = dir;
+            document.getElementById('sortAsc').className = dir === 'asc' ? "flex-1 py-2 rounded-xl border-2 font-bold bg-blue-600 text-white border-blue-600 shadow-md" : "flex-1 py-2 rounded-xl border-2 font-bold bg-white text-slate-400 border-slate-100";
+            document.getElementById('sortDesc').className = dir === 'desc' ? "flex-1 py-2 rounded-xl border-2 font-bold bg-blue-600 text-white border-blue-600 shadow-md" : "flex-1 py-2 rounded-xl border-2 font-bold bg-white text-slate-400 border-slate-100";
+            renderLibrary();
+        }
+        function updateSliderLabels() {
+            document.getElementById('labelYear').innerText = document.getElementById('rangeYear').value;
+            document.getElementById('labelPieces').innerText = document.getElementById('rangePieces').value;
+            document.getElementById('labelPrice').innerText = document.getElementById('rangePrice').value + " €";
+        }
+        function resetFilters() {
+            document.getElementById('rangeYear').value = 2026;
+            document.getElementById('rangePieces').value = 10000;
+            document.getElementById('rangePrice').value = 2000;
+            updateSliderLabels();
+            renderLibrary();
         }
 
-        function exportCollection() {
-            const dataStr = JSON.stringify(mySets, null, 2);
-            const blob = new Blob([dataStr], { type: "application/json" });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.href = url;
-            link.download = `brix-collection-${new Date().toISOString().split('T')[0]}.json`;
-            link.click();
-            URL.revokeObjectURL(url);
-        }
-
-        function importCollection(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const imported = JSON.parse(e.target.result);
-                    if (Array.isArray(imported)) {
-                        const existingIds = new Set(mySets.map(s => s.setNumber));
-                        const newItems = imported.filter(s => !existingIds.has(s.setNumber));
-                        mySets = [...newItems, ...mySets];
-                        saveAndRender();
-                        updateStatus(`${newItems.length} Sets importiert`, "text-green-600");
-                    }
-                } catch (err) { updateStatus("Import fehlgeschlagen", "text-red-600"); }
-            };
-            reader.readAsText(file);
-        }
-
+        // --- API & Scraper ---
         async function scrapeBricksetData(setNum) {
-            let results = { rrp: 0, valNew: 0, valUsed: 0 };
+            let res = { rrp: 0, valNew: 0, valUsed: 0 };
             try {
-                const fullId = setNum.includes('-') ? setNum : `${setNum}-1`;
-                const proxyUrl = `https://corsproxy.io/?${encodeURIComponent('https://brickset.com/sets/' + fullId)}`;
-                const response = await fetch(proxyUrl);
-                const html = await response.text();
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                
-                const dts = doc.querySelectorAll('dt');
-                for (let dt of dts) {
+                const url = `https://corsproxy.io/?${encodeURIComponent('https://brickset.com/sets/' + (setNum.includes('-') ? setNum : setNum + '-1'))}`;
+                const html = await (await fetch(url)).text();
+                const doc = new DOMParser().parseFromString(html, 'text/html');
+                doc.querySelectorAll('dt').forEach(dt => {
                     const label = dt.innerText.trim();
                     const dd = dt.nextElementSibling;
-                    if (!dd) continue;
                     if (label === "RRP") {
-                        const deMatch = dd.innerText.match(/(\d+[\.,]\d{2})€/);
-                        if (deMatch) results.rrp = parseFloat(deMatch[1].replace(',', '.'));
-                        else {
-                            const genMatch = dd.innerText.match(/(\d+[\.,]\d{2})/);
-                            if (genMatch) results.rrp = parseFloat(genMatch[1].replace(',', '.'));
-                        }
+                        const m = dd.innerText.match(/(\d+[\.,]\d{2})/);
+                        if (m) res.rrp = parseFloat(m[1].replace(',', '.'));
                     }
                     if (label === "Current value") {
-                        const text = dd.innerHTML;
-                        const newMatch = text.match(/New:.*?~€(\d+)/);
-                        const usedMatch = text.match(/Used:.*?~€(\d+)/);
-                        if (newMatch) results.valNew = parseFloat(newMatch[1]);
-                        if (usedMatch) results.valUsed = parseFloat(usedMatch[1]);
+                        const n = dd.innerHTML.match(/New:.*?~€(\d+)/);
+                        const u = dd.innerHTML.match(/Used:.*?~€(\d+)/);
+                        if (n) res.valNew = parseFloat(n[1]);
+                        if (u) res.valUsed = parseFloat(u[1]);
                     }
-                }
-            } catch (e) { console.error("Scraper Error:", e); }
-            return results;
-        }
-
-        function extractRRP(s) {
-            const parsePrice = (val) => {
-                if (!val) return 0;
-                const parsed = parseFloat(String(val).replace(',', '.'));
-                return isNaN(parsed) ? 0 : parsed;
-            };
-            let p = parsePrice(s.retailPrice);
-            if (p > 0) return p;
-            const regions = ['DE', 'UK', 'US'];
-            for (let r of regions) {
-                if (s.LEGOCom?.[r]?.retailPrice) {
-                    p = parsePrice(s.LEGOCom[r].retailPrice);
-                    if (p > 0) return p;
-                }
-            }
-            return 0;
-        }
-
-        async function fetchFromRebrickable(query) {
-            const setNum = query.includes('-') ? query : `${query}-1`;
-            try {
-                const res = await fetch(`https://rebrickable.com/api/v3/lego/sets/${setNum}/`, {
-                    headers: { 'Authorization': `key ${API_KEY_REBRICKABLE}`, 'Accept': 'application/json' }
                 });
-                if(!res.ok) throw new Error();
-                const data = await res.json();
-                return {
-                    setNumber: query,
-                    name: data.name || "Unbekanntes Set",
-                    pieces: data.num_parts || 0,
-                    year: data.year || 0,
-                    theme: "LEGO",
-                    subtheme: "",
-                    ean: "",
-                    image: data.set_img_url || '',
-                    price: 0, currentValue: 0, valNew: 0, valUsed: 0, status: "New",
-                    qtyNew: 1, qtyUsed: 0
-                };
-            } catch (e) { return null; }
+            } catch (e) { console.error("Scraper Error", e); }
+            return res;
         }
 
-       async function fetchSets() {
+        async function fetchSets() {
             const input = document.getElementById('barcodeInput');
             const query = input.value.trim();
             if (!query) return;
 
-            const existingSet = mySets.find(x => x.setNumber === query || x.ean === query);
-            if(existingSet) {
-                openDuplicateModal(existingSet.setNumber);
-                input.value = ''; 
-                return;
+            if (mySets.find(x => x.setNumber === query || x.ean === query)) {
+                openDuplicateModal(query); input.value = ''; return;
             }
 
             updateStatus("Suche läuft...", "text-blue-500 animate-pulse");
-            let newSetObj = null;
             try {
                 const params = JSON.stringify({ query: query, pageSize: 1, extendedData: 1 });
-                const url = `https://corsproxy.io/?${encodeURIComponent('https://brickset.com/api/v3.asmx/getSets?apiKey=' + API_KEY_BRICKSET + '&userHash=&params=' + params)}`;
-                const res = await fetch(url);
-                const data = await res.json();
+                const url = `https://corsproxy.io/?${encodeURIComponent('https://brickset.com/api/v3.asmx/getSets?apiKey='+API_KEY_BRICKSET+'&userHash=&params='+params)}`;
+                const data = await (await fetch(url)).json();
                 
                 if (data.status === "success" && data.matches > 0) {
                     const s = data.sets[0];
-                    newSetObj = {
+                    const scraped = await scrapeBricksetData(s.number);
+                    const newSet = {
                         setNumber: String(s.number),
-                        name: s.name, 
-                        pieces: s.pieces || 0, 
-                        year: s.year || 0,
-                        theme: s.theme, 
-                        subtheme: s.subtheme || "",
-                        ean: query.length >= 11 ? query : "", 
-                        image: s.image?.imageURL || '', 
-                        price: extractRRP(s), 
-                        currentValue: 0, 
-                        valNew: 0, 
-                        valUsed: 0, 
-                        status: "New",
-                        qtyNew: 1, 
-                        qtyUsed: 0
+                        name: s.name, pieces: s.pieces || 0, year: s.year || 0,
+                        theme: s.theme, subtheme: s.subtheme || "",
+                        ean: query.length > 10 ? query : "",
+                        image: s.image?.imageURL || '',
+                        price: scraped.rrp || 0, valNew: scraped.valNew || 0, valUsed: scraped.valUsed || 0,
+                        currentValue: scraped.valNew || scraped.rrp || 0,
+                        status: "New", qtyNew: 1, qtyUsed: 0
                     };
-                } else {
-                    newSetObj = await fetchFromRebrickable(query);
-                    if (newSetObj && query.length >= 11) newSetObj.ean = query;
-                }
-
-                if (newSetObj) {
-                    const scraped = await scrapeBricksetData(newSetObj.setNumber);
-                    if (newSetObj.price === 0) newSetObj.price = scraped.rrp;
-                    if (newSetObj.year === 0) newSetObj.year = scraped.year;
-                    if (newSetObj.pieces === 0) newSetObj.pieces = scraped.pieces;
-                    newSetObj.valNew = scraped.valNew;
-                    newSetObj.valUsed = scraped.valUsed;
-                    newSetObj.currentValue = scraped.valNew > 0 ? scraped.valNew : 0;
-                }
-            } catch (e) { console.error(e); }
-
-            if (newSetObj) {
-                mySets.unshift(newSetObj);
-                saveAndRender(); 
-                input.value = ''; 
-                updateStatus("Hinzugefügt!", "text-green-600");
-            } else { 
-                updateStatus("Nicht gefunden.", "text-red-600");
-                input.value = ''; 
-            }
+                    mySets.unshift(newSet);
+                    saveAndRender();
+                    updateStatus("Hinzugefügt!", "text-green-600");
+                } else { updateStatus("Nicht gefunden", "text-red-500"); }
+            } catch (e) { updateStatus("Fehler", "text-red-500"); }
+            input.value = '';
         }
 
-        function openDuplicateModal(id) {
-            tempDupId = id;
-            document.getElementById('dupSetNum').innerText = id;
-            document.getElementById('dupAddNew').value = 0;
-            document.getElementById('dupAddUsed').value = 0;
-            document.getElementById('duplicateModal').style.display = 'flex';
-        }
-
-        function closeDuplicateModal() {
-            document.getElementById('duplicateModal').style.display = 'none';
-            document.getElementById('dupAddNew').value = 0;
-            document.getElementById('dupAddUsed').value = 0;
-            tempDupId = null;
-        }
-
-        function confirmAddDuplicate() {
-            const s = mySets.find(x => x.setNumber === tempDupId);
-            if(s) {
-                const addN = parseInt(document.getElementById('dupAddNew').value) || 0;
-                const addU = parseInt(document.getElementById('dupAddUsed').value) || 0;
-                s.qtyNew = (parseInt(s.qtyNew) || 0) + addN;
-                s.qtyUsed = (parseInt(s.qtyUsed) || 0) + addU;
-                saveAndRender();
-                updateStatus(`${addN + addU} Exemplare hinzugefügt`, "text-blue-600");
-            }
-            closeDuplicateModal();
-        }
-
-        async function refreshSelectedSets() {
-            updateStatus("Vollständiges Update...", "text-blue-600 animate-pulse");
-            for (let id of selectedSets) {
-                const s = mySets.find(x => x.setNumber === id);
-                if (!s) continue;
-                
-                try {
-                    const params = JSON.stringify({ query: s.setNumber, pageSize: 1, extendedData: 1 });
-                    const url = `https://corsproxy.io/?${encodeURIComponent('https://brickset.com/api/v3.asmx/getSets?apiKey=' + API_KEY_BRICKSET + '&userHash=&params=' + params)}`;
-                    const res = await fetch(url);
-                    const data = await res.json();
-                    if (data.status === "success" && data.matches > 0) {
-                        const apiSet = data.sets[0];
-                        s.year = apiSet.year || s.year;
-                        s.pieces = apiSet.pieces || s.pieces;
-                        s.price = extractRRP(apiSet) || s.price;
-                    }
-                } catch(e) {}
-
-                const scraped = await scrapeBricksetData(s.setNumber);
-                if (scraped.rrp > 0) s.price = scraped.rrp;
-                if (scraped.year > 0) s.year = scraped.year;
-                if (scraped.pieces > 0) s.pieces = scraped.pieces;
-                
-                // Wichtiger Fix: Marktwerte überschreiben
-                s.valNew = scraped.valNew > 0 ? scraped.valNew : s.valNew;
-                s.valUsed = scraped.valUsed > 0 ? scraped.valUsed : s.valUsed;
-                
-                // Aktuellen Marktwert basierend auf Status setzen
-                if (s.status === 'New') {
-                    s.currentValue = s.valNew > 0 ? s.valNew : s.currentValue;
-                } else {
-                    s.currentValue = s.valUsed > 0 ? s.valUsed : s.currentValue;
-                }
-            }
-            saveAndRender(); clearSelection();
-            updateStatus("Daten aktualisiert", "text-slate-400");
-        }
-
+        // --- UI Rendering ---
         function renderLibrary() {
-    const term = document.getElementById('searchLibrary').value.toLowerCase();
-    const cat = document.getElementById('filterCategory').value;
-    
-    // Werte von beiden Slider-Punkten
-    const yMin = parseInt(document.getElementById('yearMin').value);
-    const yMax = parseInt(document.getElementById('yearMax').value);
+            const term = document.getElementById('searchLibrary').value.toLowerCase();
+            const cat = document.getElementById('filterCategory').value;
+            const maxY = parseInt(document.getElementById('rangeYear').value);
+            const maxPi = parseInt(document.getElementById('rangePieces').value);
+            const maxPr = parseFloat(document.getElementById('rangePrice').value);
 
-    let filtered = mySets.filter(s => {
-        const matchSearch = s.name.toLowerCase().includes(term) || s.setNumber.includes(term);
-        const matchCat = (cat === "all" || s.theme === cat);
-        // Von-Bis Filterung
-        const matchYear = (s.year >= yMin && s.year <= yMax);
-        
-        return matchSearch && matchCat && matchYear;
-    });
+            let filtered = mySets.filter(s => {
+                const matchSearch = s.name.toLowerCase().includes(term) || s.setNumber.includes(term);
+                const matchCat = (cat === "all" || s.theme === cat);
+                const matchY = (s.year || 0) <= maxY;
+                const matchPi = (s.pieces || 0) <= maxPi;
+                const matchPr = (s.currentValue || 0) <= maxPr;
+                return matchSearch && matchCat && matchY && matchPi && matchPr;
+            });
 
-    const factor = document.getElementById('sortFactor').value;
-    filtered.sort((a, b) => {
-        let valA, valB;
-        if (factor === 'added') return currentSortDir === 'desc' ? 1 : -1; // "Zuletzt hinzugefügt" nutzt die Array-Reihenfolge
-        
-        if (factor === 'number') { valA = a.setNumber; valB = b.setNumber; }
-        else if (factor === 'price') { valA = a.currentValue || 0; valB = b.currentValue || 0; }
-        // ... restliche Faktoren
-        
-        return currentSortDir === 'asc' ? (valA > valB ? 1 : -1) : (valA < valB ? 1 : -1);
-    });
-            
+            const factor = document.getElementById('sortFactor').value;
+            filtered.sort((a, b) => {
+                let vA = (factor === 'number') ? a.setNumber : (factor === 'price' ? a.currentValue : (factor === 'pieces' ? a.pieces : a.year));
+                let vB = (factor === 'number') ? b.setNumber : (factor === 'price' ? b.currentValue : (factor === 'pieces' ? b.pieces : b.year));
+                return currentSortDir === 'asc' ? (vA > vB ? 1 : -1) : (vA < vB ? 1 : -1);
+            });
+
             document.getElementById('library').innerHTML = filtered.map(set => `
                 <div onclick="openModal('${set.setNumber}')" class="set-card bg-white rounded-[2rem] shadow-lg border border-slate-100 overflow-hidden">
                     <input type="checkbox" ${selectedSets.has(set.setNumber) ? 'checked' : ''} onclick="toggleSelection('${set.setNumber}', event)" class="select-checkbox absolute top-5 left-5 z-20 w-5 h-5 rounded-md accent-blue-600">
-                    <button onclick="deleteSet('${set.setNumber}', event)" class="absolute top-4 right-4 z-20 p-2 bg-red-50 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                    </button>
                     <div class="h-48 flex items-center justify-center p-6 relative">
                         <img src="${set.image}" class="max-h-full object-contain drop-shadow-xl" onerror="this.src='https://via.placeholder.com/150'">
                         <div class="absolute bottom-2 right-4 flex gap-1">
-                            ${(set.qtyNew || 0) > 0 ? `<div class="bg-blue-600 text-white text-[9px] font-black w-5 h-5 flex items-center justify-center rounded-full shadow-lg border-2 border-white">${set.qtyNew}</div>` : ''}
-                            ${(set.qtyUsed || 0) > 0 ? `<div class="bg-slate-400 text-white text-[9px] font-black w-5 h-5 flex items-center justify-center rounded-full shadow-lg border-2 border-white">${set.qtyUsed}</div>` : ''}
-                        </div>
-                        <div class="absolute bottom-2 left-4 flex gap-1 flex-wrap pr-4">
-                            <span class="text-[8px] font-bold px-2 py-0.5 rounded-full ${set.status === 'New' ? 'bg-blue-600' : 'bg-slate-700'} text-white uppercase">${set.status}</span>
-                            ${set.subtheme ? `<span class="text-[8px] px-2 py-0.5 rounded-full ${getSubthemeClass(set.subtheme)}">${set.subtheme}</span>` : ''}
+                            ${(set.qtyNew > 0) ? `<div class="bg-blue-600 text-white text-[9px] font-black w-5 h-5 flex items-center justify-center rounded-full border-2 border-white">${set.qtyNew}</div>` : ''}
+                            ${(set.qtyUsed > 0) ? `<div class="bg-slate-400 text-white text-[9px] font-black w-5 h-5 flex items-center justify-center rounded-full border-2 border-white">${set.qtyUsed}</div>` : ''}
                         </div>
                     </div>
                     <div class="p-6 pt-2">
@@ -725,7 +417,7 @@ function resetFilters() {
                         <div class="flex justify-between items-end border-t mt-4 pt-4">
                             <div class="text-[10px] text-slate-400 font-bold uppercase">
                                 <p class="text-slate-700">#${set.setNumber}</p>
-                                <p class="${set.price === 0 ? 'text-red-500 font-black' : ''}">UVP: ${parseFloat(set.price || 0).toFixed(2)} €</p>
+                                <p>UVP: ${parseFloat(set.price || 0).toFixed(2)} €</p>
                             </div>
                             <div class="text-right">
                                 <p class="text-[9px] font-black text-slate-300 uppercase">Marktwert</p>
@@ -737,76 +429,48 @@ function resetFilters() {
             updateStats();
         }
 
-        function selectAllVisible() {
-            const term = document.getElementById('searchLibrary').value.toLowerCase();
-            const cat = document.getElementById('filterCategory').value;
-            const sec = document.getElementById('filterSecondary').value;
+        // --- State Management ---
+        function saveAndRender() {
+            localStorage.setItem('bricksetCollection', JSON.stringify(mySets));
+            const ts = [...new Set(mySets.map(s => s.theme))].sort();
+            const sel = document.getElementById('filterCategory');
+            const cur = sel.value;
+            sel.innerHTML = '<option value="all">Alle Themen</option>' + ts.map(t => `<option value="${t}" ${t===cur?'selected':''}>${t}</option>`).join('');
+            renderLibrary();
+        }
 
+        function updateStats() {
+            let sets = 0, parts = 0, val = 0;
             mySets.forEach(s => {
-                const matchSearch = s.name.toLowerCase().includes(term) || s.setNumber.includes(term) || (s.subtheme && s.subtheme.toLowerCase().includes(term));
-                const matchCat = (cat === "all" || s.theme === cat);
-                let matchSec = true;
-                if (sec !== "all") {
-                    if (sec.startsWith("status-")) matchSec = s.status === sec.replace("status-", "");
-                    else if (sec.startsWith("year-")) matchSec = String(s.year) === sec.replace("year-", "");
-                }
-                if (matchSearch && matchCat && matchSec) selectedSets.add(s.setNumber);
+                const qN = parseInt(s.qtyNew) || 0, qU = parseInt(s.qtyUsed) || 0;
+                sets += (qN + qU);
+                parts += (s.pieces || 0) * (qN + qU);
+                val += (qN * (s.valNew || s.currentValue || 0)) + (qU * (s.valUsed || s.currentValue || 0));
             });
-            updateActionBar(); renderLibrary();
+            document.getElementById('statSets').innerText = sets;
+            document.getElementById('statParts').innerText = parts.toLocaleString();
+            document.getElementById('statValue').innerText = val.toFixed(2) + " €";
         }
 
-        function getSubthemeClass(sub) {
-            const s = sub.toLowerCase();
-            if(s.includes("star wars")) return "subtheme-starwars";
-            if(s.includes("ucs") || s.includes("ultimate collector")) return "subtheme-ucs";
-            if(s.includes("modular")) return "subtheme-modular";
-            if(s.includes("technic")) return "subtheme-technic";
-            return "subtheme-default";
-        }
-
-        function updateStatusAndQty(s) { 
-            const qNewInput = document.getElementById('editQtyNew');
-            const qUsedInput = document.getElementById('editQtyUsed');
-            let qN = parseInt(qNewInput.value) || 0;
-            let qU = parseInt(qUsedInput.value) || 0;
-
-            if (currentStatus === 'New' && s === 'Used') { if (qN > 0) { qN--; qU++; } }
-            else if (currentStatus === 'Used' && s === 'New') { if (qU > 0) { qU--; qN++; } }
-
-            qNewInput.value = qN;
-            qUsedInput.value = qU;
-            setStatus(s);
-            refreshModalCalculation();
-        }
-
-        function setStatus(s) { 
-            currentStatus = s; 
-            document.getElementById('btnNew').className = s === 'New' ? "flex-1 py-3 rounded-xl border-2 font-bold bg-blue-600 text-white border-blue-600 shadow-md" : "flex-1 py-3 rounded-xl border-2 font-bold bg-white text-slate-400 border-slate-100"; 
-            document.getElementById('btnUsed').className = s === 'Used' ? "flex-1 py-3 rounded-xl border-2 font-bold bg-slate-800 text-white border-slate-800 shadow-md" : "flex-1 py-3 rounded-xl border-2 font-bold bg-white text-slate-400 border-slate-100"; 
-            
-            const currentSet = mySets.find(x => x.setNumber === currentEditId);
-            if (currentSet) {
-                const newVal = s === 'New' ? (currentSet.valNew || 0) : (currentSet.valUsed || 0);
-                if (newVal > 0) document.getElementById('editCurrentValue').value = newVal;
+        // --- Bulk Actions ---
+        function toggleSelection(id, e) { e.stopPropagation(); if (selectedSets.has(id)) selectedSets.delete(id); else selectedSets.add(id); updateActionBar(); }
+        function updateActionBar() { document.getElementById('selectedCount').innerText = selectedSets.size; document.getElementById('actionBar').classList.toggle('hidden', selectedSets.size === 0); }
+        function clearSelection() { selectedSets.clear(); updateActionBar(); renderLibrary(); }
+        async function refreshSelectedSets() {
+            updateStatus("Updates laufen...", "text-blue-500 animate-pulse");
+            for (let id of selectedSets) {
+                const s = mySets.find(x => x.setNumber === id);
+                if (s) {
+                    const scraped = await scrapeBricksetData(s.setNumber);
+                    if(scraped.valNew > 0) s.valNew = scraped.valNew;
+                    if(scraped.valUsed > 0) s.valUsed = scraped.valUsed;
+                    s.currentValue = s.status === 'New' ? (s.valNew || s.currentValue) : (s.valUsed || s.currentValue);
+                }
             }
+            saveAndRender(); clearSelection(); updateStatus("Aktualisiert", "text-slate-400");
         }
 
-        function refreshModalCalculation() {
-            const s = mySets.find(x => x.setNumber === currentEditId);
-            if (!s) return;
-            const qN = parseInt(document.getElementById('editQtyNew').value) || 0;
-            const qU = parseInt(document.getElementById('editQtyUsed').value) || 0;
-            const valN = (s.valNew && s.valNew > 0) ? s.valNew : (parseFloat(document.getElementById('editCurrentValue').value) || 0);
-            const valU = (s.valUsed && s.valUsed > 0) ? s.valUsed : (parseFloat(document.getElementById('editCurrentValue').value) || 0);
-            const totalN = qN * valN;
-            const totalU = qU * valU;
-            document.getElementById('calcQtyNew').innerText = qN;
-            document.getElementById('calcQtyUsed').innerText = qU;
-            document.getElementById('calcValNew').innerText = totalN.toFixed(2) + " €";
-            document.getElementById('calcValUsed').innerText = totalU.toFixed(2) + " €";
-            document.getElementById('calcTotal').innerText = (totalN + totalU).toFixed(2) + " €";
-        }
-
+        // --- Modal Control ---
         function openModal(id) {
             const s = mySets.find(x => x.setNumber === id);
             currentEditId = id;
@@ -817,14 +481,32 @@ function resetFilters() {
             document.getElementById('editEan').value = s.ean || "";
             document.getElementById('editRetailPrice').value = s.price || 0;
             document.getElementById('editCurrentValue').value = s.currentValue || 0;
-            document.getElementById('editSubtheme').value = s.subtheme || "";
             document.getElementById('editQtyNew').value = s.qtyNew || 0;
             document.getElementById('editQtyUsed').value = s.qtyUsed || 0;
-            document.getElementById('editYear').value = s.year || "";
-            document.getElementById('editPieces').value = s.pieces || "";
+            document.getElementById('editYear').value = s.year || 0;
+            document.getElementById('editPieces').value = s.pieces || 0;
             setStatus(s.status || "New");
             refreshModalCalculation();
             document.getElementById('detailModal').style.display = 'flex';
+        }
+
+        function setStatus(s) {
+            currentStatus = s;
+            document.getElementById('btnNew').className = s === 'New' ? "flex-1 py-3 rounded-xl border-2 font-bold bg-blue-600 text-white border-blue-600 shadow-md" : "flex-1 py-3 rounded-xl border-2 font-bold bg-white text-slate-400 border-slate-100";
+            document.getElementById('btnUsed').className = s === 'Used' ? "flex-1 py-3 rounded-xl border-2 font-bold bg-slate-800 text-white border-slate-800 shadow-md" : "flex-1 py-3 rounded-xl border-2 font-bold bg-white text-slate-400 border-slate-100";
+        }
+
+        function refreshModalCalculation() {
+            const s = mySets.find(x => x.setNumber === currentEditId);
+            if(!s) return;
+            const qN = parseInt(document.getElementById('editQtyNew').value) || 0;
+            const qU = parseInt(document.getElementById('editQtyUsed').value) || 0;
+            const cv = parseFloat(document.getElementById('editCurrentValue').value) || 0;
+            const vN = (s.valNew > 0) ? s.valNew : cv;
+            const vU = (s.valUsed > 0) ? s.valUsed : cv;
+            document.getElementById('calcValNew').innerText = (qN * vN).toFixed(2) + " €";
+            document.getElementById('calcValUsed').innerText = (qU * vU).toFixed(2) + " €";
+            document.getElementById('calcTotal').innerText = ((qN * vN) + (qU * vU)).toFixed(2) + " €";
         }
 
         function saveDetails() {
@@ -833,7 +515,6 @@ function resetFilters() {
                 s.ean = document.getElementById('editEan').value;
                 s.price = parseFloat(document.getElementById('editRetailPrice').value) || 0;
                 s.currentValue = parseFloat(document.getElementById('editCurrentValue').value) || 0;
-                s.subtheme = document.getElementById('editSubtheme').value;
                 s.qtyNew = parseInt(document.getElementById('editQtyNew').value) || 0;
                 s.qtyUsed = parseInt(document.getElementById('editQtyUsed').value) || 0;
                 s.year = parseInt(document.getElementById('editYear').value) || 0;
@@ -843,57 +524,13 @@ function resetFilters() {
             }
         }
 
-        function deleteSet(id, e) { if(e) e.stopPropagation(); mySets = mySets.filter(s => s.setNumber !== id); selectedSets.delete(id); saveAndRender(); updateActionBar(); }
-        function toggleSelection(id, e) { e.stopPropagation(); if (selectedSets.has(id)) selectedSets.delete(id); else selectedSets.add(id); updateActionBar(); }
-        function updateActionBar() { document.getElementById('selectedCount').innerText = selectedSets.size; document.getElementById('actionBar').classList.toggle('hidden', selectedSets.size === 0); }
-        function clearSelection() { selectedSets.clear(); updateActionBar(); renderLibrary(); }
-        
-        function saveAndRender() { 
-            localStorage.setItem('bricksetCollection', JSON.stringify(mySets)); 
-            updateCategories(); 
-            updateSecondaryFilter();
-            renderLibrary(); 
-        }
-        
-        function updateStats() { 
-            let totalPieces = 0; let totalValue = 0; let totalSetsCount = 0;
-            mySets.forEach(s => {
-                const qN = parseInt(s.qtyNew) || 0; const qU = parseInt(s.qtyUsed) || 0;
-                const pieces = parseInt(s.pieces) || 0;
-                totalSetsCount += (qN + qU);
-                totalPieces += (pieces * (qN + qU));
-                const valN = (s.valNew && s.valNew > 0) ? s.valNew : (parseFloat(s.currentValue) || 0);
-                const valU = (s.valUsed && s.valUsed > 0) ? s.valUsed : (parseFloat(s.currentValue) || 0);
-                totalValue += (qN * valN) + (qU * valU);
-            });
-            document.getElementById('statSets').innerText = totalSetsCount;
-            document.getElementById('statParts').innerText = totalPieces.toLocaleString();
-            document.getElementById('statValue').innerText = totalValue.toFixed(2) + " €";
-        }
-
-        function updateCategories() { 
-            const ts = [...new Set(mySets.map(s => s.theme))].sort(); 
-            const sel = document.getElementById('filterCategory'); 
-            const cur = sel.value;
-            sel.innerHTML = '<option value="all">Alle Themen</option>' + ts.map(t => `<option value="${t}" ${t===cur?'selected':''}>${t}</option>`).join(''); 
-        }
-
-        function updateSecondaryFilter() {
-            const years = [...new Set(mySets.map(s => s.year).filter(y => y > 0))].sort((a,b) => b-a);
-            const group = document.getElementById('filterYearGroup');
-            group.innerHTML = years.map(y => `<option value="year-${y}">Jahr: ${y}</option>`).join('');
-        }
-
         function closeModal() { document.getElementById('detailModal').style.display = 'none'; }
         function updateStatus(m, c) { const el = document.getElementById('apiStatus'); el.innerText = m; el.className = `mt-4 text-[10px] font-black uppercase italic ${c}`; }
         function deleteSelected() { mySets = mySets.filter(s => !selectedSets.has(s.setNumber)); clearSelection(); saveAndRender(); }
-        function applyBulkActions() { 
-            const st = document.getElementById('bulkStatus').value; 
-            mySets.forEach(s => { if(selectedSets.has(s.setNumber)) { if(st) s.status = st; } }); 
-            clearSelection(); saveAndRender(); 
-        }
-
+        
+        // Initialer Run
         saveAndRender();
+        updateSliderLabels();
     </script>
 </body>
 </html>

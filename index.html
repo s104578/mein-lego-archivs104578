@@ -350,41 +350,61 @@
         }
 
         async function scrapeBricksetData(setNum) {
-            let results = { rrp: 0, valNew: 0, valUsed: 0, year: 0, pieces: 0 };
-            try {
-                const fullId = setNum.includes('-') ? setNum : `${setNum}-1`;
-                const proxyUrl = `https://corsproxy.io/?${encodeURIComponent('https://brickset.com/sets/' + fullId)}`;
-                const response = await fetch(proxyUrl);
-                const html = await response.text();
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                
-                const dts = doc.querySelectorAll('dt');
-                for (let dt of dts) {
-                    const label = dt.innerText.trim();
-                    const dd = dt.nextElementSibling;
-                    if (!dd) continue;
-                    if (label === "RRP") {
-                        const deMatch = dd.innerText.match(/(\d+[\.,]\d{2})€/);
-                        if (deMatch) results.rrp = parseFloat(deMatch[1].replace(',', '.'));
-                        else {
-                            const genMatch = dd.innerText.match(/(\d+[\.,]\d{2})/);
-                            if (genMatch) results.rrp = parseFloat(genMatch[1].replace(',', '.'));
-                        }
-                    }
-                    if (label === "Current value") {
-                        const text = dd.innerText; // Hier lag die Änderung: innerText statt innerHTML für stabilere Regex
-                        const newMatch = text.match(/New:.*?€(\d+)/);
-                        const usedMatch = text.match(/Used:.*?€(\d+)/);
-                        if (newMatch) results.valNew = parseFloat(newMatch[1]);
-                        if (usedMatch) results.valUsed = parseFloat(usedMatch[1]);
-                    }
-                    if (label === "Year released") results.year = parseInt(dd.innerText.trim()) || 0;
-                    if (label === "Pieces") results.pieces = parseInt(dd.innerText.trim()) || 0;
+    let results = { rrp: 0, valNew: 0, valUsed: 0, year: 0, pieces: 0 };
+    try {
+        const fullId = setNum.includes('-') ? setNum : `${setNum}-1`;
+        const proxyUrl = `https://corsproxy.io/?${encodeURIComponent('https://brickset.com/sets/' + fullId)}`;
+        const response = await fetch(proxyUrl);
+        const html = await response.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        
+        // 1. Metadaten extrahieren (Jahr, Teile, UVP)
+        const dts = doc.querySelectorAll('dt');
+        dts.forEach(dt => {
+            const label = dt.innerText.trim();
+            const dd = dt.nextElementSibling;
+            if (!dd) return;
+
+            if (label === "Year released") results.year = parseInt(dd.innerText) || 0;
+            if (label === "Pieces") results.pieces = parseInt(dd.innerText) || 0;
+            if (label === "RRP") {
+                const priceMatch = dd.innerText.match(/(\d+[\.,]\d{2})€/);
+                if (priceMatch) results.rrp = parseFloat(priceMatch[1].replace(',', '.'));
+            }
+        });
+
+        // 2. Marktwert-Extraktion (Die robustere Methode)
+        // Wir suchen im gesamten Dokument nach "New:" und "Used:" und nehmen die darauffolgenden Euro-Werte
+        const bodyText = doc.body.innerText;
+        
+        // Suche nach Mustern wie "New: ~€123.45" oder "New: 123€"
+        const newPattern = /New:\s*(?:~|approx)?\s*€?(\d+[\.,]?\d*)/i;
+        const usedPattern = /Used:\s*(?:~|approx)?\s*€?(\d+[\.,]?\d*)/i;
+
+        const newMatch = bodyText.match(newPattern);
+        const usedMatch = bodyText.match(usedPattern);
+
+        if (newMatch) results.valNew = parseFloat(newMatch[1].replace(',', '.'));
+        if (usedMatch) results.valUsed = parseFloat(usedMatch[1].replace(',', '.'));
+
+        // Fallback: Falls Brickset eine Tabelle nutzt
+        if (results.valNew === 0 || results.valUsed === 0) {
+            doc.querySelectorAll('tr, li').forEach(el => {
+                const txt = el.innerText;
+                if (txt.includes('New:') && results.valNew === 0) {
+                    const m = txt.match(/(\d+[\.,]?\d*)/);
+                    if (m) results.valNew = parseFloat(m[1].replace(',', '.'));
                 }
-            } catch (e) { console.error("Scraper Error:", e); }
-            return results;
+                if (txt.includes('Used:') && results.valUsed === 0) {
+                    const m = txt.match(/(\d+[\.,]?\d*)/);
+                    if (m) results.valUsed = parseFloat(m[1].replace(',', '.'));
+                }
+            });
         }
+    } catch (e) { console.error("Scraper Error:", e); }
+    return results;
+}
 
         function extractRRP(s) {
             const parsePrice = (val) => {

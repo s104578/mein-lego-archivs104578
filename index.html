@@ -88,62 +88,64 @@
             max-width: 100%;
             box-sizing: border-box;
         }
-        /* Sidebar Animation */
-#filterSidebar { transition: transform 0.3s ease-in-out; z-index: 1001; }
-.sidebar-open { transform: translateX(0) !important; }
 
-/* Custom Range Slider Styling */
-input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
-input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 6px; cursor: pointer; background: #e2e8f0; border-radius: 3px; }
-input[type=range]::-webkit-slider-thumb { height: 18px; width: 18px; border-radius: 50%; background: #2563eb; cursor: pointer; -webkit-appearance: none; margin-top: -6px; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        /* Sidebar Animation & Overlay */
+        #filterSidebar { transition: transform 0.3s ease-in-out; z-index: 1001; }
+        .sidebar-open { transform: translateX(0) !important; }
+        #sidebarOverlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.3); backdrop-filter: blur(2px); z-index: 1000; }
+
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 6px; cursor: pointer; background: #e2e8f0; border-radius: 3px; }
+        input[type=range]::-webkit-slider-thumb { height: 18px; width: 18px; border-radius: 50%; background: #2563eb; cursor: pointer; -webkit-appearance: none; margin-top: -6px; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
     </style>
 </head>
 <body class="min-h-screen pb-12">
-    <!-- Sidebar für Filter & Sortierung -->
-<div id="filterSidebar" class="fixed top-0 right-0 h-full w-80 bg-white shadow-2xl p-6 translate-x-full overflow-y-auto">
-    <div class="flex justify-between items-center mb-8">
-        <h2 class="text-xl font-black text-slate-800 uppercase tracking-tight">Filter & Sortierung</h2>
-        <button onclick="toggleSidebar()" class="text-slate-400 hover:text-slate-800">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-        </button>
-    </div>
 
-    <div class="space-y-8">
-        <!-- Sortierung -->
-        <div>
-            <p class="text-[10px] font-black text-slate-400 uppercase mb-3 tracking-widest">Sortieren nach</p>
-            <div class="flex flex-col gap-2">
-                <select id="sortFactor" onchange="renderLibrary()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold outline-none">
-                    <option value="number">Setnummer</option>
-                    <option value="price">Marktwert</option>
-                    <option value="pieces">Teileanzahl</option>
-                    <option value="year">Erscheinungsjahr</option>
-                </select>
-                <div class="flex gap-2">
-                    <button onclick="setSortDir('asc')" id="sortAsc" class="flex-1 py-2 rounded-xl border-2 font-bold transition-all border-slate-100 text-slate-400">▲</button>
-                    <button onclick="setSortDir('desc')" id="sortDesc" class="flex-1 py-2 rounded-xl border-2 font-bold transition-all border-blue-600 bg-blue-600 text-white shadow-md">▼</button>
+    <div id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+    <div id="filterSidebar" class="fixed top-0 right-0 h-full w-80 bg-white shadow-2xl p-6 translate-x-full overflow-y-auto">
+        <div class="flex justify-between items-center mb-8">
+            <h2 class="text-xl font-black text-slate-800 uppercase tracking-tight">Filter & Sortierung</h2>
+            <button onclick="toggleSidebar()" class="text-slate-400 hover:text-slate-800">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+
+        <div class="space-y-8">
+            <div>
+                <p class="text-[10px] font-black text-slate-400 uppercase mb-3 tracking-widest">Sortieren nach</p>
+                <div class="flex flex-col gap-2">
+                    <select id="sortFactor" onchange="renderLibrary()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold outline-none">
+                        <option value="added">Zuletzt hinzugefügt</option>
+                        <option value="number">Setnummer</option>
+                        <option value="price">Marktwert</option>
+                        <option value="pieces">Teileanzahl</option>
+                        <option value="year">Erscheinungsjahr</option>
+                    </select>
+                    <div class="flex gap-2">
+                        <button onclick="setSortDir('asc')" id="sortAsc" class="flex-1 py-2 rounded-xl border-2 font-bold transition-all border-slate-100 text-slate-400">▲</button>
+                        <button onclick="setSortDir('desc')" id="sortDesc" class="flex-1 py-2 rounded-xl border-2 font-bold transition-all border-blue-600 bg-blue-600 text-white shadow-md">▼</button>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Slider Filter -->
-        <div class="space-y-6">
-            <div>
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Jahr bis: <span id="labelYear" class="text-blue-600">2026</span></p>
-                <input type="range" id="rangeYear" min="1970" max="2026" value="2026" oninput="updateSliderLabels(); renderLibrary()">
+            <div class="space-y-6">
+                <div>
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Jahr bis: <span id="labelYear" class="text-blue-600">2026</span></p>
+                    <input type="range" id="rangeYear" min="1970" max="2026" value="2026" oninput="updateSliderLabels(); renderLibrary()">
+                </div>
+                <div>
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Teile bis: <span id="labelPieces" class="text-blue-600">10000</span></p>
+                    <input type="range" id="rangePieces" min="0" max="10000" step="50" value="10000" oninput="updateSliderLabels(); renderLibrary()">
+                </div>
+                <div>
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Max. Wert: <span id="labelPrice" class="text-blue-600">2000 €</span></p>
+                    <input type="range" id="rangePrice" min="0" max="2000" step="10" value="2000" oninput="updateSliderLabels(); renderLibrary()">
+                </div>
             </div>
-            <div>
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Teile bis: <span id="labelPieces" class="text-blue-600">10000</span></p>
-                <input type="range" id="rangePieces" min="0" max="10000" step="50" value="10000" oninput="updateSliderLabels(); renderLibrary()">
-            </div>
-            <div>
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Max. Wert: <span id="labelPrice" class="text-blue-600">2000 €</span></p>
-                <input type="range" id="rangePrice" min="0" max="2000" step="10" value="2000" oninput="updateSliderLabels(); renderLibrary()">
-            </div>
+            <button onclick="resetFilters()" class="w-full py-3 rounded-xl border border-slate-200 text-xs font-bold text-slate-500 hover:bg-slate-50">Filter zurücksetzen</button>
         </div>
-        <button onclick="resetFilters()" class="w-full py-3 rounded-xl border border-slate-200 text-xs font-bold text-slate-500 hover:bg-slate-50">Filter zurücksetzen</button>
     </div>
-</div>
 
     <div id="actionBar" class="fixed bottom-0 left-0 right-0 z-[100] bg-blue-600 text-white p-4 shadow-2xl hidden md:top-0 md:bottom-auto">
         <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
@@ -191,9 +193,9 @@ input[type=range]::-webkit-slider-thumb { height: 18px; width: 18px; border-radi
             <div class="flex flex-col gap-2 items-center">
                 <div class="flex gap-2">
                     <button onclick="toggleSidebar()" class="flex items-center gap-2 px-4 py-2 bg-slate-800 text-white rounded-xl text-xs font-black hover:bg-slate-700 transition-all shadow-lg">
-    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
-    FILTER & SORTIERUNG
-</button>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+                        FILTER & SORTIERUNG
+                    </button>
                     <button onclick="selectAllVisible()" title="Alle auswählen" class="p-2 hover:bg-slate-100 rounded-xl transition-colors">
                         <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
                     </button>
@@ -239,8 +241,8 @@ input[type=range]::-webkit-slider-thumb { height: 18px; width: 18px; border-radi
         <div id="library" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"></div>
     </main>
 
-   <div id="duplicateModal" class="fixed inset-0 flex items-end md:items-center justify-center">
-    <div class="bg-white w-full max-w-md rounded-t-[2rem] md:rounded-[2rem] p-6 shadow-2xl">
+    <div id="duplicateModal" class="fixed inset-0 flex items-end md:items-center justify-center">
+        <div class="bg-white w-full max-w-md rounded-t-[2rem] md:rounded-[2rem] p-6 shadow-2xl">
             <h3 class="text-2xl font-black text-slate-800 mb-2">Set bereits vorhanden!</h3>
             <p class="text-slate-500 text-sm mb-6 font-medium">Möchtest du weitere Exemplare von Set <span id="dupSetNum" class="font-black text-blue-600"></span> zur Sammlung hinzufügen?</p>
             
@@ -263,7 +265,7 @@ input[type=range]::-webkit-slider-thumb { height: 18px; width: 18px; border-radi
     </div>
 
     <div id="detailModal" class="fixed inset-0 flex items-end md:items-center justify-center">
-    <div class="bg-white w-full max-w-4xl h-[90vh] md:h-auto md:rounded-[2rem] rounded-t-[2rem] overflow-hidden flex flex-col md:flex-row relative">
+        <div class="bg-white w-full max-w-4xl h-[90vh] md:h-auto md:rounded-[2rem] rounded-t-[2rem] overflow-hidden flex flex-col md:flex-row relative">
             <button onclick="closeModal()" class="absolute top-6 right-6 text-slate-400 hover:text-slate-600 z-10"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
             <div class="md:w-2/5 bg-slate-50 p-8 flex flex-col items-center justify-center border-r border-slate-100">
                 <img id="modalImg" src="" class="max-h-64 object-contain drop-shadow-2xl mb-8">
@@ -347,33 +349,36 @@ input[type=range]::-webkit-slider-thumb { height: 18px; width: 18px; border-radi
     </button>
 
     <script>
-        let currentSortDir = 'desc'; // Standard: Absteigend
+        let currentSortDir = 'desc'; 
 
-function toggleSidebar() {
-    document.getElementById('filterSidebar').classList.toggle('sidebar-open');
-}
+        function toggleSidebar() {
+            const sidebar = document.getElementById('filterSidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            sidebar.classList.toggle('sidebar-open');
+            overlay.style.display = sidebar.classList.contains('sidebar-open') ? 'block' : 'none';
+        }
 
-function setSortDir(dir) {
-    currentSortDir = dir;
-    // Visuelle Umschaltung der Piktogramm-Buttons
-    document.getElementById('sortAsc').className = dir === 'asc' ? "flex-1 py-2 rounded-xl border-2 font-bold bg-blue-600 text-white border-blue-600" : "flex-1 py-2 rounded-xl border-2 font-bold bg-white text-slate-400 border-slate-100";
-    document.getElementById('sortDesc').className = dir === 'desc' ? "flex-1 py-2 rounded-xl border-2 font-bold bg-blue-600 text-white border-blue-600" : "flex-1 py-2 rounded-xl border-2 font-bold bg-white text-slate-400 border-slate-100";
-    renderLibrary();
-}
+        function setSortDir(dir) {
+            currentSortDir = dir;
+            document.getElementById('sortAsc').className = dir === 'asc' ? "flex-1 py-2 rounded-xl border-2 font-bold bg-blue-600 text-white border-blue-600" : "flex-1 py-2 rounded-xl border-2 font-bold bg-white text-slate-400 border-slate-100";
+            document.getElementById('sortDesc').className = dir === 'desc' ? "flex-1 py-2 rounded-xl border-2 font-bold bg-blue-600 text-white border-blue-600" : "flex-1 py-2 rounded-xl border-2 font-bold bg-white text-slate-400 border-slate-100";
+            renderLibrary();
+        }
 
-function updateSliderLabels() {
-    document.getElementById('labelYear').innerText = document.getElementById('rangeYear').value;
-    document.getElementById('labelPieces').innerText = document.getElementById('rangePieces').value;
-    document.getElementById('labelPrice').innerText = document.getElementById('rangePrice').value + " €";
-}
+        function updateSliderLabels() {
+            document.getElementById('labelYear').innerText = document.getElementById('rangeYear').value;
+            document.getElementById('labelPieces').innerText = document.getElementById('rangePieces').value;
+            document.getElementById('labelPrice').innerText = document.getElementById('rangePrice').value + " €";
+        }
 
-function resetFilters() {
-    document.getElementById('rangeYear').value = 2026;
-    document.getElementById('rangePieces').value = 10000;
-    document.getElementById('rangePrice').value = 2000;
-    updateSliderLabels();
-    renderLibrary();
-}
+        function resetFilters() {
+            document.getElementById('rangeYear').value = 2026;
+            document.getElementById('rangePieces').value = 10000;
+            document.getElementById('rangePrice').value = 2000;
+            updateSliderLabels();
+            renderLibrary();
+        }
+
         const API_KEY_BRICKSET = '3-N4Lr-Ug0H-M49ki';
         const API_KEY_REBRICKABLE = '74d1510666ec62fef948d197af293799';
         
@@ -627,11 +632,9 @@ function resetFilters() {
                 if (scraped.year > 0) s.year = scraped.year;
                 if (scraped.pieces > 0) s.pieces = scraped.pieces;
                 
-                // Wichtiger Fix: Marktwerte überschreiben
                 s.valNew = scraped.valNew > 0 ? scraped.valNew : s.valNew;
                 s.valUsed = scraped.valUsed > 0 ? scraped.valUsed : s.valUsed;
                 
-                // Aktuellen Marktwert basierend auf Status setzen
                 if (s.status === 'New') {
                     s.currentValue = s.valNew > 0 ? s.valNew : s.currentValue;
                 } else {
@@ -643,37 +646,33 @@ function resetFilters() {
         }
 
         function renderLibrary() {
-    const term = document.getElementById('searchLibrary').value.toLowerCase();
-    const cat = document.getElementById('filterCategory').value;
-    
-    // Slider Werte abgreifen
-    const maxYear = parseInt(document.getElementById('rangeYear').value);
-    const maxPieces = parseInt(document.getElementById('rangePieces').value);
-    const maxPrice = parseFloat(document.getElementById('rangePrice').value);
+            const term = document.getElementById('searchLibrary').value.toLowerCase();
+            const cat = document.getElementById('filterCategory').value;
+            const maxYear = parseInt(document.getElementById('rangeYear').value);
+            const maxPieces = parseInt(document.getElementById('rangePieces').value);
+            const maxPrice = parseFloat(document.getElementById('rangePrice').value);
 
-    let filtered = mySets.filter(s => {
-        const matchSearch = s.name.toLowerCase().includes(term) || s.setNumber.includes(term);
-        const matchCat = (cat === "all" || s.theme === cat);
-        // Neue Slider-Bedingungen
-        const matchYear = (s.year || 0) <= maxYear;
-        const matchPieces = (s.pieces || 0) <= maxPieces;
-        const matchPrice = (s.currentValue || 0) <= maxPrice;
+            let filtered = mySets.map((s, index) => ({ ...s, originalIndex: index })).filter(s => {
+                const matchSearch = s.name.toLowerCase().includes(term) || s.setNumber.includes(term);
+                const matchCat = (cat === "all" || s.theme === cat);
+                const matchYear = (s.year || 0) <= maxYear;
+                const matchPieces = (s.pieces || 0) <= maxPieces;
+                const matchPrice = (s.currentValue || 0) <= maxPrice;
+                return matchSearch && matchCat && matchYear && matchPieces && matchPrice;
+            });
 
-        return matchSearch && matchCat && matchYear && matchPieces && matchPrice;
-    });
+            const factor = document.getElementById('sortFactor').value;
+            filtered.sort((a, b) => {
+                let valA, valB;
+                if (factor === 'added') { valA = a.originalIndex; valB = b.originalIndex; }
+                else if (factor === 'number') { valA = a.setNumber; valB = b.setNumber; }
+                else if (factor === 'price') { valA = a.currentValue || 0; valB = b.currentValue || 0; }
+                else if (factor === 'pieces') { valA = a.pieces || 0; valB = b.pieces || 0; }
+                else if (factor === 'year') { valA = a.year || 0; valB = b.year || 0; }
 
-    // Neue Sortier-Logik
-    const factor = document.getElementById('sortFactor').value;
-    filtered.sort((a, b) => {
-        let valA, valB;
-        if (factor === 'number') { valA = a.setNumber; valB = b.setNumber; }
-        else if (factor === 'price') { valA = a.currentValue || 0; valB = b.currentValue || 0; }
-        else if (factor === 'pieces') { valA = a.pieces || 0; valB = b.pieces || 0; }
-        else if (factor === 'year') { valA = a.year || 0; valB = b.year || 0; }
-
-        if (currentSortDir === 'asc') return valA > valB ? 1 : -1;
-        else return valA < valB ? 1 : -1;
-    });
+                if (currentSortDir === 'asc') return valA > valB ? 1 : -1;
+                else return valA < valB ? 1 : -1;
+            });
             
             document.getElementById('library').innerHTML = filtered.map(set => `
                 <div onclick="openModal('${set.setNumber}')" class="set-card bg-white rounded-[2rem] shadow-lg border border-slate-100 overflow-hidden">

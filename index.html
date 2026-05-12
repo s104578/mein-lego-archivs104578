@@ -648,6 +648,7 @@
         function renderLibrary() {
             const term = document.getElementById('searchLibrary').value.toLowerCase();
             const cat = document.getElementById('filterCategory').value;
+            const sec = document.getElementById('filterSecondary').value;
             const maxYear = parseInt(document.getElementById('rangeYear').value);
             const maxPieces = parseInt(document.getElementById('rangePieces').value);
             const maxPrice = parseFloat(document.getElementById('rangePrice').value);
@@ -655,10 +656,17 @@
             let filtered = mySets.map((s, index) => ({ ...s, originalIndex: index })).filter(s => {
                 const matchSearch = s.name.toLowerCase().includes(term) || s.setNumber.includes(term);
                 const matchCat = (cat === "all" || s.theme === cat);
+                
+                let matchSec = true;
+                if (sec !== "all") {
+                    if (sec.startsWith("status-")) matchSec = s.status === sec.replace("status-", "");
+                    else if (sec.startsWith("year-")) matchSec = String(s.year) === sec.replace("year-", "");
+                }
+
                 const matchYear = (s.year || 0) <= maxYear;
                 const matchPieces = (s.pieces || 0) <= maxPieces;
                 const matchPrice = (s.currentValue || 0) <= maxPrice;
-                return matchSearch && matchCat && matchYear && matchPieces && matchPrice;
+                return matchSearch && matchCat && matchSec && matchYear && matchPieces && matchPrice;
             });
 
             const factor = document.getElementById('sortFactor').value;
@@ -718,7 +726,7 @@
             const sec = document.getElementById('filterSecondary').value;
 
             mySets.forEach(s => {
-                const matchSearch = s.name.toLowerCase().includes(term) || s.setNumber.includes(term) || (s.subtheme && s.subtheme.toLowerCase().includes(term));
+                const matchSearch = s.name.toLowerCase().includes(term) || s.setNumber.includes(term);
                 const matchCat = (cat === "all" || s.theme === cat);
                 let matchSec = true;
                 if (sec !== "all") {

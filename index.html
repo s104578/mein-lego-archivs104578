@@ -19,8 +19,9 @@
             --input-bg: #ffffff;
         }
 
+        /* System Preference (Fallback) */
         @media (prefers-color-scheme: dark) {
-            :root {
+            :root:not(.light) {
                 --bg-body: #0f172a;
                 --bg-card: #1e293b;
                 --bg-glass: rgba(15, 23, 42, 0.8);
@@ -29,6 +30,28 @@
                 --border-color: rgba(255,255,255,0.1);
                 --input-bg: #0f172a;
             }
+        }
+
+        /* Manual Dark Mode Override */
+        :root.dark {
+            --bg-body: #0f172a;
+            --bg-card: #1e293b;
+            --bg-glass: rgba(15, 23, 42, 0.8);
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --border-color: rgba(255,255,255,0.1);
+            --input-bg: #0f172a;
+        }
+
+        /* Manual Light Mode Override */
+        :root.light {
+            --bg-body: #f1f5f9;
+            --bg-card: #ffffff;
+            --bg-glass: rgba(255, 255, 255, 0.7);
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: rgba(0,0,0,0.1);
+            --input-bg: #ffffff;
         }
 
         body { 
@@ -92,8 +115,7 @@
         .bg-slate-50, .bg-white { background-color: var(--bg-card) !important; }
         #barcodeInput { background: transparent !important; border: none !important;}
 
-        #scrollTopBtn { display: none; transition: all 0.3s ease; }
-        #scrollTopBtn:hover { transform: translateY(-5px); }
+        #scrollTopBtn { display: none; }
 
         #library { display: grid; gap: 1rem; grid-template-columns: repeat(1, minmax(0, 1fr)); }
         @media (min-width: 640px) { #library { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
@@ -135,7 +157,7 @@
             <div>
                 <p class="text-[10px] font-black text-slate-400 uppercase mb-3 tracking-widest">Sortieren nach</p>
                 <div class="flex flex-col gap-2">
-                    <select id="sortFactor" onchange="renderLibrary()" class="w-full rounded-xl px-4 py-3 text-sm font-bold outline-none">
+                    <select id="sortFactor" onchange="renderLibrary()" class="w-full rounded-xl px-4 py-3 text-sm font-bold outline-none border">
                         <option value="added">Zuletzt hinzugefügt</option>
                         <option value="number">Setnummer</option>
                         <option value="price">Marktwert</option>
@@ -221,26 +243,26 @@
 
             <div class="flex flex-col gap-2 items-center">
                 <div class="flex gap-2">
-                    <button onclick="toggleSidebar()" class="flex items-center gap-2 px-4 py-2 bg-slate-800 text-white rounded-xl text-xs font-black hover:bg-slate-700 transition-all shadow-lg">
+                    <button onclick="toggleSidebar()" class="flex items-center gap-2 px-4 py-2 bg-slate-800 text-white rounded-xl text-xs font-black hover:bg-blue-600 transition-all shadow-lg">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
                         FILTER & SORTIERUNG
                     </button>
-                    <button onclick="selectAllVisible()" title="Alle auswählen" class="p-2 hover:bg-slate-100 rounded-xl transition-colors">
+                    <button onclick="selectAllVisible()" title="Alle auswählen" class="p-2 hover:bg-slate-500/10 rounded-xl transition-colors">
                         <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
                     </button>
-                    <button onclick="exportCollection()" title="Exportieren" class="p-2 hover:bg-slate-100 rounded-xl transition-colors">
+                    <button onclick="exportCollection()" title="Exportieren" class="p-2 hover:bg-slate-500/10 rounded-xl transition-colors">
                         <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                     </button>
-                    <label class="p-2 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer" title="Importieren">
+                    <label class="p-2 hover:bg-slate-500/10 rounded-xl transition-colors cursor-pointer" title="Importieren">
                         <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
                         <input type="file" id="importFile" class="hidden" accept=".json" onchange="importCollection(event)">
                     </label>
                 </div>
                 <div class="flex flex-col sm:flex-row gap-2 w-full">
-                    <select id="filterCategory" onchange="renderLibrary()" class="rounded-xl px-3 py-2 text-xs font-bold outline-none">
+                    <select id="filterCategory" onchange="renderLibrary()" class="border rounded-xl px-3 py-2 text-xs font-bold outline-none">
                         <option value="all">Alle Themen</option>
                     </select>
-                    <select id="filterSecondary" onchange="renderLibrary()" class="rounded-xl px-3 py-2 text-xs font-bold outline-none">
+                    <select id="filterSecondary" onchange="renderLibrary()" class="border rounded-xl px-3 py-2 text-xs font-bold outline-none">
                         <option value="all">Kein Zusatzfilter</option>
                         <optgroup label="Zustand">
                             <option value="status-New">Zustand: New</option>
@@ -248,7 +270,7 @@
                         </optgroup>
                         <optgroup label="Jahr" id="filterYearGroup"></optgroup>
                     </select>
-                    <input type="text" id="searchLibrary" oninput="renderLibrary()" placeholder="Suchen..." class="rounded-xl px-3 py-2 text-xs outline-none flex-1">
+                    <input type="text" id="searchLibrary" oninput="renderLibrary()" placeholder="Suchen..." class="border rounded-xl px-3 py-2 text-xs outline-none flex-1">
                 </div>
             </div>
         </div>
@@ -258,7 +280,7 @@
        <div class="max-w-2xl mx-auto mb-10 px-2">
             <div class="bg-white p-1 rounded-full shadow-lg flex items-center border border-slate-200">
                 <input type="text" id="barcodeInput" autofocus 
-                       class="flex-1 pl-4 md:pl-6 pr-2 py-2 md:py-3 rounded-full text-sm md:text-base outline-none min-w-0" 
+                       class="flex-1 bg-transparent pl-4 md:pl-6 pr-2 py-2 md:py-3 rounded-full text-sm md:text-base outline-none min-w-0" 
                        placeholder="Set-Nr/Barcode"
                        onkeydown="if(event.key === 'Enter') fetchSets()"> 
                 <button onclick="fetchSets()" class="bg-blue-600 text-white font-bold px-4 py-2 md:px-6 md:py-3 rounded-full active:scale-95 transition-all text-xs md:text-sm whitespace-nowrap ml-1">
@@ -273,22 +295,20 @@
     <div id="duplicateModal" class="fixed inset-0 flex items-end md:items-center justify-center">
         <div class="modal-inner w-full max-w-md rounded-t-[2rem] md:rounded-[2rem] p-6 shadow-2xl">
             <h3 class="text-2xl font-black mb-2">Set bereits vorhanden!</h3>
-            <p class="text-slate-500 text-sm mb-6 font-medium">Möchtest du weitere Exemplare von Set <span id="dupSetNum" class="font-black text-blue-600"></span> zur Sammlung hinzufügen?</p>
-            
+            <p class="text-slate-500 text-sm mb-6 font-medium">Möchtest du weitere Exemplare von Set <span id="dupSetNum" class="font-black text-blue-600"></span> hinzufügen?</p>
             <div class="space-y-4 mb-8">
-                <div class="p-4 rounded-2xl border border-slate-200">
-                    <p class="text-[10px] font-black text-blue-600 uppercase mb-1 italic">+ Anzahl Neu</p>
+                <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-2xl border border-blue-100 dark:border-blue-800">
+                    <p class="text-[10px] font-black text-blue-600 uppercase mb-1">+ Anzahl Neu</p>
                     <input type="number" id="dupAddNew" value="0" min="0" class="bg-transparent font-bold w-full outline-none text-xl border-none">
                 </div>
-                <div class="p-4 rounded-2xl border border-slate-200">
-                    <p class="text-[10px] font-black uppercase mb-1 italic">+ Anzahl Gebraucht</p>
+                <div class="bg-slate-50 dark:bg-slate-900/20 p-4 rounded-2xl border border-slate-200 dark:border-slate-700">
+                    <p class="text-[10px] font-black text-slate-500 uppercase mb-1">+ Anzahl Gebraucht</p>
                     <input type="number" id="dupAddUsed" value="0" min="0" class="bg-transparent font-bold w-full outline-none text-xl border-none">
                 </div>
             </div>
-
             <div class="flex gap-3">
-                <button onclick="closeDuplicateModal()" class="flex-1 py-3 rounded-xl font-bold text-slate-400 hover:bg-slate-100 transition-all">Abbrechen</button>
-                <button onclick="confirmAddDuplicate()" class="flex-[2] bg-blue-600 text-white py-3 rounded-xl font-bold shadow-lg hover:bg-blue-700 transition-all">Hinzufügen</button>
+                <button onclick="closeDuplicateModal()" class="flex-1 py-3 rounded-xl font-bold text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all">Abbrechen</button>
+                <button onclick="confirmAddDuplicate()" class="flex-[2] bg-blue-600 text-white py-3 rounded-xl font-bold shadow-lg hover:bg-blue-700">Hinzufügen</button>
             </div>
         </div>
     </div>
@@ -296,7 +316,7 @@
     <div id="detailModal" class="fixed inset-0 flex items-end md:items-center justify-center">
         <div class="modal-inner w-full max-w-4xl h-[90vh] md:h-auto md:rounded-[2rem] rounded-t-[2rem] overflow-hidden flex flex-col md:flex-row relative">
             <button onclick="closeModal()" class="absolute top-6 right-6 text-slate-400 hover:text-red-500 z-10"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
-            <div class="md:w-2/5 p-8 flex flex-col items-center justify-center border-r border-slate-200">
+            <div class="md:w-2/5 bg-slate-50 dark:bg-black/20 p-8 flex flex-col items-center justify-center border-r border-slate-100 dark:border-slate-800">
                 <img id="modalImg" src="" class="max-h-64 object-contain drop-shadow-2xl mb-8">
                 <div class="w-full text-center md:text-left">
                     <p class="text-xs font-black text-blue-600 uppercase tracking-widest" id="modalTheme"></p>
@@ -306,41 +326,41 @@
             </div>
             <div class="md:w-3/5 p-8 pt-12 space-y-6 overflow-y-auto max-h-[90vh]">
                 <div class="grid grid-cols-2 gap-4">
-                    <div class="p-4 rounded-2xl border border-slate-200">
+                    <div class="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-2xl border border-slate-200 dark:border-slate-700">
                         <p class="text-[10px] font-black text-slate-400 uppercase">Barcode / EAN</p>
                         <input type="text" id="editEan" class="bg-transparent font-bold w-full outline-none border-none">
                     </div>
-                    <div class="p-4 rounded-2xl border border-slate-200">
+                    <div class="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-2xl border border-slate-200 dark:border-slate-700">
                         <p class="text-[10px] font-black text-slate-400 uppercase">UVP Preis (€)</p>
                         <input type="number" id="editRetailPrice" step="0.01" class="bg-transparent font-bold w-full outline-none border-none">
                     </div>
-                    <div class="p-4 rounded-2xl border border-slate-200">
+                    <div class="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-2xl border border-slate-200 dark:border-slate-700">
                         <p class="text-[10px] font-black text-slate-400 uppercase">Erscheinungsjahr</p>
                         <input type="number" id="editYear" class="bg-transparent font-bold w-full outline-none border-none" placeholder="z.B. 2023">
                     </div>
-                    <div class="p-4 rounded-2xl border border-slate-200">
+                    <div class="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-2xl border border-slate-200 dark:border-slate-700">
                         <p class="text-[10px] font-black text-slate-400 uppercase">Teileanzahl</p>
                         <input type="number" id="editPieces" class="bg-transparent font-bold w-full outline-none border-none" placeholder="0">
                     </div>
-                    <div class="p-4 rounded-2xl border border-blue-500 col-span-2">
+                    <div class="bg-blue-50 dark:bg-blue-900/50 p-4 rounded-2xl border border-blue-200 dark:border-blue-800 col-span-2">
                         <p class="text-[10px] font-black text-blue-500 uppercase">Marktwert (€)</p>
-                        <input type="number" id="editCurrentValue" step="0.01" class="bg-transparent font-bold text-blue-500 w-full outline-none text-xl border-none">
+                        <input type="number" id="editCurrentValue" step="0.01" class="bg-transparent font-bold text-blue-700 dark:text-blue-400 w-full outline-none text-xl border-none">
                     </div>
-                    <div class="p-4 rounded-2xl col-span-2 border border-slate-200">
+                    <div class="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-2xl col-span-2 border border-slate-200 dark:border-slate-700">
                         <p class="text-[10px] font-black text-slate-400 uppercase">Subtheme (Tags)</p>
                         <input type="text" id="editSubtheme" class="bg-transparent font-bold w-full outline-none border-none" placeholder="z.B. UCS, Modular...">
                     </div>
-                    <div class="p-4 rounded-2xl border border-slate-200">
+                    <div class="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-2xl border border-slate-200 dark:border-slate-700">
                         <p class="text-[10px] font-black text-blue-600 uppercase">Anzahl Neu</p>
                         <input type="number" id="editQtyNew" min="0" oninput="refreshModalCalculation()" class="bg-transparent font-bold w-full outline-none border-none">
                     </div>
-                    <div class="p-4 rounded-2xl border border-slate-200">
+                    <div class="bg-slate-100 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-200 dark:border-slate-700">
                         <p class="text-[10px] font-black text-slate-500 uppercase">Anzahl Gebraucht</p>
                         <input type="number" id="editQtyUsed" min="0" oninput="refreshModalCalculation()" class="bg-transparent font-bold w-full outline-none border-none">
                     </div>
                 </div>
 
-                <div class="rounded-2xl p-5 border border-slate-200">
+                <div class="bg-slate-50 dark:bg-black/20 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
                     <p class="text-[10px] font-black text-slate-400 uppercase mb-4 tracking-widest text-center">Wert-Analyse dieses Sets</p>
                     <div class="space-y-3">
                         <div class="flex justify-between items-center text-sm">
@@ -351,7 +371,7 @@
                             <span class="text-slate-500">Gebraucht (<span id="calcQtyUsed">0</span>x):</span>
                             <span class="font-bold" id="calcValUsed">0.00 €</span>
                         </div>
-                        <div class="h-px bg-slate-200 my-2"></div>
+                        <div class="h-px bg-slate-200 dark:bg-slate-700 my-2"></div>
                         <div class="flex justify-between items-center">
                             <span class="font-black uppercase text-xs">Gesamtwert Set:</span>
                             <span class="font-black text-blue-600 text-xl" id="calcTotal">0.00 €</span>
@@ -362,8 +382,8 @@
                 <div>
                     <p class="text-[10px] font-black text-slate-400 uppercase mb-3">Zustand (Fokus ändern)</p>
                     <div class="flex gap-3">
-                        <button onclick="updateStatusAndQty('New')" id="btnNew" class="flex-1 py-3 rounded-xl border-2 font-bold transition-all border-slate-200">New</button>
-                        <button onclick="updateStatusAndQty('Used')" id="btnUsed" class="flex-1 py-3 rounded-xl border-2 font-bold transition-all border-slate-200">Used</button>
+                        <button onclick="updateStatusAndQty('New')" id="btnNew" class="flex-1 py-3 rounded-xl border-2 font-bold transition-all border-slate-200 dark:border-slate-700">New</button>
+                        <button onclick="updateStatusAndQty('Used')" id="btnUsed" class="flex-1 py-3 rounded-xl border-2 font-bold transition-all border-slate-200 dark:border-slate-700">Used</button>
                     </div>
                 </div>
                 <button onclick="saveDetails()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold shadow-lg hover:bg-blue-700 transition-all">Änderungen speichern</button>
@@ -371,14 +391,19 @@
         </div>
     </div>
 
-    <button id="scrollTopBtn" onclick="scrollToTop()" class="fixed bottom-8 right-8 z-[70] bg-blue-600 text-white p-4 rounded-2xl shadow-xl">
+    <button id="darkModeBtn" onclick="toggleDarkMode()" class="fixed bottom-8 left-8 z-[70] bg-blue-600 text-white p-4 rounded-2xl shadow-xl transition-transform hover:-translate-y-1">
+        <svg id="darkModeIcon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+        </svg>
+    </button>
+
+    <button id="scrollTopBtn" onclick="scrollToTop()" class="fixed bottom-8 right-8 z-[70] bg-blue-600 text-white p-4 rounded-2xl shadow-xl transition-transform hover:-translate-y-1">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
         </svg>
     </button>
 
     <script>
-        // Sortieren nach 'desc' ist von oben nach unten (Zuletzt hinzugefügt als Erstes)
         let currentSortDir = 'desc'; 
 
         function toggleSidebar() {
@@ -405,7 +430,6 @@
             let minVal = parseFloat(minInput.value);
             let maxVal = parseFloat(maxInput.value);
             
-            // Verhindern, dass Slider sich kreuzen
             if (minVal > maxVal) {
                 if (document.activeElement === minInput) {
                     minInput.value = maxVal;
@@ -706,7 +730,6 @@
             const cat = document.getElementById('filterCategory').value;
             const sec = document.getElementById('filterSecondary').value;
             
-            // Slider Filter Min & Max Werte abfragen
             const minYear = parseInt(document.getElementById('rangeYearMin').value);
             const maxYear = parseInt(document.getElementById('rangeYearMax').value);
             const minPieces = parseInt(document.getElementById('rangePiecesMin').value);
@@ -724,7 +747,6 @@
                     else if (sec.startsWith("year-")) matchSec = String(s.year) === sec.replace("year-", "");
                 }
 
-                // Range Checks
                 const matchYear = (s.year || 0) >= minYear && (s.year || 0) <= maxYear;
                 const matchPieces = (s.pieces || 0) >= minPieces && (s.pieces || 0) <= maxPieces;
                 const matchPrice = (s.currentValue || 0) >= minPrice && (s.currentValue || 0) <= maxPrice;
@@ -732,17 +754,14 @@
                 return matchSearch && matchCat && matchSec && matchYear && matchPieces && matchPrice;
             });
 
-            // Sortierungs-Logik repariert (Setnummer komplett und korrekte Reihenfolge bei added)
             const factor = document.getElementById('sortFactor').value;
             filtered.sort((a, b) => {
                 let valA, valB;
                 if (factor === 'added') { 
-                    // Negative Indexierung löst das "Neueste nach oben" Problem bei desc
                     valA = -a.originalIndex; 
                     valB = -b.originalIndex; 
                 }
                 else if (factor === 'number') { 
-                    // Komplette Nummer ohne Buchstaben betrachten, um 10000 vs 2000 Fehler zu beheben
                     valA = parseInt((a.setNumber || "").toString().replace(/\D/g, '')) || 0; 
                     valB = parseInt((b.setNumber || "").toString().replace(/\D/g, '')) || 0; 
                 }
@@ -948,7 +967,54 @@
             clearSelection(); saveAndRender(); 
         }
 
+        /* --- THEME TOGGLE LOGIC --- */
+        function toggleDarkMode() {
+            const root = document.documentElement;
+            // Determine current state
+            const isDark = root.classList.contains('dark') || (!root.classList.contains('light') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+            
+            if (isDark) {
+                root.classList.remove('dark');
+                root.classList.add('light');
+                localStorage.setItem('theme', 'light');
+                setDarkModeIcon('light');
+            } else {
+                root.classList.remove('light');
+                root.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+                setDarkModeIcon('dark');
+            }
+        }
+
+        function setDarkModeIcon(theme) {
+            const icon = document.getElementById('darkModeIcon');
+            const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+            
+            if (isDark) {
+                // Sun Icon for Dark Mode (to switch to Light)
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>';
+            } else {
+                // Moon Icon for Light Mode (to switch to Dark)
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>';
+            }
+        }
+
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const root = document.documentElement;
+            if (savedTheme === 'dark') {
+                root.classList.add('dark');
+                setDarkModeIcon('dark');
+            } else if (savedTheme === 'light') {
+                root.classList.add('light');
+                setDarkModeIcon('light');
+            } else {
+                setDarkModeIcon('system');
+            }
+        }
+
         // INIT
+        initTheme();
         setSortDir('desc');
         updateSliderLabels();
     </script>

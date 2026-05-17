@@ -7,69 +7,10 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; }
+        .glass { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.4); }
         
-        /* DARK MODE LOGIC & VARIABLES */
-        :root {
-            --bg-body: #f1f5f9;
-            --bg-card: #ffffff;
-            --bg-glass: rgba(255, 255, 255, 0.7);
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-            --border-color: rgba(0,0,0,0.1);
-            --input-bg: #ffffff;
-        }
-
-        /* System Preference (Fallback) */
-        @media (prefers-color-scheme: dark) {
-            :root:not(.light) {
-                --bg-body: #0f172a;
-                --bg-card: #1e293b;
-                --bg-glass: rgba(15, 23, 42, 0.8);
-                --text-main: #f1f5f9;
-                --text-muted: #94a3b8;
-                --border-color: rgba(255,255,255,0.1);
-                --input-bg: #0f172a;
-            }
-        }
-
-        /* Manual Dark Mode Override */
-        :root.dark {
-            --bg-body: #0f172a;
-            --bg-card: #1e293b;
-            --bg-glass: rgba(15, 23, 42, 0.8);
-            --text-main: #f1f5f9;
-            --text-muted: #94a3b8;
-            --border-color: rgba(255,255,255,0.1);
-            --input-bg: #0f172a;
-        }
-
-        /* Manual Light Mode Override */
-        :root.light {
-            --bg-body: #f1f5f9;
-            --bg-card: #ffffff;
-            --bg-glass: rgba(255, 255, 255, 0.7);
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-            --border-color: rgba(0,0,0,0.1);
-            --input-bg: #ffffff;
-        }
-
-        body { 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
-            background-color: var(--bg-body); 
-            color: var(--text-main);
-            transition: background-color 0.3s ease;
-            overflow-x: hidden; width: 100%; -webkit-tap-highlight-color: transparent;
-        }
-
-        .glass { background: var(--bg-glass); backdrop-filter: blur(15px); border-bottom: 1px solid var(--border-color); }
-        
-        .set-card { 
-            background-color: var(--bg-card);
-            border: 1px solid var(--border-color);
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-            cursor: pointer; position: relative; 
-        }
+        .set-card { transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); cursor: pointer; position: relative; }
         .set-card:hover { transform: translateY(-8px); box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.15); }
         
         .select-checkbox { opacity: 0; transition: all 0.2s; transform: scale(1.2); cursor: pointer; }
@@ -84,121 +25,125 @@
         }
 
         .subtheme-starwars { 
-            background: #000 !important; position: relative; overflow: hidden;
-            color: #ffe81f !important; font-weight: 800;
+            background: #000 !important;
+            position: relative;
+            overflow: hidden;
+            color: #ffe81f !important;
+            font-weight: 800;
             text-shadow: 0 0 5px rgba(255, 232, 31, 0.8);
-            border: 1px solid #334155; z-index: 1;
+            border: 1px solid #334155;
+            z-index: 1;
         }
 
         .subtheme-starwars::before, .subtheme-starwars::after {
-            content: ""; position: absolute; top: 50%; left: 50%; width: 100px; height: 100px;
+            content: "";
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 100px; height: 100px;
             background-image: 
                 radial-gradient(2px 2px at 20% 30%, #fff, rgba(0,0,0,0)),
                 radial-gradient(2px 2px at 70% 40%, #fff, rgba(0,0,0,0)),
                 radial-gradient(2px 2px at 40% 80%, #fff, rgba(0,0,0,0)),
                 radial-gradient(2px 2px at 80% 20%, #fff, rgba(0,0,0,0)),
                 radial-gradient(2px 2px at 10% 10%, #fff, rgba(0,0,0,0));
-            animation: hyperdrive 1.2s linear infinite; z-index: -1;
+            animation: hyperdrive 1.2s linear infinite;
+            z-index: -1;
         }
         .subtheme-starwars::after { animation-delay: 0.6s; }
 
         .subtheme-ucs { background: linear-gradient(90deg, #bf953f, #fcf6ba, #b38728, #fcf6ba, #bf953f); background-size: 200% auto; color: #000; font-weight: 900; animation: shimmerEffect 4s linear infinite; }
         .subtheme-modular { background: linear-gradient(90deg, #065f46, #10b981, #064e3b, #10b981, #065f46); background-size: 200% auto; color: white; font-weight: 700; animation: shimmerEffect 4s linear infinite; }
         .subtheme-technic { background: #475569; color: white; }
-        .subtheme-default { background: var(--bg-body); color: var(--text-muted); border: 1px solid var(--border-color); }
+        .subtheme-default { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
 
-        #detailModal, #duplicateModal { display: none; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(8px); z-index: 1000; }
-        
-        /* Modal & Form Dark Mode Support */
-        .modal-inner { background-color: var(--bg-card) !important; color: var(--text-main) !important; }
-        
-        /* Fix für die generalisierten Inputs, damit die Modal-Inputs von Index 9 weiterhin transparent sein dürfen */
-        input:not(.bg-transparent), select { background-color: var(--input-bg); color: var(--text-main); border: 1px solid var(--border-color); font-size: 16px;}
-        #detailModal input, #duplicateModal input { background-color: transparent !important; border: none !important; padding: 0 !important; font-size: 16px;}
-        #barcodeInput { background: transparent !important; border: none !important;}
+        #detailModal, #duplicateModal { display: none; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); }
 
-        #scrollTopBtn { display: none; }
+        #scrollTopBtn { display: none; transition: all 0.3s ease; }
+        #scrollTopBtn:hover { transform: translateY(-5px); }
+        body { overflow-x: hidden; width: 100%; -webkit-tap-highlight-color: transparent; }
 
-        #library { display: grid; gap: 1rem; grid-template-columns: repeat(1, minmax(0, 1fr)); }
+        #detailModal, #duplicateModal { 
+            display: none; 
+            background: rgba(15, 23, 42, 0.7); 
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+        }
+
+        input[type="text"], input[type="number"], select { font-size: 16px !important; }
+
+        #library {
+            display: grid;
+            gap: 1rem;
+            grid-template-columns: repeat(1, minmax(0, 1fr));
+        }
         @media (min-width: 640px) { #library { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
         @media (min-width: 1024px) { #library { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
-
-        /* Sidebar & Overlay */
-        #filterSidebar { 
-            transition: transform 0.3s ease-in-out; z-index: 1001; 
-            background-color: var(--bg-card); border-left: 1px solid var(--border-color);
+        html, body { 
+            overflow-x: hidden; 
+            width: 100%;
+            position: relative;
         }
-        .sidebar-open { transform: translateX(0) !important; }
-        #sidebarOverlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.3); backdrop-filter: blur(2px); z-index: 1000; }
 
-        /* Custom Dual Range Slider */
-        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; outline: none; margin: 0; border: none !important;}
-        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 0; background: transparent; border: none; }
-        input[type=range]::-webkit-slider-thumb { 
-            pointer-events: auto; height: 18px; width: 18px; border-radius: 50%; 
-            background: #2563eb; cursor: pointer; -webkit-appearance: none; 
-            margin-top: -9px; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2); 
-            position: relative; z-index: 10;
+        input, select {
+            max-width: 100%;
+            box-sizing: border-box;
         }
-        input[type=range]:focus::-webkit-slider-thumb { z-index: 20; }
+        /* Sidebar Animation */
+#filterSidebar { transition: transform 0.3s ease-in-out; z-index: 1001; }
+.sidebar-open { transform: translateX(0) !important; }
+
+/* Custom Range Slider Styling */
+input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
+input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 6px; cursor: pointer; background: #e2e8f0; border-radius: 3px; }
+input[type=range]::-webkit-slider-thumb { height: 18px; width: 18px; border-radius: 50%; background: #2563eb; cursor: pointer; -webkit-appearance: none; margin-top: -6px; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
     </style>
 </head>
 <body class="min-h-screen pb-12">
-
-    <div id="sidebarOverlay" onclick="toggleSidebar()"></div>
-
-    <div id="filterSidebar" class="fixed top-0 right-0 h-full w-80 shadow-2xl p-6 translate-x-full overflow-y-auto">
-        <div class="flex justify-between items-center mb-8">
-            <h2 class="text-xl font-black uppercase tracking-tight">Filter & Sortierung</h2>
-            <button onclick="toggleSidebar()" class="text-slate-400 hover:text-red-500">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-            </button>
-        </div>
-
-        <div class="space-y-8">
-            <div>
-                <p class="text-[10px] font-black text-slate-400 uppercase mb-3 tracking-widest">Sortieren nach</p>
-                <div class="flex flex-col gap-2">
-                    <select id="sortFactor" onchange="renderLibrary()" class="w-full rounded-xl px-4 py-3 text-sm font-bold outline-none border">
-                        <option value="added">Zuletzt hinzugefügt</option>
-                        <option value="number">Setnummer</option>
-                        <option value="price">Marktwert</option>
-                        <option value="pieces">Teileanzahl</option>
-                        <option value="year">Erscheinungsjahr</option>
-                    </select>
-                    <div class="flex gap-2">
-                        <button onclick="setSortDir('asc')" id="sortAsc" class="flex-1 py-2 rounded-xl border-2 font-bold transition-all border-slate-100 text-slate-400">▲</button>
-                        <button onclick="setSortDir('desc')" id="sortDesc" class="flex-1 py-2 rounded-xl border-2 font-bold transition-all border-blue-600 bg-blue-600 text-white shadow-md">▼</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="space-y-6">
-                <div>
-                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Jahr: <span id="labelYear" class="text-blue-600">1970 - 2026</span></p>
-                    <div class="relative h-2 bg-slate-200 dark:bg-slate-700 rounded-full mt-3">
-                        <input type="range" id="rangeYearMin" min="1970" max="2026" value="1970" oninput="updateSliderLabels('Year'); renderLibrary()" class="absolute w-full -top-[8px] pointer-events-none appearance-none bg-transparent">
-                        <input type="range" id="rangeYearMax" min="1970" max="2026" value="2026" oninput="updateSliderLabels('Year'); renderLibrary()" class="absolute w-full -top-[8px] pointer-events-none appearance-none bg-transparent">
-                    </div>
-                </div>
-                <div>
-                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Teile: <span id="labelPieces" class="text-blue-600">0 - 10000</span></p>
-                    <div class="relative h-2 bg-slate-200 dark:bg-slate-700 rounded-full mt-3">
-                        <input type="range" id="rangePiecesMin" min="0" max="10000" step="50" value="0" oninput="updateSliderLabels('Pieces'); renderLibrary()" class="absolute w-full -top-[8px] pointer-events-none appearance-none bg-transparent">
-                        <input type="range" id="rangePiecesMax" min="0" max="10000" step="50" value="10000" oninput="updateSliderLabels('Pieces'); renderLibrary()" class="absolute w-full -top-[8px] pointer-events-none appearance-none bg-transparent">
-                    </div>
-                </div>
-                <div>
-                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Wert: <span id="labelPrice" class="text-blue-600">0 € - 2000 €</span></p>
-                    <div class="relative h-2 bg-slate-200 dark:bg-slate-700 rounded-full mt-3">
-                        <input type="range" id="rangePriceMin" min="0" max="2000" step="10" value="0" oninput="updateSliderLabels('Price'); renderLibrary()" class="absolute w-full -top-[8px] pointer-events-none appearance-none bg-transparent">
-                        <input type="range" id="rangePriceMax" min="0" max="2000" step="10" value="2000" oninput="updateSliderLabels('Price'); renderLibrary()" class="absolute w-full -top-[8px] pointer-events-none appearance-none bg-transparent">
-                    </div>
-                </div>
-            </div>
-            <button onclick="resetFilters()" class="w-full py-3 rounded-xl border border-slate-200 text-xs font-bold text-slate-500 hover:bg-blue-600 hover:text-white transition-all">Filter zurücksetzen</button>
-        </div>
+    <!-- Sidebar für Filter & Sortierung -->
+<div id="filterSidebar" class="fixed top-0 right-0 h-full w-80 bg-white shadow-2xl p-6 translate-x-full overflow-y-auto">
+    <div class="flex justify-between items-center mb-8">
+        <h2 class="text-xl font-black text-slate-800 uppercase tracking-tight">Filter & Sortierung</h2>
+        <button onclick="toggleSidebar()" class="text-slate-400 hover:text-slate-800">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
     </div>
+
+    <div class="space-y-8">
+        <!-- Sortierung -->
+        <div>
+            <p class="text-[10px] font-black text-slate-400 uppercase mb-3 tracking-widest">Sortieren nach</p>
+            <div class="flex flex-col gap-2">
+                <select id="sortFactor" onchange="renderLibrary()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold outline-none">
+                    <option value="number">Setnummer</option>
+                    <option value="price">Marktwert</option>
+                    <option value="pieces">Teileanzahl</option>
+                    <option value="year">Erscheinungsjahr</option>
+                </select>
+                <div class="flex gap-2">
+                    <button onclick="setSortDir('asc')" id="sortAsc" class="flex-1 py-2 rounded-xl border-2 font-bold transition-all border-slate-100 text-slate-400">▲</button>
+                    <button onclick="setSortDir('desc')" id="sortDesc" class="flex-1 py-2 rounded-xl border-2 font-bold transition-all border-blue-600 bg-blue-600 text-white shadow-md">▼</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slider Filter -->
+        <div class="space-y-6">
+            <div>
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Jahr bis: <span id="labelYear" class="text-blue-600">2026</span></p>
+                <input type="range" id="rangeYear" min="1970" max="2026" value="2026" oninput="updateSliderLabels(); renderLibrary()">
+            </div>
+            <div>
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Teile bis: <span id="labelPieces" class="text-blue-600">10000</span></p>
+                <input type="range" id="rangePieces" min="0" max="10000" step="50" value="10000" oninput="updateSliderLabels(); renderLibrary()">
+            </div>
+            <div>
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Max. Wert: <span id="labelPrice" class="text-blue-600">2000 €</span></p>
+                <input type="range" id="rangePrice" min="0" max="2000" step="10" value="2000" oninput="updateSliderLabels(); renderLibrary()">
+            </div>
+        </div>
+        <button onclick="resetFilters()" class="w-full py-3 rounded-xl border border-slate-200 text-xs font-bold text-slate-500 hover:bg-slate-50">Filter zurücksetzen</button>
+    </div>
+</div>
 
     <div id="actionBar" class="fixed bottom-0 left-0 right-0 z-[100] bg-blue-600 text-white p-4 shadow-2xl hidden md:top-0 md:bottom-auto">
         <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
@@ -225,7 +170,7 @@
         </div>
     </div>
 
-    <nav class="sticky top-0 z-50 glass mb-8">
+    <nav class="sticky top-0 z-50 glass mb-8 border-b border-slate-200">
         <div class="max-w-7xl mx-auto px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-200">
@@ -234,37 +179,37 @@
                         <rect x="3" y="11" width="18" height="9" rx="2" />
                     </svg>
                 </div>
-                <h1 class="text-2xl font-extrabold tracking-tight">BRIX JUST<span class="text-blue-600">4SEAN™</span></h1>
+                <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">BRIX JUST<span class="text-blue-600">4SEAN™</span></h1>
             </div>
             
             <div class="flex gap-6 text-center">
-                <div><p class="text-[10px] uppercase font-black text-slate-400">Sets</p><p id="statSets" class="font-bold">0</p></div>
-                <div><p class="text-[10px] uppercase font-black text-slate-400">Teile</p><p id="statParts" class="font-bold">0</p></div>
+                <div><p class="text-[10px] uppercase font-black text-slate-400">Sets</p><p id="statSets" class="font-bold text-slate-800">0</p></div>
+                <div><p class="text-[10px] uppercase font-black text-slate-400">Teile</p><p id="statParts" class="font-bold text-slate-800">0</p></div>
                 <div><p class="text-[10px] uppercase font-black text-slate-400">Sammlungswert</p><p id="statValue" class="font-bold text-blue-600">0.00 €</p></div>
             </div>
 
             <div class="flex flex-col gap-2 items-center">
                 <div class="flex gap-2">
-                    <button onclick="toggleSidebar()" class="flex items-center gap-2 px-4 py-2 bg-slate-800 text-white rounded-xl text-xs font-black hover:bg-blue-600 transition-all shadow-lg">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
-                        FILTER & SORTIERUNG
+                    <button onclick="toggleSidebar()" class="flex items-center gap-2 px-4 py-2 bg-slate-800 text-white rounded-xl text-xs font-black hover:bg-slate-700 transition-all shadow-lg">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+    FILTER & SORTIERUNG
+</button>
+                    <button onclick="selectAllVisible()" title="Alle auswählen" class="p-2 hover:bg-slate-100 rounded-xl transition-colors">
+                        <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
                     </button>
-                    <button onclick="selectAllVisible()" title="Alle auswählen" class="p-2 hover:bg-slate-500/10 rounded-xl transition-colors">
-                        <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                    <button onclick="exportCollection()" title="Exportieren" class="p-2 hover:bg-slate-100 rounded-xl transition-colors">
+                        <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                     </button>
-                    <button onclick="exportCollection()" title="Exportieren" class="p-2 hover:bg-slate-500/10 rounded-xl transition-colors">
-                        <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                    </button>
-                    <label class="p-2 hover:bg-slate-500/10 rounded-xl transition-colors cursor-pointer" title="Importieren">
-                        <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                    <label class="p-2 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer" title="Importieren">
+                        <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
                         <input type="file" id="importFile" class="hidden" accept=".json" onchange="importCollection(event)">
                     </label>
                 </div>
                 <div class="flex flex-col sm:flex-row gap-2 w-full">
-                    <select id="filterCategory" onchange="renderLibrary()" class="border rounded-xl px-3 py-2 text-xs font-bold outline-none">
+                    <select id="filterCategory" onchange="renderLibrary()" class="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold outline-none">
                         <option value="all">Alle Themen</option>
                     </select>
-                    <select id="filterSecondary" onchange="renderLibrary()" class="border rounded-xl px-3 py-2 text-xs font-bold outline-none">
+                    <select id="filterSecondary" onchange="renderLibrary()" class="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold outline-none">
                         <option value="all">Kein Zusatzfilter</option>
                         <optgroup label="Zustand">
                             <option value="status-New">Zustand: New</option>
@@ -272,7 +217,7 @@
                         </optgroup>
                         <optgroup label="Jahr" id="filterYearGroup"></optgroup>
                     </select>
-                    <input type="text" id="searchLibrary" oninput="renderLibrary()" placeholder="Suchen..." class="border rounded-xl px-3 py-2 text-xs outline-none flex-1">
+                    <input type="text" id="searchLibrary" oninput="renderLibrary()" placeholder="Suchen..." class="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs outline-none flex-1">
                 </div>
             </div>
         </div>
@@ -280,9 +225,9 @@
 
     <main class="max-w-7xl mx-auto px-6">
        <div class="max-w-2xl mx-auto mb-10 px-2">
-            <div class="bg-white dark:bg-slate-800 p-1 rounded-full shadow-lg flex items-center border border-slate-200 dark:border-slate-700">
+            <div class="bg-white p-1 rounded-full shadow-lg flex items-center border border-slate-200">
                 <input type="text" id="barcodeInput" autofocus 
-                       class="flex-1 bg-transparent pl-4 md:pl-6 pr-2 py-2 md:py-3 rounded-full text-sm md:text-base outline-none min-w-0" 
+                       class="flex-1 pl-4 md:pl-6 pr-2 py-2 md:py-3 rounded-full text-sm md:text-base outline-none min-w-0" 
                        placeholder="Set-Nr/Barcode"
                        onkeydown="if(event.key === 'Enter') fetchSets()"> 
                 <button onclick="fetchSets()" class="bg-blue-600 text-white font-bold px-4 py-2 md:px-6 md:py-3 rounded-full active:scale-95 transition-all text-xs md:text-sm whitespace-nowrap ml-1">
@@ -294,77 +239,77 @@
         <div id="library" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"></div>
     </main>
 
-    <div id="duplicateModal" class="fixed inset-0 flex items-end md:items-center justify-center">
-        <div class="modal-inner w-full max-w-md rounded-t-[2rem] md:rounded-[2rem] p-6 shadow-2xl">
-            <h3 class="text-2xl font-black mb-2">Set bereits vorhanden!</h3>
+   <div id="duplicateModal" class="fixed inset-0 flex items-end md:items-center justify-center">
+    <div class="bg-white w-full max-w-md rounded-t-[2rem] md:rounded-[2rem] p-6 shadow-2xl">
+            <h3 class="text-2xl font-black text-slate-800 mb-2">Set bereits vorhanden!</h3>
             <p class="text-slate-500 text-sm mb-6 font-medium">Möchtest du weitere Exemplare von Set <span id="dupSetNum" class="font-black text-blue-600"></span> zur Sammlung hinzufügen?</p>
             
             <div class="space-y-4 mb-8">
-                <div class="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-2xl border border-blue-100 dark:border-blue-800">
+                <div class="bg-blue-50 p-4 rounded-2xl border border-blue-100">
                     <p class="text-[10px] font-black text-blue-600 uppercase mb-1 italic">+ Anzahl Neu</p>
-                    <input type="number" id="dupAddNew" value="0" min="0" class="bg-transparent font-bold text-blue-800 dark:text-blue-300 w-full outline-none text-xl">
+                    <input type="number" id="dupAddNew" value="0" min="0" class="bg-transparent font-bold text-blue-800 w-full outline-none text-xl">
                 </div>
-                <div class="bg-slate-50 dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700">
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
                     <p class="text-[10px] font-black text-slate-500 uppercase mb-1 italic">+ Anzahl Gebraucht</p>
-                    <input type="number" id="dupAddUsed" value="0" min="0" class="bg-transparent font-bold text-slate-800 dark:text-white w-full outline-none text-xl">
+                    <input type="number" id="dupAddUsed" value="0" min="0" class="bg-transparent font-bold text-slate-800 w-full outline-none text-xl">
                 </div>
             </div>
 
             <div class="flex gap-3">
-                <button onclick="closeDuplicateModal()" class="flex-1 py-3 rounded-xl font-bold text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">Abbrechen</button>
+                <button onclick="closeDuplicateModal()" class="flex-1 py-3 rounded-xl font-bold text-slate-400 hover:bg-slate-100 transition-all">Abbrechen</button>
                 <button onclick="confirmAddDuplicate()" class="flex-[2] bg-blue-600 text-white py-3 rounded-xl font-bold shadow-lg hover:bg-blue-700 transition-all">Hinzufügen</button>
             </div>
         </div>
     </div>
 
     <div id="detailModal" class="fixed inset-0 flex items-end md:items-center justify-center">
-        <div class="modal-inner w-full max-w-4xl h-[90vh] md:h-auto md:rounded-[2rem] rounded-t-[2rem] overflow-hidden flex flex-col md:flex-row relative">
+    <div class="bg-white w-full max-w-4xl h-[90vh] md:h-auto md:rounded-[2rem] rounded-t-[2rem] overflow-hidden flex flex-col md:flex-row relative">
             <button onclick="closeModal()" class="absolute top-6 right-6 text-slate-400 hover:text-slate-600 z-10"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
-            <div class="md:w-2/5 bg-slate-50 dark:bg-slate-800/50 p-8 flex flex-col items-center justify-center border-r border-slate-100 dark:border-slate-800">
+            <div class="md:w-2/5 bg-slate-50 p-8 flex flex-col items-center justify-center border-r border-slate-100">
                 <img id="modalImg" src="" class="max-h-64 object-contain drop-shadow-2xl mb-8">
                 <div class="w-full text-center md:text-left">
                     <p class="text-xs font-black text-blue-600 uppercase tracking-widest" id="modalTheme"></p>
-                    <h2 class="text-2xl font-extrabold text-slate-800 dark:text-white" id="modalName"></h2>
+                    <h2 class="text-2xl font-extrabold text-slate-800" id="modalName"></h2>
                     <p class="text-slate-400 font-bold mt-1" id="modalId"></p>
                 </div>
             </div>
             <div class="md:w-3/5 p-8 pt-12 space-y-6 overflow-y-auto max-h-[90vh]">
                 <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-slate-50 dark:bg-slate-800 p-4 rounded-2xl">
+                    <div class="bg-slate-50 p-4 rounded-2xl">
                         <p class="text-[10px] font-black text-slate-400 uppercase">Barcode / EAN</p>
-                        <input type="text" id="editEan" class="bg-transparent font-bold text-slate-800 dark:text-white w-full outline-none" placeholder="-">
+                        <input type="text" id="editEan" class="bg-transparent font-bold text-slate-800 w-full outline-none" placeholder="-">
                     </div>
-                    <div class="bg-slate-50 dark:bg-slate-800 p-4 rounded-2xl">
+                    <div class="bg-slate-50 p-4 rounded-2xl">
                         <p class="text-[10px] font-black text-slate-400 uppercase">UVP Preis (€)</p>
-                        <input type="number" id="editRetailPrice" step="0.01" class="bg-transparent font-bold text-slate-800 dark:text-white w-full outline-none">
+                        <input type="number" id="editRetailPrice" step="0.01" class="bg-transparent font-bold text-slate-800 w-full outline-none">
                     </div>
-                    <div class="bg-slate-50 dark:bg-slate-800 p-4 rounded-2xl">
+                    <div class="bg-slate-50 p-4 rounded-2xl">
                         <p class="text-[10px] font-black text-slate-400 uppercase">Erscheinungsjahr</p>
-                        <input type="number" id="editYear" class="bg-transparent font-bold text-slate-800 dark:text-white w-full outline-none" placeholder="z.B. 2023">
+                        <input type="number" id="editYear" class="bg-transparent font-bold text-slate-800 w-full outline-none" placeholder="z.B. 2023">
                     </div>
-                    <div class="bg-slate-50 dark:bg-slate-800 p-4 rounded-2xl">
+                    <div class="bg-slate-50 p-4 rounded-2xl">
                         <p class="text-[10px] font-black text-slate-400 uppercase">Teileanzahl</p>
-                        <input type="number" id="editPieces" class="bg-transparent font-bold text-slate-800 dark:text-white w-full outline-none" placeholder="0">
+                        <input type="number" id="editPieces" class="bg-transparent font-bold text-slate-800 w-full outline-none" placeholder="0">
                     </div>
-                    <div class="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-2xl border border-blue-100 dark:border-blue-800 col-span-2">
+                    <div class="bg-blue-50 p-4 rounded-2xl border border-blue-100 col-span-2">
                         <p class="text-[10px] font-black text-blue-500 uppercase">Marktwert (€)</p>
-                        <input type="number" id="editCurrentValue" step="0.01" class="bg-transparent font-bold text-blue-700 dark:text-blue-400 w-full outline-none text-xl">
+                        <input type="number" id="editCurrentValue" step="0.01" class="bg-transparent font-bold text-blue-700 w-full outline-none text-xl">
                     </div>
-                    <div class="bg-slate-50 dark:bg-slate-800 p-4 rounded-2xl col-span-2">
+                    <div class="bg-slate-50 p-4 rounded-2xl col-span-2">
                         <p class="text-[10px] font-black text-slate-400 uppercase">Subtheme (Tags)</p>
-                        <input type="text" id="editSubtheme" class="bg-transparent font-bold text-slate-800 dark:text-white w-full outline-none" placeholder="z.B. UCS, Modular...">
+                        <input type="text" id="editSubtheme" class="bg-transparent font-bold text-slate-800 w-full outline-none" placeholder="z.B. UCS, Modular...">
                     </div>
-                    <div class="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-2xl border border-blue-200 dark:border-blue-700">
+                    <div class="bg-blue-50 p-4 rounded-2xl border border-blue-200">
                         <p class="text-[10px] font-black text-blue-600 uppercase">Anzahl Neu</p>
-                        <input type="number" id="editQtyNew" min="0" oninput="refreshModalCalculation()" class="bg-transparent font-bold text-blue-800 dark:text-blue-300 w-full outline-none">
+                        <input type="number" id="editQtyNew" min="0" oninput="refreshModalCalculation()" class="bg-transparent font-bold text-blue-800 w-full outline-none">
                     </div>
-                    <div class="bg-slate-100 dark:bg-slate-700/50 p-4 rounded-2xl border border-slate-200 dark:border-slate-600">
+                    <div class="bg-slate-100 p-4 rounded-2xl border border-slate-200">
                         <p class="text-[10px] font-black text-slate-500 uppercase">Anzahl Gebraucht</p>
-                        <input type="number" id="editQtyUsed" min="0" oninput="refreshModalCalculation()" class="bg-transparent font-bold text-slate-800 dark:text-white w-full outline-none">
+                        <input type="number" id="editQtyUsed" min="0" oninput="refreshModalCalculation()" class="bg-transparent font-bold text-slate-800 w-full outline-none">
                     </div>
                 </div>
 
-                <div class="bg-slate-50 dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
+                <div class="bg-slate-50 rounded-2xl p-5 border border-slate-200">
                     <p class="text-[10px] font-black text-slate-400 uppercase mb-4 tracking-widest text-center">Wert-Analyse dieses Sets</p>
                     <div class="space-y-3">
                         <div class="flex justify-between items-center text-sm">
@@ -373,11 +318,11 @@
                         </div>
                         <div class="flex justify-between items-center text-sm">
                             <span class="text-slate-500">Gebraucht (<span id="calcQtyUsed">0</span>x):</span>
-                            <span class="font-bold text-slate-700 dark:text-slate-300" id="calcValUsed">0.00 €</span>
+                            <span class="font-bold text-slate-700" id="calcValUsed">0.00 €</span>
                         </div>
-                        <div class="h-px bg-slate-200 dark:bg-slate-700 my-2"></div>
+                        <div class="h-px bg-slate-200 my-2"></div>
                         <div class="flex justify-between items-center">
-                            <span class="font-black text-slate-800 dark:text-white uppercase text-xs">Gesamtwert Set:</span>
+                            <span class="font-black text-slate-800 uppercase text-xs">Gesamtwert Set:</span>
                             <span class="font-black text-blue-600 text-xl" id="calcTotal">0.00 €</span>
                         </div>
                     </div>
@@ -395,74 +340,40 @@
         </div>
     </div>
 
-    <button id="darkModeBtn" onclick="toggleDarkMode()" class="fixed bottom-8 left-8 z-[70] bg-blue-600 text-white p-4 rounded-2xl shadow-xl transition-transform hover:-translate-y-1">
-        <svg id="darkModeIcon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
-        </svg>
-    </button>
-
-    <button id="scrollTopBtn" onclick="scrollToTop()" class="fixed bottom-8 right-8 z-[70] bg-blue-600 text-white p-4 rounded-2xl shadow-xl transition-transform hover:-translate-y-1">
+    <button id="scrollTopBtn" onclick="scrollToTop()" class="fixed bottom-8 right-8 z-[70] glass p-4 rounded-2xl shadow-xl text-blue-600 border border-blue-100">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
         </svg>
     </button>
 
     <script>
-        let currentSortDir = 'desc'; 
+        let currentSortDir = 'desc'; // Standard: Absteigend
 
-        function toggleSidebar() {
-            const sidebar = document.getElementById('filterSidebar');
-            const overlay = document.getElementById('sidebarOverlay');
-            sidebar.classList.toggle('sidebar-open');
-            overlay.style.display = sidebar.classList.contains('sidebar-open') ? 'block' : 'none';
-        }
+function toggleSidebar() {
+    document.getElementById('filterSidebar').classList.toggle('sidebar-open');
+}
 
-        function setSortDir(dir) {
-            currentSortDir = dir;
-            document.getElementById('sortAsc').className = dir === 'asc' ? "flex-1 py-2 rounded-xl border-2 font-bold bg-blue-600 text-white border-blue-600" : "flex-1 py-2 rounded-xl border-2 font-bold bg-white dark:bg-slate-800 text-slate-400 border-slate-100 dark:border-slate-700";
-            document.getElementById('sortDesc').className = dir === 'desc' ? "flex-1 py-2 rounded-xl border-2 font-bold bg-blue-600 text-white border-blue-600" : "flex-1 py-2 rounded-xl border-2 font-bold bg-white dark:bg-slate-800 text-slate-400 border-slate-100 dark:border-slate-700";
-            renderLibrary();
-        }
+function setSortDir(dir) {
+    currentSortDir = dir;
+    // Visuelle Umschaltung der Piktogramm-Buttons
+    document.getElementById('sortAsc').className = dir === 'asc' ? "flex-1 py-2 rounded-xl border-2 font-bold bg-blue-600 text-white border-blue-600" : "flex-1 py-2 rounded-xl border-2 font-bold bg-white text-slate-400 border-slate-100";
+    document.getElementById('sortDesc').className = dir === 'desc' ? "flex-1 py-2 rounded-xl border-2 font-bold bg-blue-600 text-white border-blue-600" : "flex-1 py-2 rounded-xl border-2 font-bold bg-white text-slate-400 border-slate-100";
+    renderLibrary();
+}
 
-        function updateSliderLabels(type) {
-            if (!type) {
-                ['Year', 'Pieces', 'Price'].forEach(t => updateSliderLabels(t));
-                return;
-            }
-            let minInput = document.getElementById(`range${type}Min`);
-            let maxInput = document.getElementById(`range${type}Max`);
-            let minVal = parseFloat(minInput.value);
-            let maxVal = parseFloat(maxInput.value);
-            
-            if (minVal > maxVal) {
-                if (document.activeElement === minInput) {
-                    minInput.value = maxVal;
-                    minVal = maxVal;
-                } else {
-                    maxInput.value = minVal;
-                    maxVal = minVal;
-                }
-            }
+function updateSliderLabels() {
+    document.getElementById('labelYear').innerText = document.getElementById('rangeYear').value;
+    document.getElementById('labelPieces').innerText = document.getElementById('rangePieces').value;
+    document.getElementById('labelPrice').innerText = document.getElementById('rangePrice').value + " €";
+}
 
-            let label = document.getElementById(`label${type}`);
-            if (type === 'Year' || type === 'Pieces') {
-                label.innerText = `${minVal} - ${maxVal}`;
-            } else if (type === 'Price') {
-                label.innerText = `${minVal} € - ${maxVal} €`;
-            }
-        }
-
-        function resetFilters() {
-            document.getElementById('rangeYearMin').value = 1970;
-            document.getElementById('rangeYearMax').value = 2026;
-            document.getElementById('rangePiecesMin').value = 0;
-            document.getElementById('rangePiecesMax').value = 10000;
-            document.getElementById('rangePriceMin').value = 0;
-            document.getElementById('rangePriceMax').value = 2000;
-            updateSliderLabels();
-            renderLibrary();
-        }
-
+function resetFilters() {
+    document.getElementById('rangeYear').value = 2026;
+    document.getElementById('rangePieces').value = 10000;
+    document.getElementById('rangePrice').value = 2000;
+    updateSliderLabels();
+    renderLibrary();
+}
         const API_KEY_BRICKSET = '3-N4Lr-Ug0H-M49ki';
         const API_KEY_REBRICKABLE = '74d1510666ec62fef948d197af293799';
         
@@ -635,15 +546,11 @@
                         valUsed: 0, 
                         status: "New",
                         qtyNew: 1, 
-                        qtyUsed: 0,
-                        addedAt: Date.now()
+                        qtyUsed: 0
                     };
                 } else {
                     newSetObj = await fetchFromRebrickable(query);
-                    if (newSetObj && query.length >= 11) {
-                        newSetObj.ean = query;
-                        newSetObj.addedAt = Date.now();
-                    }
+                    if (newSetObj && query.length >= 11) newSetObj.ean = query;
                 }
 
                 if (newSetObj) {
@@ -720,9 +627,11 @@
                 if (scraped.year > 0) s.year = scraped.year;
                 if (scraped.pieces > 0) s.pieces = scraped.pieces;
                 
+                // Wichtiger Fix: Marktwerte überschreiben
                 s.valNew = scraped.valNew > 0 ? scraped.valNew : s.valNew;
                 s.valUsed = scraped.valUsed > 0 ? scraped.valUsed : s.valUsed;
                 
+                // Aktuellen Marktwert basierend auf Status setzen
                 if (s.status === 'New') {
                     s.currentValue = s.valNew > 0 ? s.valNew : s.currentValue;
                 } else {
@@ -734,64 +643,49 @@
         }
 
         function renderLibrary() {
-            const term = document.getElementById('searchLibrary').value.toLowerCase();
-            const cat = document.getElementById('filterCategory').value;
-            const sec = document.getElementById('filterSecondary').value;
-            
-            const minYear = parseInt(document.getElementById('rangeYearMin').value);
-            const maxYear = parseInt(document.getElementById('rangeYearMax').value);
-            const minPieces = parseInt(document.getElementById('rangePiecesMin').value);
-            const maxPieces = parseInt(document.getElementById('rangePiecesMax').value);
-            const minPrice = parseFloat(document.getElementById('rangePriceMin').value);
-            const maxPrice = parseFloat(document.getElementById('rangePriceMax').value);
+    const term = document.getElementById('searchLibrary').value.toLowerCase();
+    const cat = document.getElementById('filterCategory').value;
+    
+    // Slider Werte abgreifen
+    const maxYear = parseInt(document.getElementById('rangeYear').value);
+    const maxPieces = parseInt(document.getElementById('rangePieces').value);
+    const maxPrice = parseFloat(document.getElementById('rangePrice').value);
 
-            let filtered = mySets.map((s, index) => ({ ...s, originalIndex: index })).filter(s => {
-                const matchSearch = s.name.toLowerCase().includes(term) || s.setNumber.includes(term);
-                const matchCat = (cat === "all" || s.theme === cat);
-                
-                let matchSec = true;
-                if (sec !== "all") {
-                    if (sec.startsWith("status-")) matchSec = s.status === sec.replace("status-", "");
-                    else if (sec.startsWith("year-")) matchSec = String(s.year) === sec.replace("year-", "");
-                }
+    let filtered = mySets.filter(s => {
+        const matchSearch = s.name.toLowerCase().includes(term) || s.setNumber.includes(term);
+        const matchCat = (cat === "all" || s.theme === cat);
+        // Neue Slider-Bedingungen
+        const matchYear = (s.year || 0) <= maxYear;
+        const matchPieces = (s.pieces || 0) <= maxPieces;
+        const matchPrice = (s.currentValue || 0) <= maxPrice;
 
-                const matchYear = (s.year || 0) >= minYear && (s.year || 0) <= maxYear;
-                const matchPieces = (s.pieces || 0) >= minPieces && (s.pieces || 0) <= maxPieces;
-                const matchPrice = (s.currentValue || 0) >= minPrice && (s.currentValue || 0) <= maxPrice;
-                
-                return matchSearch && matchCat && matchSec && matchYear && matchPieces && matchPrice;
-            });
+        return matchSearch && matchCat && matchYear && matchPieces && matchPrice;
+    });
 
-            const factor = document.getElementById('sortFactor').value;
-            filtered.sort((a, b) => {
-                let valA, valB;
-                if (factor === 'added') { 
-                    valA = a.addedAt || -a.originalIndex; 
-                    valB = b.addedAt || -b.originalIndex; 
-                }
-                else if (factor === 'number') { 
-                    valA = parseInt((a.setNumber || "").toString().replace(/\D/g, '')) || 0; 
-                    valB = parseInt((b.setNumber || "").toString().replace(/\D/g, '')) || 0; 
-                }
-                else if (factor === 'price') { valA = a.currentValue || 0; valB = b.currentValue || 0; }
-                else if (factor === 'pieces') { valA = a.pieces || 0; valB = b.pieces || 0; }
-                else if (factor === 'year') { valA = a.year || 0; valB = b.year || 0; }
+    // Neue Sortier-Logik
+    const factor = document.getElementById('sortFactor').value;
+    filtered.sort((a, b) => {
+        let valA, valB;
+        if (factor === 'number') { valA = a.setNumber; valB = b.setNumber; }
+        else if (factor === 'price') { valA = a.currentValue || 0; valB = b.currentValue || 0; }
+        else if (factor === 'pieces') { valA = a.pieces || 0; valB = b.pieces || 0; }
+        else if (factor === 'year') { valA = a.year || 0; valB = b.year || 0; }
 
-                if (currentSortDir === 'asc') return valA > valB ? 1 : -1;
-                else return valA < valB ? 1 : -1;
-            });
+        if (currentSortDir === 'asc') return valA > valB ? 1 : -1;
+        else return valA < valB ? 1 : -1;
+    });
             
             document.getElementById('library').innerHTML = filtered.map(set => `
-                <div onclick="openModal('${set.setNumber}')" class="set-card bg-white dark:bg-slate-800 rounded-[2rem] shadow-lg border border-slate-100 dark:border-slate-700 overflow-hidden">
+                <div onclick="openModal('${set.setNumber}')" class="set-card bg-white rounded-[2rem] shadow-lg border border-slate-100 overflow-hidden">
                     <input type="checkbox" ${selectedSets.has(set.setNumber) ? 'checked' : ''} onclick="toggleSelection('${set.setNumber}', event)" class="select-checkbox absolute top-5 left-5 z-20 w-5 h-5 rounded-md accent-blue-600">
-                    <button onclick="deleteSet('${set.setNumber}', event)" class="absolute top-4 right-4 z-20 p-2 bg-red-50 dark:bg-red-900/30 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all">
+                    <button onclick="deleteSet('${set.setNumber}', event)" class="absolute top-4 right-4 z-20 p-2 bg-red-50 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                     </button>
                     <div class="h-48 flex items-center justify-center p-6 relative">
                         <img src="${set.image}" class="max-h-full object-contain drop-shadow-xl" onerror="this.src='https://via.placeholder.com/150'">
                         <div class="absolute bottom-2 right-4 flex gap-1">
-                            ${(set.qtyNew || 0) > 0 ? `<div class="bg-blue-600 text-white text-[9px] font-black w-5 h-5 flex items-center justify-center rounded-full shadow-lg border-2 border-white dark:border-slate-800">${set.qtyNew}</div>` : ''}
-                            ${(set.qtyUsed || 0) > 0 ? `<div class="bg-slate-400 text-white text-[9px] font-black w-5 h-5 flex items-center justify-center rounded-full shadow-lg border-2 border-white dark:border-slate-800">${set.qtyUsed}</div>` : ''}
+                            ${(set.qtyNew || 0) > 0 ? `<div class="bg-blue-600 text-white text-[9px] font-black w-5 h-5 flex items-center justify-center rounded-full shadow-lg border-2 border-white">${set.qtyNew}</div>` : ''}
+                            ${(set.qtyUsed || 0) > 0 ? `<div class="bg-slate-400 text-white text-[9px] font-black w-5 h-5 flex items-center justify-center rounded-full shadow-lg border-2 border-white">${set.qtyUsed}</div>` : ''}
                         </div>
                         <div class="absolute bottom-2 left-4 flex gap-1 flex-wrap pr-4">
                             <span class="text-[8px] font-bold px-2 py-0.5 rounded-full ${set.status === 'New' ? 'bg-blue-600' : 'bg-slate-700'} text-white uppercase">${set.status}</span>
@@ -800,17 +694,17 @@
                     </div>
                     <div class="p-6 pt-2">
                         <div class="flex justify-between items-start">
-                            <span class="text-[9px] font-black text-blue-600 bg-blue-50 dark:bg-blue-500/10 px-2 py-1 rounded uppercase">${set.theme}</span>
+                            <span class="text-[9px] font-black text-blue-600 bg-blue-50 px-2 py-1 rounded uppercase">${set.theme}</span>
                             <span class="text-[9px] font-bold text-slate-400">${set.year || '---'}</span>
                         </div>
-                        <h3 class="font-bold text-slate-800 dark:text-white text-sm mt-2 h-10 overflow-hidden">${set.name}</h3>
-                        <div class="flex justify-between items-end border-t border-slate-100 dark:border-slate-700 mt-4 pt-4">
+                        <h3 class="font-bold text-slate-800 text-sm mt-2 h-10 overflow-hidden">${set.name}</h3>
+                        <div class="flex justify-between items-end border-t mt-4 pt-4">
                             <div class="text-[10px] text-slate-400 font-bold uppercase">
-                                <p class="text-slate-700 dark:text-slate-300">#${set.setNumber}</p>
+                                <p class="text-slate-700">#${set.setNumber}</p>
                                 <p class="${set.price === 0 ? 'text-red-500 font-black' : ''}">UVP: ${parseFloat(set.price || 0).toFixed(2)} €</p>
                             </div>
                             <div class="text-right">
-                                <p class="text-[9px] font-black text-slate-300 dark:text-slate-500 uppercase">Marktwert</p>
+                                <p class="text-[9px] font-black text-slate-300 uppercase">Marktwert</p>
                                 <p class="text-xl font-extrabold text-blue-600">${parseFloat(set.currentValue || 0).toFixed(2)} €</p>
                             </div>
                         </div>
@@ -863,19 +757,8 @@
 
         function setStatus(s) { 
             currentStatus = s; 
-            
-            const btnN = document.getElementById('btnNew');
-            const btnU = document.getElementById('btnUsed');
-            
-            const baseClass = "flex-1 py-3 rounded-xl border-2 font-bold transition-all ";
-            
-            btnN.className = baseClass + (s === 'New' 
-                ? "bg-blue-600 text-white border-blue-600 shadow-md" 
-                : "bg-white dark:bg-slate-800 text-slate-400 border-slate-100 dark:border-slate-700");
-                
-            btnU.className = baseClass + (s === 'Used' 
-                ? "bg-slate-800 dark:bg-slate-700 text-white border-slate-800 dark:border-slate-600 shadow-md" 
-                : "bg-white dark:bg-slate-800 text-slate-400 border-slate-100 dark:border-slate-700");
+            document.getElementById('btnNew').className = s === 'New' ? "flex-1 py-3 rounded-xl border-2 font-bold bg-blue-600 text-white border-blue-600 shadow-md" : "flex-1 py-3 rounded-xl border-2 font-bold bg-white text-slate-400 border-slate-100"; 
+            document.getElementById('btnUsed').className = s === 'Used' ? "flex-1 py-3 rounded-xl border-2 font-bold bg-slate-800 text-white border-slate-800 shadow-md" : "flex-1 py-3 rounded-xl border-2 font-bold bg-white text-slate-400 border-slate-100"; 
             
             const currentSet = mySets.find(x => x.setNumber === currentEditId);
             if (currentSet) {
@@ -986,53 +869,7 @@
             clearSelection(); saveAndRender(); 
         }
 
-        /* --- THEME TOGGLE LOGIC --- */
-        function toggleDarkMode() {
-            const root = document.documentElement;
-            const isDark = root.classList.contains('dark') || (!root.classList.contains('light') && window.matchMedia('(prefers-color-scheme: dark)').matches);
-            
-            if (isDark) {
-                root.classList.remove('dark');
-                root.classList.add('light');
-                localStorage.setItem('theme', 'light');
-                setDarkModeIcon('light');
-            } else {
-                root.classList.remove('light');
-                root.classList.add('dark');
-                localStorage.setItem('theme', 'dark');
-                setDarkModeIcon('dark');
-            }
-        }
-
-        function setDarkModeIcon(theme) {
-            const icon = document.getElementById('darkModeIcon');
-            const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-            
-            if (isDark) {
-                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>';
-            } else {
-                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>';
-            }
-        }
-
-        function initTheme() {
-            const savedTheme = localStorage.getItem('theme');
-            const root = document.documentElement;
-            if (savedTheme === 'dark') {
-                root.classList.add('dark');
-                setDarkModeIcon('dark');
-            } else if (savedTheme === 'light') {
-                root.classList.add('light');
-                setDarkModeIcon('light');
-            } else {
-                setDarkModeIcon('system');
-            }
-        }
-
-        // INIT
-        initTheme();
-        setSortDir('desc');
-        updateSliderLabels();
+        saveAndRender();
     </script>
 </body>
 </html>

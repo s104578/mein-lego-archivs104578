@@ -6,34 +6,22 @@
     <title>Brix Just4Sean - Collection Manager</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
-        
-        /* DARK MODE LOGIC & VARIABLES */
-        :root {
-            --bg-body: #f1f5f9;
-            --bg-card: #ffffff;
-            --bg-glass: rgba(255, 255, 255, 0.7);
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-            --border-color: rgba(0,0,0,0.1);
-            --input-bg: #ffffff;
-        }
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
+    
+    /* DARK MODE LOGIC & VARIABLES */
+    :root {
+        --bg-body: #f1f5f9;
+        --bg-card: #ffffff;
+        --bg-glass: rgba(255, 255, 255, 0.7);
+        --text-main: #1e293b;
+        --text-muted: #64748b;
+        --border-color: rgba(0,0,0,0.1);
+        --input-bg: #ffffff;
+    }
 
-        /* System Preference (Fallback) */
-        @media (prefers-color-scheme: dark) {
-            :root:not(.light) {
-                --bg-body: #0f172a;
-                --bg-card: #1e293b;
-                --bg-glass: rgba(15, 23, 42, 0.8);
-                --text-main: #f1f5f9;
-                --text-muted: #94a3b8;
-                --border-color: rgba(255,255,255,0.1);
-                --input-bg: #0f172a;
-            }
-        }
-
-        /* Manual Dark Mode Override */
-        :root.dark {
+    /* System Preference (Fallback) */
+    @media (prefers-color-scheme: dark) {
+        :root:not(.light) {
             --bg-body: #0f172a;
             --bg-card: #1e293b;
             --bg-glass: rgba(15, 23, 42, 0.8);
@@ -42,111 +30,151 @@
             --border-color: rgba(255,255,255,0.1);
             --input-bg: #0f172a;
         }
+    }
 
-        /* Manual Light Mode Override */
-        :root.light {
-            --bg-body: #f1f5f9;
-            --bg-card: #ffffff;
-            --bg-glass: rgba(255, 255, 255, 0.7);
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-            --border-color: rgba(0,0,0,0.1);
-            --input-bg: #ffffff;
-        }
+    /* Manual Dark Mode Override */
+    :root.dark {
+        --bg-body: #0f172a;
+        --bg-card: #1e293b;
+        --bg-glass: rgba(15, 23, 42, 0.8);
+        --text-main: #f1f5f9;
+        --text-muted: #94a3b8;
+        --border-color: rgba(255,255,255,0.1);
+        --input-bg: #0f172a;
+    }
 
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; }
-        .glass { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.4); }
-        
-        .set-card { transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); cursor: pointer; position: relative; }
-        .set-card:hover { transform: translateY(-8px); box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.15); }
-        
-        .select-checkbox { opacity: 0; transition: all 0.2s; transform: scale(1.2); cursor: pointer; }
-        .set-card:hover .select-checkbox, .select-checkbox:checked { opacity: 1; }
+    /* Manual Light Mode Override */
+    :root.light {
+        --bg-body: #f1f5f9;
+        --bg-card: #ffffff;
+        --bg-glass: rgba(255, 255, 255, 0.7);
+        --text-main: #1e293b;
+        --text-muted: #64748b;
+        --border-color: rgba(0,0,0,0.1);
+        --input-bg: #ffffff;
+    }
 
-        @keyframes shimmerEffect { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
-        
-        @keyframes hyperdrive {
-            0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
-            10% { opacity: 1; }
-            100% { transform: translate(-50%, -50%) scale(3); opacity: 0; }
-        }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-body); color: var(--text-main); }
+    
+    .glass { background: var(--bg-glass); backdrop-filter: blur(15px); border: 1px solid var(--border-color); }
+    
+    .set-card { transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); cursor: pointer; position: relative; }
+    .set-card:hover { transform: translateY(-8px); box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.15); }
+    
+    .select-checkbox { opacity: 0; transition: all 0.2s; transform: scale(1.2); cursor: pointer; }
+    .set-card:hover .select-checkbox, .select-checkbox:checked { opacity: 1; }
 
-        .subtheme-starwars { 
-            background: #000 !important;
-            position: relative;
-            overflow: hidden;
-            color: #ffe81f !important;
-            font-weight: 800;
-            text-shadow: 0 0 5px rgba(255, 232, 31, 0.8);
-            border: 1px solid #334155;
-            z-index: 1;
-        }
+    @keyframes shimmerEffect { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
+    
+    @keyframes hyperdrive {
+        0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+        10% { opacity: 1; }
+        100% { transform: translate(-50%, -50%) scale(3); opacity: 0; }
+    }
 
-        .subtheme-starwars::before, .subtheme-starwars::after {
-            content: "";
-            position: absolute;
-            top: 50%; left: 50%;
-            width: 100px; height: 100px;
-            background-image: 
-                radial-gradient(2px 2px at 20% 30%, #fff, rgba(0,0,0,0)),
-                radial-gradient(2px 2px at 70% 40%, #fff, rgba(0,0,0,0)),
-                radial-gradient(2px 2px at 40% 80%, #fff, rgba(0,0,0,0)),
-                radial-gradient(2px 2px at 80% 20%, #fff, rgba(0,0,0,0)),
-                radial-gradient(2px 2px at 10% 10%, #fff, rgba(0,0,0,0));
-            animation: hyperdrive 1.2s linear infinite;
-            z-index: -1;
-        }
-        .subtheme-starwars::after { animation-delay: 0.6s; }
+    .subtheme-starwars { 
+        background: #000 !important;
+        position: relative;
+        overflow: hidden;
+        color: #ffe81f !important;
+        font-weight: 800;
+        text-shadow: 0 0 5px rgba(255, 232, 31, 0.8);
+        border: 1px solid #334155;
+        z-index: 1;
+    }
 
-        .subtheme-ucs { background: linear-gradient(90deg, #bf953f, #fcf6ba, #b38728, #fcf6ba, #bf953f); background-size: 200% auto; color: #000; font-weight: 900; animation: shimmerEffect 4s linear infinite; }
-        .subtheme-modular { background: linear-gradient(90deg, #065f46, #10b981, #064e3b, #10b981, #065f46); background-size: 200% auto; color: white; font-weight: 700; animation: shimmerEffect 4s linear infinite; }
-        .subtheme-technic { background: #475569; color: white; }
-        .subtheme-default { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
+    .subtheme-starwars::before, .subtheme-starwars::after {
+        content: "";
+        position: absolute;
+        top: 50%; left: 50%;
+        width: 100px; height: 100px;
+        background-image: 
+            radial-gradient(2px 2px at 20% 30%, #fff, rgba(0,0,0,0)),
+            radial-gradient(2px 2px at 70% 40%, #fff, rgba(0,0,0,0)),
+            radial-gradient(2px 2px at 40% 80%, #fff, rgba(0,0,0,0)),
+            radial-gradient(2px 2px at 80% 20%, #fff, rgba(0,0,0,0)),
+            radial-gradient(2px 2px at 10% 10%, #fff, rgba(0,0,0,0));
+        animation: hyperdrive 1.2s linear infinite;
+        z-index: -1;
+    }
+    .subtheme-starwars::after { animation-delay: 0.6s; }
 
-        #detailModal, #duplicateModal { display: none; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); }
-        
-        /* Modal & Form Dark Mode Support */
-        .modal-inner { background-color: var(--bg-card) !important; color: var(--text-main) !important; }
-        
-        /* Inputs mit bg-transparent bleiben ohne Rahmen, restliche Inputs erhalten Standard-Rahmen */
-        input:not(.bg-transparent), select { background-color: var(--input-bg); color: var(--text-main); border: 1px solid var(--border-color); font-size: 16px;}
-        input[type=range] { border: none !important; }
-        #barcodeInput { background: transparent !important; border: none !important;}
+    .subtheme-ucs { background: linear-gradient(90deg, #bf953f, #fcf6ba, #b38728, #fcf6ba, #bf953f); background-size: 200% auto; color: #000; font-weight: 900; animation: shimmerEffect 4s linear infinite; }
+    .subtheme-modular { background: linear-gradient(90deg, #065f46, #10b981, #064e3b, #10b981, #065f46); background-size: 200% auto; color: white; font-weight: 700; animation: shimmerEffect 4s linear infinite; }
+    .subtheme-technic { background: #475569; color: white; }
+    .subtheme-default { background: var(--bg-card); color: var(--text-muted); border: 1px solid var(--border-color); }
 
-        #scrollTopBtn { display: none; }
+    /* Modal Styling */
+    #detailModal, #duplicateModal { 
+        display: none; 
+        position: fixed; 
+        inset: 0; 
+        background: rgba(15, 23, 42, 0.6); 
+        backdrop-filter: blur(8px); 
+        z-index: 50;
+        align-items: center; 
+        justify-content: center;
+        padding: 1rem;
+    }
+    
+    .modal-inner { 
+        background-color: var(--bg-card); 
+        color: var(--text-main); 
+        border-radius: 1.5rem; 
+        border: 1px solid var(--border-color);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        padding: 2rem;
+        width: 100%;
+        max-width: 500px;
+        position: relative;
+    }
+    
+    /* Inputs */
+    input:not(.bg-transparent), select { 
+        background-color: var(--input-bg); 
+        color: var(--text-main); 
+        border: 1px solid var(--border-color); 
+        font-size: 16px; 
+        padding: 0.5rem;
+        border-radius: 0.5rem;
+    }
+    input[type=range] { border: none !important; }
+    #barcodeInput { background: transparent !important; border: none !important;}
 
-        #library {
-            display: grid;
-            gap: 1rem;
-            grid-template-columns: repeat(1, minmax(0, 1fr));
-        }
-        @media (min-width: 640px) { #library { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-        @media (min-width: 1024px) { #library { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
-        html, body { 
-            overflow-x: hidden; 
-            width: 100%;
-            position: relative;
-        }
+    #scrollTopBtn { display: none; }
 
-        /* Sidebar & Overlay */
-        #filterSidebar { 
-            transition: transform 0.3s ease-in-out; z-index: 1001; 
-            background-color: var(--bg-card); border-left: 1px solid var(--border-color);
-        }
-        .sidebar-open { transform: translateX(0) !important; }
-        #sidebarOverlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.3); backdrop-filter: blur(2px); z-index: 1000; }
+    #library {
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: repeat(1, minmax(0, 1fr));
+    }
+    @media (min-width: 640px) { #library { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (min-width: 1024px) { #library { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+    html, body { 
+        overflow-x: hidden; 
+        width: 100%;
+        position: relative;
+    }
 
-        /* Custom Dual Range Slider */
-        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; outline: none; margin: 0; }
-        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 0; background: transparent; border: none; }
-        input[type=range]::-webkit-slider-thumb { 
-            pointer-events: auto; height: 18px; width: 18px; border-radius: 50%; 
-            background: #2563eb; cursor: pointer; -webkit-appearance: none; 
-            margin-top: -9px; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2); 
-            position: relative; z-index: 10;
-        }
-        input[type=range]:focus::-webkit-slider-thumb { z-index: 20; }
-    </style>
+    /* Sidebar & Overlay */
+    #filterSidebar { 
+        transition: transform 0.3s ease-in-out; z-index: 1001; 
+        background-color: var(--bg-card); border-left: 1px solid var(--border-color);
+    }
+    .sidebar-open { transform: translateX(0) !important; }
+    #sidebarOverlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.3); backdrop-filter: blur(2px); z-index: 1000; }
+
+    /* Custom Dual Range Slider */
+    input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; outline: none; margin: 0; }
+    input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 0; background: transparent; border: none; }
+    input[type=range]::-webkit-slider-thumb { 
+        pointer-events: auto; height: 18px; width: 18px; border-radius: 50%; 
+        background: #2563eb; cursor: pointer; -webkit-appearance: none; 
+        margin-top: -9px; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2); 
+        position: relative; z-index: 10;
+    }
+    input[type=range]:focus::-webkit-slider-thumb { z-index: 20; }
+</style>
 </head>
 <body class="min-h-screen pb-12">
 

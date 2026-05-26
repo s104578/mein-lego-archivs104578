@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Brix Just4Sean - Collection Manager</title>
+    <script>
+        tailwind.config = { darkMode: 'class' };
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
@@ -112,7 +115,60 @@
         /* Modal & Form Dark Mode Support */
         .modal-inner { background-color: var(--bg-card) !important; color: var(--text-main) !important; }
         input, select { background-color: var(--input-bg) !important; color: var(--text-main) !important; border: 1px solid var(--border-color) !important; font-size: 16px !important;}
-        .bg-slate-50, .bg-white { background-color: var(--bg-card) !important; }
+
+        /* Keep Tailwind's light backgrounds intact in Light Mode and only adapt them in manual Dark Mode. */
+        :root.dark .bg-white { background-color: var(--bg-card) !important; }
+        :root.dark .bg-slate-50 { background-color: rgba(15, 23, 42, 0.20) !important; }
+        :root.dark .bg-slate-100 { background-color: rgba(30, 41, 59, 0.50) !important; }
+        :root.dark .border-slate-100,
+        :root.dark .border-slate-200,
+        :root.dark .border-slate-700,
+        :root.dark .border-slate-800,
+        :root.dark .border-blue-800 { border-color: rgba(255,255,255,0.06) !important; }
+        :root.dark #detailModal .border,
+        :root.dark #duplicateModal .border { border-color: rgba(255,255,255,0.06) !important; }
+
+        /* Detailansicht: leichte, moderne Wert-Kacheln im Light Mode; blau-grau im Dark Mode. */
+        :root:not(.dark) #detailModal .grid.grid-cols-2 > div {
+            background-color: #eff6ff !important;
+            border-color: #dbeafe !important;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.72), 0 10px 24px rgba(37,99,235,0.06);
+        }
+        :root:not(.dark) #detailModal .grid.grid-cols-2 > div.bg-blue-50 {
+            background-color: #eaf3ff !important;
+            border-color: #bfdbfe !important;
+        }
+        :root:not(.dark) #detailModal .grid.grid-cols-2 > div.bg-slate-100 {
+            background-color: #eef5ff !important;
+            border-color: #dbeafe !important;
+        }
+        :root:not(.dark) #detailModal .bg-slate-50.rounded-2xl.p-5 {
+            background-color: #f1f7ff !important;
+            border-color: #dbeafe !important;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.72), 0 10px 24px rgba(37,99,235,0.05);
+        }
+        :root.dark #detailModal .grid.grid-cols-2 > div {
+            background-color: rgba(15, 23, 42, 0.55) !important;
+            border-color: rgba(148, 163, 184, 0.12) !important;
+            box-shadow: none;
+        }
+        :root.dark #detailModal .grid.grid-cols-2 > div.bg-blue-50 {
+            background-color: rgba(30, 58, 138, 0.32) !important;
+            border-color: rgba(96, 165, 250, 0.18) !important;
+        }
+        :root.dark #detailModal .bg-slate-50.rounded-2xl.p-5 {
+            background-color: rgba(15, 23, 42, 0.35) !important;
+            border-color: rgba(148, 163, 184, 0.12) !important;
+            box-shadow: none;
+        }
+        #detailModal input {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            outline: none !important;
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+        }
         #barcodeInput { background: transparent !important; border: none !important;}
 
         #scrollTopBtn { display: none; }
@@ -139,6 +195,13 @@
             position: relative; z-index: 10;
         }
         input[type=range]:focus::-webkit-slider-thumb { z-index: 20; }
+.detail-image-panel {
+    background: #ffffff !important;
+}
+
+:root.dark .detail-image-panel {
+    background: rgba(0, 0, 0, 0.2) !important;
+}
     </style>
 </head>
 <body class="min-h-screen pb-12">
@@ -316,7 +379,7 @@
     <div id="detailModal" class="fixed inset-0 flex items-end md:items-center justify-center">
         <div class="modal-inner w-full max-w-4xl h-[90vh] md:h-auto md:rounded-[2rem] rounded-t-[2rem] overflow-hidden flex flex-col md:flex-row relative">
             <button onclick="closeModal()" class="absolute top-6 right-6 text-slate-400 hover:text-red-500 z-10"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
-            <div class="md:w-2/5 bg-slate-50 dark:bg-black/20 p-8 flex flex-col items-center justify-center border-r border-slate-100 dark:border-slate-800">
+<div class="detail-image-panel md:w-2/5 p-8 flex flex-col items-center justify-center border-r border-slate-100 dark:border-slate-800">
                 <img id="modalImg" src="" class="max-h-64 object-contain drop-shadow-2xl mb-8">
                 <div class="w-full text-center md:text-left">
                     <p class="text-xs font-black text-blue-600 uppercase tracking-widest" id="modalTheme"></p>
@@ -853,17 +916,32 @@
             refreshModalCalculation();
         }
 
-        function setStatus(s) { 
-            currentStatus = s; 
-            document.getElementById('btnNew').className = s === 'New' ? "flex-1 py-3 rounded-xl border-2 font-bold bg-blue-600 text-white border-blue-600 shadow-md" : "flex-1 py-3 rounded-xl border-2 font-bold opacity-50"; 
-            document.getElementById('btnUsed').className = s === 'Used' ? "flex-1 py-3 rounded-xl border-2 font-bold bg-blue-600 text-white border-blue-600 shadow-md" : "flex-1 py-3 rounded-xl border-2 font-bold opacity-50"; 
-            
-            const currentSet = mySets.find(x => x.setNumber === currentEditId);
-            if (currentSet) {
-                const newVal = s === 'New' ? (currentSet.valNew || 0) : (currentSet.valUsed || 0);
-                if (newVal > 0) document.getElementById('editCurrentValue').value = newVal;
-            }
+  function setStatus(s) { 
+    currentStatus = s; 
+
+    document.getElementById('btnNew').className =
+        s === 'New'
+        ? "flex-1 py-3 rounded-xl border-2 font-bold bg-blue-600 text-white border-blue-600 shadow-md"
+        : "flex-1 py-3 rounded-xl border-2 font-bold opacity-50";
+
+    document.getElementById('btnUsed').className =
+        s === 'Used'
+        ? "flex-1 py-3 rounded-xl border-2 font-bold bg-slate-800 text-white border-slate-800 shadow-md"
+        : "flex-1 py-3 rounded-xl border-2 font-bold opacity-50";
+    
+    const currentSet = mySets.find(x => x.setNumber === currentEditId);
+
+    if (currentSet) {
+        const newVal =
+            s === 'New'
+            ? (currentSet.valNew || 0)
+            : (currentSet.valUsed || 0);
+
+        if (newVal > 0) {
+            document.getElementById('editCurrentValue').value = newVal;
         }
+    }
+}
 
         function refreshModalCalculation() {
             const s = mySets.find(x => x.setNumber === currentEditId);

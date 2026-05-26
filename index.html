@@ -234,6 +234,7 @@
     padding-left: 0 !important;
     padding-right: 0 !important;
 }
+
     </style>
 </head>
 <body class="min-h-screen pb-12">
@@ -639,13 +640,36 @@
                             if (genMatch) results.rrp = parseFloat(genMatch[1].replace(',', '.'));
                         }
                     }
-                    if (label === "Current value") {
-                        const text = dd.innerHTML;
-                        const newMatch = text.match(/New:.*?~€(\d+)/);
-                        const usedMatch = text.match(/Used:.*?~€(\d+)/);
-                        if (newMatch) results.valNew = parseFloat(newMatch[1]);
-                        if (usedMatch) results.valUsed = parseFloat(usedMatch[1]);
-                    }
+                   if (label === "Current value") {
+    const text = (dd.innerText || dd.textContent || dd.innerHTML || "")
+        .replace(/\u00a0/g, " ")
+        .replace(/&nbsp;/g, " ")
+        .replace(/\s+/g, " ");
+
+    const parseValue = (valueText) => {
+        if (!valueText) return 0;
+
+        const match = valueText.match(/€\s*([\d.,]+)/) || valueText.match(/([\d.,]+)\s*€/);
+        if (!match) return 0;
+
+        let value = match[1];
+
+        if (value.includes(".") && value.includes(",")) {
+            value = value.replace(/\./g, "").replace(",", ".");
+        } else {
+            value = value.replace(",", ".");
+        }
+
+        const parsed = parseFloat(value);
+        return isNaN(parsed) ? 0 : parsed;
+    };
+
+    const newMatch = text.match(/New:.*?(€\s*[\d.,]+|[\d.,]+\s*€)/i);
+    const usedMatch = text.match(/Used:.*?(€\s*[\d.,]+|[\d.,]+\s*€)/i);
+
+    if (newMatch) results.valNew = parseValue(newMatch[0]);
+    if (usedMatch) results.valUsed = parseValue(usedMatch[0]);
+}
                 }
             } catch (e) { console.error("Scraper Error:", e); }
             return results;
